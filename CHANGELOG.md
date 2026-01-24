@@ -1,5 +1,12 @@
 # Changelog
 
+## [5.1.1](https://github.com/LindemannRock/craft-report-manager/compare/v5.1.0...v5.1.1) (2026-01-24)
+
+
+### Bug Fixes
+
+* add triggeredBy parameter for scheduled report exports ([04eb7c4](https://github.com/LindemannRock/craft-report-manager/commit/04eb7c4a69ad94b230e5955f4553c6c3d384c3c6))
+
 ## [5.1.0](https://github.com/LindemannRock/craft-report-manager/compare/v5.0.0...v5.1.0) (2026-01-24)
 
 
