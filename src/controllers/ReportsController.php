@@ -295,6 +295,7 @@ class ReportsController extends Controller
                     'dateEnd' => $report->customDateEnd,
                     'fieldHandles' => $report->getFieldHandlesArray(),
                     'siteIds' => $siteIds,
+                    'triggeredBy' => \lindemannrock\reportmanager\records\ExportRecord::TRIGGER_SCHEDULED,
                 ]
             );
 
@@ -316,6 +317,7 @@ class ReportsController extends Controller
                         'dateEnd' => $report->customDateEnd,
                         'fieldHandles' => $report->getFieldHandlesArray(),
                         'siteIds' => $siteIds,
+                        'triggeredBy' => \lindemannrock\reportmanager\records\ExportRecord::TRIGGER_SCHEDULED,
                     ]
                 );
 
