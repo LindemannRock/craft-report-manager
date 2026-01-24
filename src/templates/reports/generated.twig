@@ -1,0 +1,261 @@
+{#
+ # Report Generated Files - Using cp-table layout
+ #
+ # Lists all generated export files for a specific report.
+ #}
+
+{% extends 'lindemannrock-base/_layouts/cp-table' %}
+
+{# ============================================================================
+   TABLE CONFIGURATION
+   ============================================================================ #}
+
+{% set canDownload = currentUser.can('reportManager:downloadExports') %}
+{% set canDelete = currentUser.can('reportManager:deleteExports') %}
+{% set canCreate = currentUser.can('reportManager:createExports') %}
+{% set showActionsColumn = canDownload or canDelete %}
+
+{% set tableConfig = {
+    plugin: {
+        handle: 'report-manager',
+        name: reportHelper.fullName,
+    },
+    page: {
+        title: report.name ~ ' - ' ~ 'Generated Files'|t('report-manager'),
+        subnav: 'reports',
+        crumbs: [
+            { label: reportHelper.fullName, url: url('report-manager') },
+            { label: 'Reports'|t('report-manager'), url: url('report-manager/reports') },
+            { label: report.name, url: url('report-manager/reports/' ~ report.id) },
+            { label: 'Generated Files'|t('report-manager') }
+        ],
+    },
+    table: {
+        columns: [
+            {key: 'filename', label: 'Filename'|t('report-manager')},
+            {key: 'format', label: 'Format'|t('report-manager')},
+            {key: 'status', label: 'Status'|t('report-manager')},
+            {key: 'recordCount', label: 'Records'|t('report-manager')},
+            {key: 'fileSize', label: 'Size'|t('report-manager')},
+            {key: 'dateCreated', label: 'Created'|t('report-manager')},
+        ],
+        items: exports,
+        emptyMessage: 'No generated files yet.'|t('report-manager'),
+    },
+    pagination: {
+        page: page,
+        limit: limit,
+        totalCount: totalCount,
+        itemLabel: {singular: 'file'|t('report-manager'), plural: 'files'|t('report-manager')},
+    },
+    checkboxes: canDelete,
+} %}
+
+
+{# ============================================================================
+   TOOLBAR ACTIONS
+   ============================================================================ #}
+
+{% block toolbarActions %}
+    {% if canCreate %}
+        <form method="post" action="" style="display: inline;">
+            <input type="hidden" name="action" value="report-manager/reports/generate">
+            <input type="hidden" name="reportId" value="{{ report.id }}">
+            {{ csrfInput() }}
+            <button type="submit" class="btn submit add icon">{{ 'Generate Now'|t('report-manager') }}</button>
+        </form>
+    {% endif %}
+{% endblock %}
+
+
+{# ============================================================================
+   CUSTOM TABLE ROW RENDERING
+   ============================================================================ #}
+
+{% block tableRow %}
+    {# Filename #}
+    <td>
+        <span>{{ item.filename }}</span>
+        {% if item.isCombinedExport() %}
+            <span class="light">({{ 'Combined'|t('report-manager') }})</span>
+        {% elseif item.entityName %}
+            <br><span class="light">{{ item.entityName }}</span>
+        {% endif %}
+    </td>
+
+    {# Format #}
+    <td>{{ item.format|upper }}</td>
+
+    {# Status #}
+    <td>
+        {% include 'lindemannrock-base/_components/badge' with {
+            label: item.statusLabel ~ (item.isProcessing() ? ' (' ~ item.progress ~ '%)' : ''),
+            value: item.status,
+            colorSet: 'exportStatus',
+        } only %}
+    </td>
+
+    {# Records #}
+    <td>{{ item.recordCount|number_format }}</td>
+
+    {# Size #}
+    <td>{{ item.formattedFileSize }}</td>
+
+    {# Created #}
+    <td class="light">{{ item.dateCreated|lrDatetime('medium') }}</td>
+{% endblock %}
+
+
+{# ============================================================================
+   ROW ACTIONS
+   ============================================================================ #}
+
+{% block rowActions %}
+    {% if showActionsColumn %}
+        {% set displayName = item.entityName ?? item.filename %}
+        <td class="thin" style="text-align: right;">
+            <button type="button" class="btn menubtn" data-icon="settings" title="{{ 'Actions'|t('report-manager') }}"></button>
+            <div class="menu">
+                <ul>
+                    {% if item.isCompleted() and canDownload %}
+                        <li>
+                            <a href="{{ url('report-manager/exports/download/' ~ item.id) }}">
+                                {{ 'Download'|t('report-manager') }}
+                            </a>
+                        </li>
+                    {% endif %}
+                    {% if canDelete %}
+                        {% if item.isCompleted() and canDownload %}<li><hr class="padded"></li>{% endif %}
+                        <li>
+                            <a class="export-action error" data-action="delete" data-id="{{ item.id }}" data-name="{{ displayName }}">
+                                {{ 'Delete'|t('report-manager') }}
+                            </a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </td>
+    {% endif %}
+{% endblock %}
+
+
+{# ============================================================================
+   BULK ACTIONS
+   ============================================================================ #}
+
+{% block bulkActions %}
+    {% if canDelete %}
+        <button type="button" class="btn secondary" id="bulk-delete-btn">
+            <span id="delete-label">{{ 'Delete'|t('report-manager') }}</span>
+        </button>
+    {% endif %}
+{% endblock %}
+
+
+{# ============================================================================
+   SIDEBAR - Report Details
+   ============================================================================ #}
+
+{% block sidebarContent %}
+    <div class="meta read-only">
+        <div class="data">
+            <h5 class="heading">{{ 'Report'|t('report-manager') }}</h5>
+            <div class="value"><a href="{{ url('report-manager/reports/' ~ report.id) }}">{{ report.name }}</a></div>
+        </div>
+        <div class="data">
+            <h5 class="heading">{{ 'Status'|t('report-manager') }}</h5>
+            <div class="value">
+                {% include 'lindemannrock-base/_components/badge' with {
+                    label: report.enabled ? 'Enabled'|t('report-manager') : 'Disabled'|t('report-manager'),
+                    value: report.enabled ? 'enabled' : 'disabled',
+                    colorSet: 'status',
+                } only %}
+            </div>
+        </div>
+        <div class="data">
+            <h5 class="heading">{{ 'Forms'|t('report-manager') }}</h5>
+            <div class="value">{{ report.entityIdsArray|length }}</div>
+        </div>
+        <div class="data">
+            <h5 class="heading">{{ 'Export Mode'|t('report-manager') }}</h5>
+            <div class="value">{{ report.exportMode == 'combined' ? 'Combined File'|t('report-manager') : 'Separate Files'|t('report-manager') }}</div>
+        </div>
+        <div class="data">
+            <h5 class="heading">{{ 'Format'|t('report-manager') }}</h5>
+            <div class="value">{{ report.exportFormat|upper }}</div>
+        </div>
+        {% if report.lastGeneratedAt %}
+            <div class="data">
+                <h5 class="heading">{{ 'Last Generated'|t('report-manager') }}</h5>
+                <div class="value">{{ report.lastGeneratedAt|lrDatetime }}</div>
+            </div>
+        {% endif %}
+        <div class="data">
+            <h5 class="heading">{{ 'Total Files'|t('report-manager') }}</h5>
+            <div class="value">{{ totalCount }}</div>
+        </div>
+    </div>
+{% endblock %}
+
+
+{# ============================================================================
+   CUSTOM SCRIPTS
+   ============================================================================ #}
+
+{% block scripts %}
+    <script>
+    (function() {
+        // Update delete label with count
+        document.addEventListener('lr:selectionChanged', function(e) {
+            const deleteLabel = document.getElementById('delete-label');
+            if (deleteLabel && e.detail.count > 0) {
+                deleteLabel.textContent = `{{ 'Delete'|t('report-manager') }} (${e.detail.count})`;
+            }
+        });
+
+        // Bulk delete
+        document.getElementById('bulk-delete-btn')?.addEventListener('click', function() {
+            const ids = window.lrTableSelection?.getSelectedIds() || [];
+            if (!ids.length) return;
+            if (!confirm(`Delete ${ids.length} ${ids.length > 1 ? 'files' : 'file'}? This cannot be undone.`)) return;
+
+            Craft.sendActionRequest('POST', 'report-manager/exports/bulk-delete', {
+                data: { exportIds: ids }
+            }).then(function(response) {
+                if (response.data.success) {
+                    Craft.cp.displayNotice(`Deleted ${response.data.deleted} files`);
+                    setTimeout(() => window.location.reload(), 1000);
+                }
+            }).catch(function(error) {
+                Craft.cp.displayError('Failed to delete files');
+            });
+        });
+
+        // Individual export action menu clicks
+        document.querySelectorAll('.export-action').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+
+                const action = this.dataset.action;
+                const exportId = this.dataset.id;
+                const exportName = this.dataset.name;
+
+                if (action === 'delete') {
+                    if (confirm('Delete "' + exportName + '"? This cannot be undone.')) {
+                        Craft.sendActionRequest('POST', 'report-manager/exports/delete', {
+                            data: { id: exportId }
+                        }).then(function(response) {
+                            if (response.data.success) {
+                                Craft.cp.displayNotice('File deleted');
+                                setTimeout(() => window.location.reload(), 1000);
+                            }
+                        }).catch(function(error) {
+                            Craft.cp.displayError('Failed to delete file');
+                        });
+                    }
+                }
+            });
+        });
+    })();
+    </script>
+{% endblock %}

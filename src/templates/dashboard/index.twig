@@ -1,0 +1,288 @@
+{#
+ # Dashboard - Generated Exports - Using cp-table layout
+ #
+ # Lists all generated exports with filtering, sorting, bulk actions and pagination.
+ #}
+
+{% extends 'lindemannrock-base/_layouts/cp-table' %}
+
+{# ============================================================================
+   GET QUERY PARAMETERS
+   ============================================================================ #}
+
+{% set statusFilter = craft.app.request.getParam('status', 'all') %}
+{% set typeFilter = craft.app.request.getParam('type', 'all') %}
+{% set formatFilter = craft.app.request.getParam('format', 'all') %}
+{% set search = craft.app.request.getParam('search', '') %}
+{% set sort = craft.app.request.getParam('sort', 'dateCreated') %}
+{% set dir = craft.app.request.getParam('dir', 'desc') %}
+
+{# ============================================================================
+   BUILD FILTER OPTIONS
+   ============================================================================ #}
+
+{# Build format options from enabled exports config #}
+{% set formatOptions = [{value: 'all', label: 'All Formats'|t('report-manager'), status: 'all'}] %}
+{% for format in lrExportFormatOptions() %}
+    {% set formatOptions = formatOptions|merge([{value: format.value, label: format.label, colorKey: format.value}]) %}
+{% endfor %}
+
+{# ============================================================================
+   TABLE CONFIGURATION
+   ============================================================================ #}
+
+{% set canDownload = currentUser.can('reportManager:downloadExports') %}
+{% set canDelete = currentUser.can('reportManager:deleteExports') %}
+
+{% set tableConfig = {
+    plugin: {
+        handle: 'report-manager',
+        name: reportHelper.fullName,
+    },
+    page: {
+        title: 'Dashboard'|t('report-manager'),
+        subnav: 'dashboard',
+        crumbs: [
+            { label: reportHelper.fullName, url: url('report-manager') },
+            { label: 'Dashboard'|t('report-manager') }
+        ],
+    },
+    filters: [
+        {
+            type: 'status',
+            param: 'status',
+            current: statusFilter,
+            label: 'All'|t('report-manager'),
+            groups: [
+                {
+                    param: 'status',
+                    current: statusFilter,
+                    colorSet: 'exportStatus',
+                    options: [
+                        {value: 'all', label: 'All'|t('report-manager'), status: 'all'},
+                        {value: 'completed', label: 'Completed'|t('report-manager'), colorKey: 'completed'},
+                        {value: 'processing', label: 'Processing'|t('report-manager'), colorKey: 'processing'},
+                        {value: 'pending', label: 'Pending'|t('report-manager'), colorKey: 'pending'},
+                        {value: 'failed', label: 'Failed'|t('report-manager'), colorKey: 'failed'},
+                    ],
+                },
+                {
+                    header: 'Type'|t('report-manager'),
+                    param: 'type',
+                    current: typeFilter,
+                    colorSet: 'triggerType',
+                    options: [
+                        {value: 'all', label: 'All Types'|t('report-manager'), status: 'all'},
+                        {value: 'manual', label: 'Manual'|t('report-manager'), colorKey: 'manual'},
+                        {value: 'scheduled', label: 'Scheduled'|t('report-manager'), colorKey: 'scheduled'},
+                        {value: 'api', label: 'API'|t('report-manager'), colorKey: 'api'},
+                    ],
+                },
+                {
+                    header: 'Format'|t('report-manager'),
+                    param: 'format',
+                    current: formatFilter,
+                    colorSet: 'exportFormat',
+                    options: formatOptions,
+                },
+            ],
+        },
+    ],
+    search: {
+        placeholder: 'Search exports...'|t('report-manager'),
+        value: search,
+    },
+    sort: {
+        field: sort,
+        direction: dir,
+    },
+    table: {
+        columns: [
+            {key: 'entityName', label: 'Name'|t('report-manager'), sortable: true},
+            {key: 'status', label: 'Status'|t('report-manager'), sortable: true},
+            {key: 'format', label: 'Format'|t('report-manager'), sortable: true},
+            {key: 'report', label: 'Report'|t('report-manager')},
+            {key: 'recordCount', label: 'Records'|t('report-manager'), sortable: true},
+            {key: 'fileSize', label: 'Size'|t('report-manager'), sortable: true},
+            {key: 'triggeredBy', label: 'Type'|t('report-manager'), sortable: true},
+            {key: 'dateCreated', label: 'Created'|t('report-manager'), sortable: true},
+        ],
+        items: exports,
+        emptyMessage: 'No exports found.'|t('report-manager'),
+    },
+    pagination: {
+        page: page,
+        limit: limit,
+        totalCount: totalCount,
+        itemLabel: {singular: 'export'|t('report-manager'), plural: 'exports'|t('report-manager')},
+    },
+    checkboxes: canDelete,
+} %}
+
+
+{# ============================================================================
+   CUSTOM TABLE ROW RENDERING
+   ============================================================================ #}
+
+{% block tableRow %}
+    {# Name #}
+    <td>
+        {% set displayName = item.filename ?? ('Export #' ~ item.id) %}
+        {% if item.isCompleted and canDownload %}
+            <a href="{{ url('report-manager/exports/download/' ~ item.id) }}">{{ displayName }}</a>
+        {% else %}
+            {{ displayName }}
+        {% endif %}
+    </td>
+
+    {# Status #}
+    <td>
+        {% include 'lindemannrock-base/_components/badge' with {
+            label: item.status|capitalize,
+            value: item.status,
+            colorSet: 'exportStatus',
+        } only %}
+    </td>
+
+    {# Format #}
+    <td>
+        {% include 'lindemannrock-base/_components/badge' with {
+            label: item.format|upper,
+            value: item.format,
+            colorSet: 'exportFormat',
+        } only %}
+    </td>
+
+    {# Report #}
+    <td>
+        {% if item.reportId %}
+            <a href="{{ url('report-manager/reports/' ~ item.reportId) }}">{{ item.report.name ?? ('Report #' ~ item.reportId) }}</a>
+        {% else %}
+            <span class="light">{{ 'Ad-hoc'|t('report-manager') }}</span>
+        {% endif %}
+    </td>
+
+    {# Records #}
+    <td>{{ item.recordCount|number_format }}</td>
+
+    {# Size #}
+    <td>{{ item.formattedFileSize }}</td>
+
+    {# Type #}
+    <td>
+        {% include 'lindemannrock-base/_components/badge' with {
+            label: item.triggerLabel,
+            value: item.triggeredBy,
+            colorSet: 'triggerType',
+        } only %}
+    </td>
+
+    {# Created #}
+    <td class="light">{{ item.dateCreated|lrDatetime('medium') }}</td>
+{% endblock %}
+
+
+{# ============================================================================
+   ROW ACTIONS
+   ============================================================================ #}
+
+{% block rowActions %}
+    <td class="thin" style="text-align: right;">
+        <button type="button" class="btn menubtn" data-icon="settings" title="{{ 'Actions'|t('report-manager') }}"></button>
+        <div class="menu">
+            <ul>
+                {% if item.isCompleted and canDownload %}
+                    <li>
+                        <a href="{{ url('report-manager/exports/download/' ~ item.id) }}">
+                            {{ 'Download'|t('report-manager') }}
+                        </a>
+                    </li>
+                {% endif %}
+                {% if canDelete %}
+                    {% if item.isCompleted and canDownload %}<li><hr class="padded"></li>{% endif %}
+                    <li>
+                        <a class="export-action error" data-action="delete" data-id="{{ item.id }}" data-name="{{ item.filename }}">
+                            {{ 'Delete'|t('report-manager') }}
+                        </a>
+                    </li>
+                {% endif %}
+            </ul>
+        </div>
+    </td>
+{% endblock %}
+
+
+{# ============================================================================
+   BULK ACTIONS
+   ============================================================================ #}
+
+{% block bulkActions %}
+    {% if canDelete %}
+        <button type="button" class="btn secondary" id="bulk-delete-btn">
+            <span id="delete-label">{{ 'Delete'|t('report-manager') }}</span>
+        </button>
+    {% endif %}
+{% endblock %}
+
+
+{# ============================================================================
+   CUSTOM SCRIPTS
+   ============================================================================ #}
+
+{% block scripts %}
+    <script>
+    (function() {
+        // Update delete label with count
+        document.addEventListener('lr:selectionChanged', function(e) {
+            const deleteLabel = document.getElementById('delete-label');
+            if (deleteLabel && e.detail.count > 0) {
+                deleteLabel.textContent = `{{ 'Delete'|t('report-manager') }} (${e.detail.count})`;
+            }
+        });
+
+        // Bulk delete
+        document.getElementById('bulk-delete-btn')?.addEventListener('click', function() {
+            const ids = window.lrTableSelection?.getSelectedIds() || [];
+            if (!ids.length) return;
+            if (!confirm(`Delete ${ids.length} ${ids.length > 1 ? 'exports' : 'export'}? This cannot be undone.`)) return;
+
+            Craft.sendActionRequest('POST', 'report-manager/exports/bulk-delete', {
+                data: { exportIds: ids }
+            }).then(function(response) {
+                if (response.data.success) {
+                    Craft.cp.displayNotice(`Deleted ${response.data.count} exports`);
+                    setTimeout(() => window.location.reload(), 1000);
+                }
+            }).catch(function(error) {
+                Craft.cp.displayError('Failed to delete exports');
+            });
+        });
+
+        // Individual export action menu clicks
+        document.querySelectorAll('.export-action').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+
+                const action = this.dataset.action;
+                const exportId = this.dataset.id;
+                const exportName = this.dataset.name;
+
+                if (action === 'delete') {
+                    if (confirm('Delete export "' + exportName + '"? This cannot be undone.')) {
+                        Craft.sendActionRequest('POST', 'report-manager/exports/delete', {
+                            data: { id: exportId }
+                        }).then(function(response) {
+                            if (response.data.success) {
+                                Craft.cp.displayNotice('Export deleted');
+                                setTimeout(() => window.location.reload(), 1000);
+                            }
+                        }).catch(function(error) {
+                            Craft.cp.displayError('Failed to delete export');
+                        });
+                    }
+                }
+            });
+        });
+    })();
+    </script>
+{% endblock %}

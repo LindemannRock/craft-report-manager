@@ -1,0 +1,214 @@
+{% extends "_layouts/cp" %}
+{% import "_includes/forms" as forms %}
+
+{% set plugin = craft.app.plugins.getPlugin('report-manager') %}
+{% set title = 'Quick Export'|t('report-manager') %}
+{% set fullPageForm = true %}
+{% set selectedSubnavItem = 'exports' %}
+
+{% set crumbs = [
+    { label: reportHelper.fullName, url: url('report-manager') },
+    { label: 'Exports'|t('report-manager'), url: url('report-manager/exports') },
+    { label: 'Quick Export'|t('report-manager') }
+] %}
+
+{# Determine default data source and entities #}
+{% set defaultDataSource = dataSourceOptions|first.value ?? '' %}
+{% set currentEntities = allEntities[defaultDataSource].entities ?? [] %}
+
+{% block actionButton %}
+    <div class="btngroup submit">
+        <button type="submit" class="btn submit">{{ 'Generate Export'|t('report-manager') }}</button>
+    </div>
+{% endblock %}
+
+{% block content %}
+    <input type="hidden" name="action" value="report-manager/exports/quick-export">
+    <input type="hidden" name="redirect" value="{{ 'report-manager/exports'|hash }}">
+    {{ csrfInput() }}
+
+    <div id="fields">
+        {{ forms.selectField({
+            first: true,
+            label: 'Data Source'|t('report-manager'),
+            instructions: 'Select the data source to export from.'|t('report-manager'),
+            id: 'dataSource',
+            name: 'dataSource',
+            value: defaultDataSource,
+            options: dataSourceOptions,
+            required: true
+        }) }}
+
+        <div class="field" id="forms-field">
+            <div class="heading">
+                <label>{{ 'Forms to Export'|t('report-manager') }}</label>
+                <div class="instructions">
+                    <p>{{ 'Select one or more forms to export. Each form will generate a separate export file.'|t('report-manager') }}</p>
+                </div>
+            </div>
+            <div class="input ltr">
+                <div class="btngroup small" style="margin-bottom: 10px;">
+                    <button type="button" class="btn small" id="select-all-forms">{{ 'Select All'|t('report-manager') }}</button>
+                    <button type="button" class="btn small" id="select-none-forms">{{ 'Select None'|t('report-manager') }}</button>
+                </div>
+                <div id="forms-container">
+                    {% for entity in currentEntities %}
+                        <div class="checkbox-wrapper" style="margin-bottom: 8px;">
+                            <label>
+                                <input type="checkbox" name="entityIds[]" value="{{ entity.id }}">
+                                <strong>{{ entity.name }}</strong>
+                                <span class="light">({{ entity.submissionCount }} submissions)</span>
+                            </label>
+                        </div>
+                    {% else %}
+                        <p class="light">{{ 'No forms available.'|t('report-manager') }}</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <hr>
+
+        {{ forms.selectField({
+            label: 'Date Range'|t('report-manager'),
+            instructions: 'Filter submissions by date range.'|t('report-manager'),
+            id: 'dateRange',
+            name: 'dateRange',
+            value: settings.defaultDateRange,
+            options: dateRangeOptions|merge([{ value: 'custom', label: 'Custom Range'|t('report-manager') }])
+        }) }}
+
+        <div id="custom-date-range" style="display: none;">
+            {{ forms.dateField({
+                label: 'Start Date'|t('report-manager'),
+                id: 'customDateStart',
+                name: 'customDateStart'
+            }) }}
+
+            {{ forms.dateField({
+                label: 'End Date'|t('report-manager'),
+                id: 'customDateEnd',
+                name: 'customDateEnd'
+            }) }}
+        </div>
+    </div>
+{% endblock %}
+
+{% block details %}
+    <div class="meta">
+        {{ forms.selectField({
+            label: 'Export Mode'|t('report-manager'),
+            instructions: 'How to handle multiple forms.'|t('report-manager'),
+            id: 'exportMode',
+            name: 'exportMode',
+            value: 'separate',
+            options: [
+                { value: 'separate', label: 'Separate Files'|t('report-manager') },
+                { value: 'combined', label: 'Combined File'|t('report-manager') },
+            ]
+        }) }}
+
+        {{ forms.selectField({
+            label: 'Export Format'|t('report-manager'),
+            id: 'format',
+            name: 'format',
+            value: settings.defaultExportFormat,
+            options: exportFormatOptions
+        }) }}
+
+        {{ forms.lightswitchField({
+            label: 'Process Immediately'|t('report-manager'),
+            instructions: 'Generate now instead of queuing.'|t('report-manager'),
+            id: 'processImmediately',
+            name: 'processImmediately',
+            on: false
+        }) }}
+
+        {% if craft.app.getIsMultiSite() %}
+            {% set siteOptions = [{ value: '', label: 'All Sites'|t('report-manager') }] %}
+            {% for site in craft.app.sites.getAllSites() %}
+                {% set siteOptions = siteOptions|merge([{ value: site.id, label: site.name }]) %}
+            {% endfor %}
+            {{ forms.selectField({
+                label: 'Site'|t('report-manager'),
+                id: 'siteId',
+                name: 'siteId',
+                options: siteOptions,
+                value: ''
+            }) }}
+        {% endif %}
+    </div>
+
+    <fieldset>
+        <dl class="meta read-only">
+            <div class="data">
+                <dt class="heading">{{ 'Selected Forms'|t('report-manager') }}</dt>
+                <dd class="value" id="selected-count">0</dd>
+            </div>
+        </dl>
+    </fieldset>
+{% endblock %}
+
+{% js %}
+// Store all entities data for JavaScript access
+var allEntitiesData = {{ allEntities|json_encode|raw }};
+
+// Update selected count
+function updateSelectedCount() {
+    var count = $('input[name="entityIds[]"]:checked').length;
+    $('#selected-count').text(count);
+}
+
+// Select all/none buttons
+$('#select-all-forms').on('click', function() {
+    $('input[name="entityIds[]"]').prop('checked', true);
+    updateSelectedCount();
+});
+
+$('#select-none-forms').on('click', function() {
+    $('input[name="entityIds[]"]').prop('checked', false);
+    updateSelectedCount();
+});
+
+// Update count when checkboxes change
+$(document).on('change', 'input[name="entityIds[]"]', function() {
+    updateSelectedCount();
+});
+
+// Toggle custom date range visibility
+$('#dateRange').on('change', function() {
+    if ($(this).val() === 'custom') {
+        $('#custom-date-range').slideDown();
+    } else {
+        $('#custom-date-range').slideUp();
+    }
+});
+
+// Load entities when data source changes
+$('#dataSource').on('change', function() {
+    var dataSource = $(this).val();
+    var $container = $('#forms-container');
+    $container.empty();
+
+    if (dataSource && allEntitiesData[dataSource]) {
+        allEntitiesData[dataSource].entities.forEach(function(entity) {
+            var $wrapper = $('<div class="checkbox-wrapper" style="margin-bottom: 8px;">');
+            var $label = $('<label>');
+            var $checkbox = $('<input type="checkbox" name="entityIds[]" value="' + entity.id + '">');
+
+            $label.append($checkbox);
+            $label.append(' <strong>' + entity.name + '</strong>');
+            $label.append(' <span class="light">(' + entity.submissionCount + ' submissions)</span>');
+            $wrapper.append($label);
+            $container.append($wrapper);
+        });
+    } else {
+        $container.html('<p class="light">{{ 'No forms available.'|t('report-manager') }}</p>');
+    }
+
+    updateSelectedCount();
+});
+
+// Initial count
+updateSelectedCount();
+{% endjs %}

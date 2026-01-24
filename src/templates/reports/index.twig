@@ -1,0 +1,358 @@
+{#
+ # Reports Index - Using cp-table layout
+ #
+ # Lists all reports with filtering, sorting, bulk actions and pagination.
+ #}
+
+{% extends 'lindemannrock-base/_layouts/cp-table' %}
+
+{# ============================================================================
+   GET QUERY PARAMETERS
+   ============================================================================ #}
+
+{% set search = craft.app.request.getParam('search', '') %}
+{% set statusFilter = craft.app.request.getParam('status', 'all') %}
+{% set formatFilter = craft.app.request.getParam('format', 'all') %}
+{% set sort = craft.app.request.getParam('sort', 'dateCreated') %}
+{% set dir = craft.app.request.getParam('dir', 'desc') %}
+
+{# ============================================================================
+   BUILD FILTER OPTIONS
+   ============================================================================ #}
+
+{# Build format options from enabled exports config #}
+{% set formatOptions = [{value: 'all', label: 'All Formats'|t('report-manager'), status: 'all'}] %}
+{% for format in lrExportFormatOptions() %}
+    {% set formatOptions = formatOptions|merge([{value: format.value, label: format.label, colorKey: format.value}]) %}
+{% endfor %}
+
+{# ============================================================================
+   TABLE CONFIGURATION
+   ============================================================================ #}
+
+{% set canManage = currentUser.can('reportManager:manageReports') %}
+
+{% set tableConfig = {
+    plugin: {
+        handle: 'report-manager',
+        name: reportHelper.fullName,
+    },
+    page: {
+        title: 'Reports'|t('report-manager'),
+        subnav: 'reports',
+        crumbs: [
+            { label: reportHelper.fullName, url: url('report-manager') },
+            { label: 'Reports'|t('report-manager') }
+        ],
+    },
+    filters: [
+        {
+            type: 'status',
+            param: 'status',
+            current: statusFilter,
+            label: 'All'|t('report-manager'),
+            groups: [
+                {
+                    param: 'status',
+                    current: statusFilter,
+                    colorSet: 'status',
+                    options: [
+                        {value: 'all', label: 'All'|t('report-manager'), status: 'all'},
+                        {value: 'enabled', label: 'Enabled'|t('report-manager'), colorKey: 'enabled'},
+                        {value: 'disabled', label: 'Disabled'|t('report-manager'), colorKey: 'disabled'},
+                    ],
+                },
+                {
+                    header: 'Format'|t('report-manager'),
+                    param: 'format',
+                    current: formatFilter,
+                    colorSet: 'exportFormat',
+                    options: formatOptions,
+                },
+            ],
+        },
+    ],
+    search: {
+        placeholder: 'Search reports...'|t('report-manager'),
+        value: search,
+    },
+    sort: {
+        field: sort,
+        direction: dir,
+    },
+    table: {
+        columns: [
+            {key: 'name', label: 'Name'|t('report-manager'), sortable: true},
+            {key: 'dataSource', label: 'Source'|t('report-manager'), sortable: true},
+            {key: 'mode', label: 'Mode'|t('report-manager')},
+            {key: 'exportFormat', label: 'Format'|t('report-manager'), sortable: true},
+            {key: 'schedule', label: 'Schedule'|t('report-manager')},
+            {key: 'lastGeneratedAt', label: 'Last Run'|t('report-manager'), sortable: true},
+            {key: 'nextScheduledAt', label: 'Next Run'|t('report-manager'), sortable: true},
+            {key: 'enabled', label: 'Status'|t('report-manager'), sortable: true},
+        ],
+        items: reports,
+        emptyMessage: 'No reports found.'|t('report-manager'),
+    },
+    pagination: {
+        page: page,
+        limit: limit,
+        totalCount: totalCount,
+        itemLabel: {singular: 'report'|t('report-manager'), plural: 'reports'|t('report-manager')},
+    },
+    checkboxes: true,
+    newButton: canManage ? {
+        url: url('report-manager/reports/new'),
+        label: 'New Report'|t('report-manager'),
+        permission: 'reportManager:manageReports',
+    } : null,
+} %}
+
+
+{# ============================================================================
+   CUSTOM TABLE ROW RENDERING
+   ============================================================================ #}
+
+{% block tableRow %}
+    {# Name #}
+    <td>
+        {% if canManage %}
+            <a href="{{ url('report-manager/reports/' ~ item.id) }}">{{ item.name }}</a>
+        {% else %}
+            {{ item.name }}
+        {% endif %}
+    </td>
+
+    {# Source #}
+    <td>{{ item.dataSource|capitalize }}</td>
+
+    {# Mode #}
+    <td>{{ item.exportMode == 'combined' ? 'Combined'|t('report-manager') : 'Separate'|t('report-manager') }}</td>
+
+    {# Format #}
+    <td>
+        {% include 'lindemannrock-base/_components/badge' with {
+            label: item.exportFormat|upper,
+            value: item.exportFormat,
+            colorSet: 'exportFormat',
+        } only %}
+    </td>
+
+    {# Schedule #}
+    <td>
+        {% if item.enableSchedule %}
+            {{ item.scheduleLabel }}
+        {% else %}
+            <span class="light">{{ 'Manual'|t('report-manager') }}</span>
+        {% endif %}
+    </td>
+
+    {# Last Run #}
+    <td class="light">
+        {% if item.lastGeneratedAt %}
+            {{ item.lastGeneratedAt|lrCompactDatetime }}
+        {% else %}
+            {{ 'Never'|t('report-manager') }}
+        {% endif %}
+    </td>
+
+    {# Next Run #}
+    <td class="light">
+        {% if item.enableSchedule and item.nextScheduledAt %}
+            {{ item.nextScheduledAt|lrCompactDatetime }}
+        {% else %}
+            <span class="light">-</span>
+        {% endif %}
+    </td>
+
+    {# Status #}
+    <td>
+        {% include 'lindemannrock-base/_components/badge' with {
+            label: item.enabled ? 'Enabled'|t('report-manager') : 'Disabled'|t('report-manager'),
+            value: item.enabled ? 'enabled' : 'disabled',
+            colorSet: 'status',
+        } only %}
+    </td>
+{% endblock %}
+
+
+{# ============================================================================
+   ROW ACTIONS
+   ============================================================================ #}
+
+{% block rowActions %}
+    <td class="thin" style="text-align: right;">
+        <button type="button" class="btn menubtn" data-icon="settings" title="{{ 'Actions'|t('report-manager') }}"></button>
+        <div class="menu">
+            <ul>
+                {% if canManage %}
+                    <li>
+                        <a href="{{ url('report-manager/reports/' ~ item.id) }}">
+                            {{ 'Edit'|t('report-manager') }}
+                        </a>
+                    </li>
+                {% endif %}
+                <li>
+                    <a href="{{ url('report-manager/reports/' ~ item.id ~ '/generated') }}">
+                        {{ 'View Generated'|t('report-manager') }}
+                    </a>
+                </li>
+                <li><hr class="padded"></li>
+                <li>
+                    <a class="report-action" data-action="generate" data-id="{{ item.id }}" data-name="{{ item.name }}">
+                        {{ 'Generate Now'|t('report-manager') }}
+                    </a>
+                </li>
+                {% if canManage %}
+                    <li><hr class="padded"></li>
+                    <li>
+                        <a class="report-action error" data-action="delete" data-id="{{ item.id }}" data-name="{{ item.name }}">
+                            {{ 'Delete'|t('report-manager') }}
+                        </a>
+                    </li>
+                {% endif %}
+            </ul>
+        </div>
+    </td>
+{% endblock %}
+
+
+{# ============================================================================
+   BULK ACTIONS
+   ============================================================================ #}
+
+{% block bulkActions %}
+    <div>
+        <button type="button" class="btn menubtn secondary" id="bulk-status-btn" aria-label="Set status">
+            {{ 'Set status'|t('app') }}
+        </button>
+        <div class="menu">
+            <ul>
+                <li><a id="bulk-enable-action">{{ 'Enable'|t('report-manager') }}</a></li>
+                <li><a id="bulk-disable-action">{{ 'Disable'|t('report-manager') }}</a></li>
+            </ul>
+        </div>
+    </div>
+    <button type="button" class="btn secondary" id="bulk-delete-btn">
+        <span id="delete-label">{{ 'Delete'|t('report-manager') }}</span>
+    </button>
+{% endblock %}
+
+
+{# ============================================================================
+   CUSTOM SCRIPTS
+   ============================================================================ #}
+
+{% block scripts %}
+    <script>
+    (function() {
+        // Initialize bulk status menu
+        const bulkStatusBtn = document.getElementById('bulk-status-btn');
+        if (bulkStatusBtn && typeof Craft !== 'undefined' && Craft.MenuBtn) {
+            new Craft.MenuBtn(bulkStatusBtn);
+        }
+
+        // Update delete label with count
+        document.addEventListener('lr:selectionChanged', function(e) {
+            const deleteLabel = document.getElementById('delete-label');
+            if (deleteLabel && e.detail.count > 0) {
+                deleteLabel.textContent = `{{ 'Delete'|t('report-manager') }} (${e.detail.count})`;
+            }
+        });
+
+        // Bulk enable
+        document.getElementById('bulk-enable-action')?.addEventListener('click', function(e) {
+            e.preventDefault();
+            const ids = window.lrTableSelection?.getSelectedIds() || [];
+            if (!ids.length) return;
+
+            Craft.sendActionRequest('POST', 'report-manager/reports/bulk-enable', {
+                data: { reportIds: ids }
+            }).then(function(response) {
+                if (response.data.success) {
+                    Craft.cp.displayNotice(`Enabled ${response.data.count} reports`);
+                    setTimeout(() => window.location.reload(), 1000);
+                }
+            }).catch(function(error) {
+                Craft.cp.displayError('Failed to enable reports');
+            });
+        });
+
+        // Bulk disable
+        document.getElementById('bulk-disable-action')?.addEventListener('click', function(e) {
+            e.preventDefault();
+            const ids = window.lrTableSelection?.getSelectedIds() || [];
+            if (!ids.length) return;
+
+            Craft.sendActionRequest('POST', 'report-manager/reports/bulk-disable', {
+                data: { reportIds: ids }
+            }).then(function(response) {
+                if (response.data.success) {
+                    Craft.cp.displayNotice(`Disabled ${response.data.count} reports`);
+                    setTimeout(() => window.location.reload(), 1000);
+                }
+            }).catch(function(error) {
+                Craft.cp.displayError('Failed to disable reports');
+            });
+        });
+
+        // Bulk delete
+        document.getElementById('bulk-delete-btn')?.addEventListener('click', function() {
+            const ids = window.lrTableSelection?.getSelectedIds() || [];
+            if (!ids.length) return;
+            if (!confirm(`Delete ${ids.length} ${ids.length > 1 ? 'reports' : 'report'}? This cannot be undone.`)) return;
+
+            Craft.sendActionRequest('POST', 'report-manager/reports/bulk-delete', {
+                data: { reportIds: ids }
+            }).then(function(response) {
+                if (response.data.success) {
+                    Craft.cp.displayNotice(`Deleted ${response.data.count} reports`);
+                    setTimeout(() => window.location.reload(), 1000);
+                }
+            }).catch(function(error) {
+                Craft.cp.displayError('Failed to delete reports');
+            });
+        });
+
+        // Individual report action menu clicks
+        document.querySelectorAll('.report-action').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+
+                const action = this.dataset.action;
+                const reportId = this.dataset.id;
+                const reportName = this.dataset.name;
+
+                if (action === 'generate') {
+                    submitReportAction('report-manager/reports/generate', reportId);
+                } else if (action === 'delete') {
+                    if (confirm('Delete report "' + reportName + '"? This cannot be undone.')) {
+                        submitReportAction('report-manager/reports/delete', reportId);
+                    }
+                }
+            });
+        });
+
+        function submitReportAction(action, reportId) {
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = Craft.getActionUrl(action);
+
+            const csrfInput = document.createElement('input');
+            csrfInput.type = 'hidden';
+            csrfInput.name = '{{ craft.app.config.general.csrfTokenName }}';
+            csrfInput.value = '{{ craft.app.request.csrfToken }}';
+            form.appendChild(csrfInput);
+
+            const reportIdInput = document.createElement('input');
+            reportIdInput.type = 'hidden';
+            reportIdInput.name = 'reportId';
+            reportIdInput.value = reportId;
+            form.appendChild(reportIdInput);
+
+            document.body.appendChild(form);
+            form.submit();
+        }
+    })();
+    </script>
+{% endblock %}

@@ -1,0 +1,34 @@
+{% extends "_layouts/cp" %}
+
+{% set title = title ?? 'Settings'|t('report-manager') %}
+{% set selectedSettingsItem = selectedSettingsItem ?? 'general' %}
+{% set selectedSubnavItem = 'settings' %}
+
+{% block sidebar %}
+    <nav id="settings-nav">
+        <ul>
+            <li>
+                <a href="{{ url('report-manager/settings/general') }}" {% if selectedSettingsItem == 'general' %}class="sel"{% endif %} data-nav-item="general">
+                    {{ 'General'|t('report-manager') }}
+                </a>
+            </li>
+            <li>
+                <a href="{{ url('report-manager/settings/export') }}" {% if selectedSettingsItem == 'export' %}class="sel"{% endif %} data-nav-item="export">
+                    {{ 'Export'|t('report-manager') }}
+                </a>
+            </li>
+        </ul>
+    </nav>
+{% endblock %}
+
+{% css %}
+    /* Prevent scroll-based highlighting */
+    #settings-nav a {
+        transition: none;
+    }
+
+    /* Ensure only the current page link is highlighted */
+    #settings-nav a.sel {
+        cursor: default;
+    }
+{% endcss %}

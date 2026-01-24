@@ -1,0 +1,153 @@
+{% extends "_layouts/cp" %}
+
+{% set title = 'Export Details'|t('report-manager') %}
+{% set selectedSubnavItem = 'exports' %}
+
+{% block actionButton %}
+    {% if export.isCompleted and currentUser.can('reportManager:downloadExports') %}
+        <a href="{{ url('report-manager/exports/download/' ~ export.id) }}" class="btn submit">{{ 'Download'|t('report-manager') }}</a>
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+    <div class="pane">
+        <h2>{{ 'Export Information'|t('report-manager') }}</h2>
+
+        <table class="data fullwidth">
+            <tbody>
+                <tr>
+                    <th style="width: 200px;">{{ 'Status'|t('report-manager') }}</th>
+                    <td>
+                        <span class="status {{ export.statusColor }}"></span>
+                        {{ export.statusLabel }}
+                        {% if export.isProcessing %}
+                            <span class="light">({{ export.progress }}%)</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                <tr>
+                    <th>{{ 'Data Source'|t('report-manager') }}</th>
+                    <td>{{ export.dataSource }}</td>
+                </tr>
+                <tr>
+                    <th>{{ 'Entity'|t('report-manager') }}</th>
+                    <td>{{ export.entityName ?? 'Unknown' }} (ID: {{ export.entityId }})</td>
+                </tr>
+                <tr>
+                    <th>{{ 'Format'|t('report-manager') }}</th>
+                    <td>{{ export.format|upper }}</td>
+                </tr>
+                {% if export.dateRangeUsed %}
+                    <tr>
+                        <th>{{ 'Date Range'|t('report-manager') }}</th>
+                        <td>{{ export.dateRangeUsed }}</td>
+                    </tr>
+                {% endif %}
+                {% if export.dateStartUsed or export.dateEndUsed %}
+                    <tr>
+                        <th>{{ 'Custom Range'|t('report-manager') }}</th>
+                        <td>
+                            {% if export.dateStartUsed %}
+                                {{ export.dateStartUsed|lrDate }}
+                            {% endif %}
+                            -
+                            {% if export.dateEndUsed %}
+                                {{ export.dateEndUsed|lrDate }}
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="pane" style="margin-top: 24px;">
+        <h2>{{ 'File Details'|t('report-manager') }}</h2>
+
+        <table class="data fullwidth">
+            <tbody>
+                <tr>
+                    <th style="width: 200px;">{{ 'Filename'|t('report-manager') }}</th>
+                    <td>{{ export.filename }}</td>
+                </tr>
+                <tr>
+                    <th>{{ 'Records'|t('report-manager') }}</th>
+                    <td>{{ export.recordCount|number_format }}</td>
+                </tr>
+                <tr>
+                    <th>{{ 'File Size'|t('report-manager') }}</th>
+                    <td>{{ export.formattedFileSize }}</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="pane" style="margin-top: 24px;">
+        <h2>{{ 'Timing'|t('report-manager') }}</h2>
+
+        <table class="data fullwidth">
+            <tbody>
+                <tr>
+                    <th style="width: 200px;">{{ 'Triggered By'|t('report-manager') }}</th>
+                    <td>{{ export.triggerLabel }}</td>
+                </tr>
+                <tr>
+                    <th>{{ 'Created'|t('report-manager') }}</th>
+                    <td>{{ export.dateCreated|lrDatetime }}</td>
+                </tr>
+                {% if export.startedAt %}
+                    <tr>
+                        <th>{{ 'Started'|t('report-manager') }}</th>
+                        <td>{{ export.startedAt|lrDatetime }}</td>
+                    </tr>
+                {% endif %}
+                {% if export.completedAt %}
+                    <tr>
+                        <th>{{ 'Completed'|t('report-manager') }}</th>
+                        <td>{{ export.completedAt|lrDatetime }}</td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+
+    {% if export.isFailed and export.errorMessage %}
+        <div class="pane" style="margin-top: 24px;">
+            <h2 style="color: red;">{{ 'Error'|t('report-manager') }}</h2>
+            <pre style="background: #fef2f2; padding: 16px; border-radius: 4px; color: #991b1b;">{{ export.errorMessage }}</pre>
+        </div>
+    {% endif %}
+
+    {% if export.isPending or export.isProcessing %}
+        <div class="pane" style="margin-top: 24px;">
+            <h2>{{ 'Progress'|t('report-manager') }}</h2>
+            <div class="progress-bar" style="background: #e5e7eb; height: 20px; border-radius: 4px; overflow: hidden;">
+                <div id="progress-fill" style="background: #3b82f6; height: 100%; width: {{ export.progress }}%; transition: width 0.3s;"></div>
+            </div>
+            <p class="light" style="margin-top: 8px;">{{ 'Export is being processed. This page will refresh automatically.'|t('report-manager') }}</p>
+        </div>
+
+        {% js %}
+            (function() {
+                var checkInterval = setInterval(function() {
+                    $.ajax({
+                        url: Craft.getCpUrl('report-manager/exports/status'),
+                        type: 'GET',
+                        data: { id: {{ export.id }} },
+                        dataType: 'json',
+                        success: function(response) {
+                            if (response.success) {
+                                $('#progress-fill').css('width', response.progress + '%');
+
+                                if (response.isCompleted || response.status === 'failed') {
+                                    clearInterval(checkInterval);
+                                    location.reload();
+                                }
+                            }
+                        }
+                    });
+                }, 3000);
+            })();
+        {% endjs %}
+    {% endif %}
+{% endblock %}

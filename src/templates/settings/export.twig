@@ -1,0 +1,202 @@
+{% extends "report-manager/_layouts/settings" %}
+{% set title = "Export Settings"|t('report-manager') %}
+{% set fullPageForm = true %}
+{% set selectedSettingsItem = 'export' %}
+
+{% set plugin = craft.app.plugins.getPlugin('report-manager') %}
+{% set crumbs = [
+    {
+        label: reportHelper.fullName|t('report-manager'),
+        url: url('report-manager'),
+    },
+    {
+        label: 'Settings'|t('report-manager'),
+        url: url('report-manager/settings'),
+    },
+    {
+        label: 'Export'|t('report-manager'),
+        url: url('report-manager/settings/export'),
+    },
+] %}
+
+{% import "_includes/forms" as forms %}
+
+{% block content %}
+    <form method="post" accept-charset="UTF-8">
+        {{ actionInput('report-manager/settings/save') }}
+        {{ csrfInput() }}
+        {{ redirectInput('report-manager/settings/export') }}
+        {{ hiddenInput('section', 'export') }}
+
+        <h2 style="margin-top: 0px;">{{ 'Export Storage'|t('report-manager') }}</h2>
+
+        {# Asset volume selection dropdown for exports #}
+        {% set volumeOptions = [{label: 'Use custom path'|t('report-manager'), value: ''}] %}
+        {% for volume in craft.app.volumes.getAllVolumes() %}
+            {% set volumeOptions = volumeOptions|merge([{
+                label: volume.name,
+                value: volume.uid
+            }]) %}
+        {% endfor %}
+
+        {{ forms.selectField({
+            label: 'Export Storage Volume'|t('report-manager'),
+            instructions: 'Select an asset volume or use a custom path for storing exports.'|t('report-manager'),
+            id: 'exportVolumeUid',
+            name: 'settings[exportVolumeUid]',
+            options: volumeOptions,
+            value: settings.exportVolumeUid ?? '',
+            disabled: settings.isOverriddenByConfig('exportVolumeUid'),
+            warning: settings.isOverriddenByConfig('exportVolumeUid') ?
+                "This is being overridden by the <code>exportVolumeUid</code> setting in <code>config/report-manager.php</code>."|t('report-manager')|raw : null,
+        }) }}
+
+        <div id="custom-export-path" class="{{ settings.exportVolumeUid ? 'hidden' }}">
+            {{ forms.autosuggestField({
+                label: 'Custom Export Path'|t('report-manager'),
+                instructions: 'The custom path where exports should be stored (only used when no volume is selected).'|t('report-manager'),
+                tip: "Use Craft path aliases: <code>@storage/report-manager/exports</code> (recommended) or <code>@root/exports/report-manager</code>. Paths must be outside webroot for security. Environment variables like <code>$ENV_VAR</code> are supported."|t('report-manager')|raw,
+                id: 'exportPath',
+                name: 'settings[exportPath]',
+                value: settings.exportPath,
+                errors: settings.getErrors('exportPath'),
+                required: not settings.exportVolumeUid,
+                suggestEnvVars: true,
+                disabled: settings.isOverriddenByConfig('exportPath'),
+                warning: settings.isOverriddenByConfig('exportPath') ?
+                    "This is being overridden by the <code>exportPath</code> setting in <code>config/report-manager.php</code>."|t('report-manager')|raw : null,
+            }) }}
+        </div>
+
+        {% include 'lindemannrock-base/_components/info-box' with {
+            message: '<strong>' ~ 'Export Location:'|t('report-manager') ~ '</strong> <code>' ~ settings.getExportPath() ~ '</code>'
+        } %}
+
+        <hr>
+
+        <h2>{{ 'Export Format'|t('report-manager') }}</h2>
+
+        {{ forms.selectField({
+            label: 'Default Export Format'|t('report-manager'),
+            instructions: 'The default format for new exports.'|t('report-manager'),
+            id: 'defaultExportFormat',
+            name: 'settings[defaultExportFormat]',
+            value: settings.defaultExportFormat,
+            options: settings.getExportFormatOptions(),
+            disabled: settings.isOverriddenByConfig('defaultExportFormat'),
+            warning: settings.isOverriddenByConfig('defaultExportFormat') ?
+                "This is being overridden by the <code>defaultExportFormat</code> setting in <code>config/report-manager.php</code>."|t('report-manager')|raw : null,
+        }) }}
+
+        {{ forms.textField({
+            label: 'Maximum Export Batch Size'|t('report-manager'),
+            instructions: 'Maximum number of records to export in a single batch.'|t('report-manager'),
+            id: 'maxExportBatchSize',
+            name: 'settings[maxExportBatchSize]',
+            value: settings.maxExportBatchSize,
+            type: 'number',
+            min: 100,
+            max: 100000,
+            disabled: settings.isOverriddenByConfig('maxExportBatchSize'),
+            warning: settings.isOverriddenByConfig('maxExportBatchSize') ?
+                "This is being overridden by the <code>maxExportBatchSize</code> setting in <code>config/report-manager.php</code>."|t('report-manager')|raw : null,
+        }) }}
+
+        <hr>
+
+        <h2>{{ 'CSV Settings'|t('report-manager') }}</h2>
+
+        {{ forms.textField({
+            label: 'CSV Delimiter'|t('report-manager'),
+            instructions: 'Character to use as field delimiter.'|t('report-manager'),
+            id: 'csvDelimiter',
+            name: 'settings[csvDelimiter]',
+            value: settings.csvDelimiter,
+            maxlength: 1,
+            size: 1,
+            disabled: settings.isOverriddenByConfig('csvDelimiter'),
+            warning: settings.isOverriddenByConfig('csvDelimiter') ?
+                "This is being overridden by the <code>csvDelimiter</code> setting in <code>config/report-manager.php</code>."|t('report-manager')|raw : null,
+        }) }}
+
+        {{ forms.textField({
+            label: 'CSV Enclosure'|t('report-manager'),
+            instructions: 'Character to use for enclosing field values.'|t('report-manager'),
+            id: 'csvEnclosure',
+            name: 'settings[csvEnclosure]',
+            value: settings.csvEnclosure,
+            maxlength: 1,
+            size: 1,
+            disabled: settings.isOverriddenByConfig('csvEnclosure'),
+            warning: settings.isOverriddenByConfig('csvEnclosure') ?
+                "This is being overridden by the <code>csvEnclosure</code> setting in <code>config/report-manager.php</code>."|t('report-manager')|raw : null,
+        }) }}
+
+        {{ forms.lightswitchField({
+            label: 'Include BOM'|t('report-manager'),
+            instructions: 'Include UTF-8 BOM for Excel compatibility.'|t('report-manager'),
+            id: 'csvIncludeBom',
+            name: 'settings[csvIncludeBom]',
+            on: settings.csvIncludeBom,
+            disabled: settings.isOverriddenByConfig('csvIncludeBom'),
+            warning: settings.isOverriddenByConfig('csvIncludeBom') ?
+                "This is being overridden by the <code>csvIncludeBom</code> setting in <code>config/report-manager.php</code>."|t('report-manager')|raw : null,
+        }) }}
+
+        <hr>
+
+        <h2>{{ 'Cleanup'|t('report-manager') }}</h2>
+
+        {{ forms.textField({
+            label: 'Export Retention (Days)'|t('report-manager'),
+            instructions: 'Number of days to keep generated exports. Set to 0 to keep forever.'|t('report-manager'),
+            id: 'exportRetention',
+            name: 'settings[exportRetention]',
+            value: settings.exportRetention,
+            type: 'number',
+            min: 0,
+            disabled: settings.isOverriddenByConfig('exportRetention'),
+            warning: settings.isOverriddenByConfig('exportRetention') ?
+                "This is being overridden by the <code>exportRetention</code> setting in <code>config/report-manager.php</code>."|t('report-manager')|raw : null,
+        }) }}
+
+        {{ forms.lightswitchField({
+            label: 'Auto Cleanup Exports'|t('report-manager'),
+            instructions: 'Automatically delete old exports based on retention setting.'|t('report-manager'),
+            id: 'autoCleanupExports',
+            name: 'settings[autoCleanupExports]',
+            on: settings.autoCleanupExports,
+            disabled: settings.isOverriddenByConfig('autoCleanupExports'),
+            warning: settings.isOverriddenByConfig('autoCleanupExports') ?
+                "This is being overridden by the <code>autoCleanupExports</code> setting in <code>config/report-manager.php</code>."|t('report-manager')|raw : null,
+        }) }}
+
+        <div class="buttons">
+            <button type="submit" class="btn submit">{{ "Save Settings"|t('report-manager') }}</button>
+        </div>
+    </form>
+
+    {% include 'lindemannrock-base/_components/plugin-credit' %}
+{% endblock %}
+
+{% js %}
+    document.addEventListener('DOMContentLoaded', function() {
+        const volumeSelect = document.getElementById('exportVolumeUid');
+        const customPathDiv = document.getElementById('custom-export-path');
+        const pathField = document.getElementById('exportPath');
+
+        if (volumeSelect) {
+            volumeSelect.addEventListener('change', function() {
+                if (this.value) {
+                    // Volume is selected, hide custom path
+                    customPathDiv.classList.add('hidden');
+                    pathField.removeAttribute('required');
+                } else {
+                    // No volume selected, show custom path
+                    customPathDiv.classList.remove('hidden');
+                    pathField.setAttribute('required', 'required');
+                }
+            });
+        }
+    });
+{% endjs %}

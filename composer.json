@@ -1,0 +1,63 @@
+{
+    "name": "lindemannrock/craft-report-manager",
+    "description": "Report generation and analytics manager for Craft CMS with extensible data source support",
+    "type": "craft-plugin",
+    "version": "5.0.0",
+    "keywords": [
+        "craft",
+        "cms",
+        "craftcms",
+        "craft-plugin",
+        "reports",
+        "analytics",
+        "export",
+        "formie"
+    ],
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Bilal Hary Lindemann",
+            "email": "bh@lindemannrock.com",
+            "homepage": "https://lindemannrock.com",
+            "role": "Developer"
+        }
+    ],
+    "support": {
+        "email": "support@lindemannrock.com",
+        "issues": "https://github.com/LindemannRock/craft-report-manager/issues",
+        "source": "https://github.com/LindemannRock/craft-report-manager",
+        "docs": "https://github.com/LindemannRock/craft-report-manager/blob/main/README.md"
+    },
+    "require": {
+        "php": "^8.2",
+        "craftcms/cms": "^5.0.0",
+        "lindemannrock/craft-plugin-base": "^5.0",
+        "lindemannrock/craft-logging-library": "^5.0"
+    },
+    "require-dev": {
+        "craftcms/ecs": "dev-main",
+        "craftcms/phpstan": "dev-main"
+    },
+    "suggest": {
+        "verbb/formie": "Required for Formie data source integration"
+    },
+    "autoload": {
+        "psr-4": {
+            "lindemannrock\\reportmanager\\": "src/"
+        }
+    },
+    "scripts": {
+        "phpstan": "phpstan --ansi --memory-limit=1G",
+        "check-cs": "ecs check --ansi",
+        "fix-cs": "ecs check --fix --ansi"
+    },
+    "extra": {
+        "name": "Report Manager",
+        "handle": "report-manager",
+        "developer": "LindemannRock",
+        "developerUrl": "https://lindemannrock.com",
+        "documentationUrl": "https://github.com/LindemannRock/craft-report-manager/blob/main/README.md",
+        "changelogUrl": "https://github.com/LindemannRock/craft-report-manager/blob/main/CHANGELOG.md",
+        "class": "lindemannrock\\reportmanager\\ReportManager"
+    }
+}
