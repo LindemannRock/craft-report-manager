@@ -178,8 +178,8 @@ class ReportManager extends Plugin
             ]);
         }
 
-        // Settings (admin only)
-        if (Craft::$app->getUser()->getIsAdmin() && Craft::$app->getConfig()->getGeneral()->allowAdminChanges) {
+        // Settings
+        if ($currentUser->can('reportManager:manageSettings')) {
             $navItem['subnav']['settings'] = [
                 'label' => Craft::t('report-manager', 'Settings'),
                 'url' => 'report-manager/settings',
@@ -303,6 +303,9 @@ class ReportManager extends Plugin
                                     'label' => Craft::t('report-manager', 'Download Logs'),
                                 ],
                             ],
+                        ],
+                        'reportManager:manageSettings' => [
+                            'label' => Craft::t('report-manager', 'Manage Settings'),
                         ],
                     ],
                 ];

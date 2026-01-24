@@ -11,7 +11,6 @@ namespace lindemannrock\reportmanager\controllers;
 use Craft;
 use craft\web\Controller;
 use lindemannrock\reportmanager\ReportManager;
-use yii\web\ForbiddenHttpException;
 use yii\web\Response;
 
 /**
@@ -32,12 +31,8 @@ class SettingsController extends Controller
             return false;
         }
 
-        // Require admin for settings
-        $this->requireAdmin();
-
-        if (!Craft::$app->getConfig()->getGeneral()->allowAdminChanges) {
-            throw new ForbiddenHttpException(Craft::t('report-manager', 'Admin changes are not allowed in this environment.'));
-        }
+        // Require manage settings permission
+        $this->requirePermission('reportManager:manageSettings');
 
         return true;
     }
