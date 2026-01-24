@@ -75,7 +75,11 @@
 {% block tableRow %}
     {# Filename #}
     <td>
-        <span>{{ item.filename }}</span>
+        {% if item.isCompleted() and canDownload %}
+            <a href="{{ url('report-manager/exports/download/' ~ item.id) }}">{{ item.filename }}</a>
+        {% else %}
+            <span>{{ item.filename }}</span>
+        {% endif %}
         {% if item.isCombinedExport() %}
             <span class="light">({{ 'Combined'|t('report-manager') }})</span>
         {% elseif item.entityName %}
