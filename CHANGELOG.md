@@ -1,5 +1,12 @@
 # Changelog
 
+## [5.1.2](https://github.com/LindemannRock/craft-report-manager/compare/v5.1.1...v5.1.2) (2026-01-24)
+
+
+### Bug Fixes
+
+* update settings permissions to use 'reportManager:manageSettings' ([665357d](https://github.com/LindemannRock/craft-report-manager/commit/665357d2185477377326cd9b71a29fde7c00954b))
+
 ## [5.1.1](https://github.com/LindemannRock/craft-report-manager/compare/v5.1.0...v5.1.1) (2026-01-24)
 
 
