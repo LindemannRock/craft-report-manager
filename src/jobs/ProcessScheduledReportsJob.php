@@ -183,18 +183,80 @@ class ProcessScheduledReportsJob extends BaseJob
 
     /**
      * Calculate the delay in seconds for the next run
+     *
+     * Uses fixed time slots to prevent drift:
+     * - every6hours: 00:00, 06:00, 12:00, 18:00
+     * - every12hours: 00:00, 12:00
+     * - daily: 00:00
+     * - daily2am: 02:00
+     * - weekly: Monday 00:00
      */
     private function calculateNextRunDelay(): int
     {
         $settings = ReportManager::getInstance()->getSettings();
+        $now = new \DateTime();
 
-        return match ($settings->defaultSchedule) {
-            'every6hours' => 6 * 60 * 60,
-            'every12hours' => 12 * 60 * 60,
-            'daily', 'daily2am' => 24 * 60 * 60,
-            'weekly' => 7 * 24 * 60 * 60,
-            default => 24 * 60 * 60,
+        $nextRun = match ($settings->defaultSchedule) {
+            'every6hours' => $this->getNextFixedHour($now, [0, 6, 12, 18]),
+            'every12hours' => $this->getNextFixedHour($now, [0, 12]),
+            'daily' => $this->getNextFixedHour($now, [0]),
+            'daily2am' => $this->getNextFixedHour($now, [2]),
+            'weekly' => $this->getNextWeekday($now, 1),
+            default => $this->getNextFixedHour($now, [0]),
         };
+
+        return max(60, $nextRun->getTimestamp() - $now->getTimestamp());
+    }
+
+    /**
+     * Get next occurrence of a fixed hour
+     *
+     * @param \DateTime $from Starting point
+     * @param int[] $hours Valid hours (0-23)
+     * @return \DateTime
+     */
+    private function getNextFixedHour(\DateTime $from, array $hours): \DateTime
+    {
+        $currentHour = (int) $from->format('G');
+        $currentMinute = (int) $from->format('i');
+
+        // Find the next valid hour today
+        foreach ($hours as $hour) {
+            if ($hour > $currentHour || ($hour === $currentHour && $currentMinute === 0)) {
+                if ($hour === $currentHour && $currentMinute === 0) {
+                    continue; // Skip current slot
+                }
+                return (clone $from)->setTime($hour, 0, 0);
+            }
+        }
+
+        // No valid hour today, use first hour tomorrow
+        return (clone $from)->modify('+1 day')->setTime($hours[0], 0, 0);
+    }
+
+    /**
+     * Get next occurrence of a weekday
+     *
+     * @param \DateTime $from Starting point
+     * @param int $weekday Day of week (1=Monday, 7=Sunday)
+     * @return \DateTime
+     */
+    private function getNextWeekday(\DateTime $from, int $weekday): \DateTime
+    {
+        $next = (clone $from)->setTime(0, 0, 0);
+        $currentWeekday = (int) $from->format('N');
+
+        if ($currentWeekday === $weekday && $from->format('H:i:s') === '00:00:00') {
+            $next->modify('+1 week');
+        } elseif ($currentWeekday >= $weekday) {
+            $daysUntil = 7 - $currentWeekday + $weekday;
+            $next->modify("+{$daysUntil} days");
+        } else {
+            $daysUntil = $weekday - $currentWeekday;
+            $next->modify("+{$daysUntil} days");
+        }
+
+        return $next;
     }
 
     /**

@@ -189,6 +189,9 @@ class ReportsController extends Controller
         $reportId = $request->getBodyParam('reportId');
         $isNew = !$reportId;
 
+        // Track if scheduling was previously disabled (to trigger initial run)
+        $wasScheduleDisabled = true;
+
         if ($isNew) {
             $report = new ReportRecord();
         } else {
@@ -197,6 +200,9 @@ class ReportsController extends Controller
             if (!$report) {
                 throw new NotFoundHttpException(Craft::t('report-manager', 'Report not found'));
             }
+
+            // Remember previous state
+            $wasScheduleDisabled = !$report->enableSchedule;
         }
 
         // Populate from POST
@@ -253,9 +259,74 @@ class ReportsController extends Controller
             return null;
         }
 
+        // If scheduling was just enabled, run initial export immediately
+        $schedulingJustEnabled = $report->enableSchedule && $wasScheduleDisabled;
+        if ($schedulingJustEnabled && $report->enabled) {
+            $this->queueInitialScheduledExport($report);
+        }
+
         Craft::$app->getSession()->setNotice(Craft::t('report-manager', 'Report saved.'));
 
         return $this->redirectToPostedUrl($report);
+    }
+
+    /**
+     * Queue initial export when scheduling is first enabled
+     *
+     * @param ReportRecord $report
+     * @since 5.0.0
+     */
+    private function queueInitialScheduledExport(ReportRecord $report): void
+    {
+        $plugin = ReportManager::getInstance();
+        $entityIds = $report->getEntityIdsArray();
+        $siteIds = $report->siteId ? [$report->siteId] : [];
+
+        // Combined mode: single export with all forms
+        if ($report->isCombined()) {
+            $export = $plugin->exports->createCombinedExport(
+                $report->dataSource,
+                $entityIds,
+                $report->exportFormat,
+                [
+                    'reportId' => $report->id,
+                    'dateRange' => $report->dateRange,
+                    'dateStart' => $report->customDateStart,
+                    'dateEnd' => $report->customDateEnd,
+                    'fieldHandles' => $report->getFieldHandlesArray(),
+                    'siteIds' => $siteIds,
+                ]
+            );
+
+            Craft::$app->getQueue()->push(new GenerateExportJob([
+                'exportId' => $export->id,
+                'combined' => true,
+            ]));
+        } else {
+            // Separate mode: one export per form
+            foreach ($entityIds as $entityId) {
+                $export = $plugin->exports->createExport(
+                    $report->dataSource,
+                    $entityId,
+                    $report->exportFormat,
+                    [
+                        'reportId' => $report->id,
+                        'dateRange' => $report->dateRange,
+                        'dateStart' => $report->customDateStart,
+                        'dateEnd' => $report->customDateEnd,
+                        'fieldHandles' => $report->getFieldHandlesArray(),
+                        'siteIds' => $siteIds,
+                    ]
+                );
+
+                Craft::$app->getQueue()->push(new GenerateExportJob([
+                    'exportId' => $export->id,
+                ]));
+            }
+        }
+
+        // Update last generated timestamp
+        $plugin->reports->updateLastGenerated($report);
     }
 
     /**
