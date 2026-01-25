@@ -37,7 +37,19 @@ class FormieDataSource extends BaseDataSource
      */
     public static function displayName(): string
     {
-        return Craft::t('report-manager', 'Formie');
+        // Use Formie's configured plugin name if available
+        if (self::isAvailable()) {
+            $formie = Craft::$app->getPlugins()->getPlugin('formie');
+            if ($formie instanceof \verbb\formie\Formie) {
+                /** @var \verbb\formie\models\Settings $settings */
+                $settings = $formie->getSettings();
+                if (!empty($settings->pluginName)) {
+                    return $settings->pluginName;
+                }
+            }
+        }
+
+        return 'Formie';
     }
 
     /**

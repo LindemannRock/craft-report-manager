@@ -124,7 +124,7 @@
     </td>
 
     {# Source #}
-    <td>{{ item.dataSource|capitalize }}</td>
+    <td>{{ dataSources[item.dataSource].name ?? item.dataSource|capitalize }}</td>
 
     {# Mode #}
     <td>{{ item.exportMode == 'combined' ? 'Combined'|t('report-manager') : 'Separate'|t('report-manager') }}</td>

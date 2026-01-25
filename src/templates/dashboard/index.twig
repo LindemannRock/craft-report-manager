@@ -33,6 +33,7 @@
 
 {% set canDownload = currentUser.can('reportManager:downloadExports') %}
 {% set canDelete = currentUser.can('reportManager:deleteExports') %}
+{% set canManageReports = currentUser.can('reportManager:manageReports') %}
 
 {% set tableConfig = {
     plugin: {
@@ -44,7 +45,6 @@
         subnav: 'dashboard',
         crumbs: [
             { label: reportHelper.fullName, url: url('report-manager') },
-            { label: 'Dashboard'|t('report-manager') }
         ],
     },
     filters: [
@@ -117,6 +117,11 @@
         itemLabel: {singular: 'export'|t('report-manager'), plural: 'exports'|t('report-manager')},
     },
     checkboxes: canDelete,
+    newButton: canManageReports ? {
+        url: url('report-manager/reports/new'),
+        label: 'New Report'|t('report-manager'),
+        permission: 'reportManager:manageReports',
+    } : null,
 } %}
 
 

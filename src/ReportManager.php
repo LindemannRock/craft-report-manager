@@ -138,6 +138,7 @@ class ReportManager extends Plugin
         $navItem['icon'] = '@appicons/chart-bar.svg';
 
         // Check permissions
+        /** @var \craft\elements\User|null $currentUser */
         $currentUser = Craft::$app->getUser()->getIdentity();
 
         if (!$currentUser) {
@@ -150,7 +151,7 @@ class ReportManager extends Plugin
         if ($currentUser->can('reportManager:viewDashboard')) {
             $navItem['subnav']['dashboard'] = [
                 'label' => Craft::t('report-manager', 'Dashboard'),
-                'url' => 'report-manager/dashboard',
+                'url' => 'report-manager',
             ];
         }
 

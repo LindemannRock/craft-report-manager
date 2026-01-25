@@ -32,7 +32,7 @@ class DashboardController extends Controller
             return false;
         }
 
-        $this->requirePermission('reportManager:viewDashboard');
+        // Permission check is done in actionIndex to allow redirect logic
 
         return true;
     }
@@ -45,6 +45,24 @@ class DashboardController extends Controller
      */
     public function actionIndex(): Response
     {
+        $user = Craft::$app->getUser();
+
+        // If user doesn't have viewDashboard permission, redirect to first accessible section
+        if (!$user->checkPermission('reportManager:viewDashboard')) {
+            if ($user->checkPermission('reportManager:viewReports')) {
+                return $this->redirect('report-manager/reports');
+            }
+            if ($user->checkPermission('reportManager:viewLogs')) {
+                return $this->redirect('report-manager/logs');
+            }
+            if ($user->checkPermission('reportManager:manageSettings')) {
+                return $this->redirect('report-manager/settings');
+            }
+
+            // No access at all - require permission (will show 403)
+            $this->requirePermission('reportManager:viewDashboard');
+        }
+
         $plugin = ReportManager::getInstance();
         $settings = $plugin->getSettings();
         $request = Craft::$app->getRequest();

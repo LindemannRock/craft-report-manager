@@ -27,7 +27,7 @@
                 </tr>
                 <tr>
                     <th>{{ 'Data Source'|t('report-manager') }}</th>
-                    <td>{{ export.dataSource }}</td>
+                    <td>{{ dataSources[export.dataSource].name ?? export.dataSource|capitalize }}</td>
                 </tr>
                 <tr>
                     <th>{{ 'Entity'|t('report-manager') }}</th>

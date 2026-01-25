@@ -118,9 +118,12 @@ class ExportsController extends Controller
             throw new NotFoundHttpException(Craft::t('report-manager', 'Export not found'));
         }
 
+        $dataSources = $plugin->dataSources->getAvailableDataSources();
+
         return $this->renderTemplate('report-manager/exports/view', [
             'settings' => $settings,
             'export' => $export,
+            'dataSources' => $dataSources,
         ]);
     }
 
