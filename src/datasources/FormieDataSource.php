@@ -11,6 +11,7 @@ namespace lindemannrock\reportmanager\datasources;
 use Craft;
 use craft\helpers\Db;
 use DateTime;
+use lindemannrock\base\helpers\PluginHelper;
 
 /**
  * Formie Data Source
@@ -37,19 +38,7 @@ class FormieDataSource extends BaseDataSource
      */
     public static function displayName(): string
     {
-        // Use Formie's configured plugin name if available
-        if (self::isAvailable()) {
-            $formie = Craft::$app->getPlugins()->getPlugin('formie');
-            if ($formie instanceof \verbb\formie\Formie) {
-                /** @var \verbb\formie\models\Settings $settings */
-                $settings = $formie->getSettings();
-                if (!empty($settings->pluginName)) {
-                    return $settings->pluginName;
-                }
-            }
-        }
-
-        return 'Formie';
+        return PluginHelper::getPluginName('formie', 'Formie');
     }
 
     /**
@@ -73,8 +62,8 @@ class FormieDataSource extends BaseDataSource
      */
     public static function isAvailable(): bool
     {
-        return Craft::$app->getPlugins()->isPluginInstalled('formie')
-            && Craft::$app->getPlugins()->isPluginEnabled('formie');
+        return PluginHelper::isPluginInstalled('formie')
+            && PluginHelper::isPluginEnabled('formie');
     }
 
     /**
