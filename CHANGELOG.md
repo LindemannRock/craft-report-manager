@@ -1,5 +1,13 @@
 # Changelog
 
+## [5.1.3](https://github.com/LindemannRock/craft-report-manager/compare/v5.1.2...v5.1.3) (2026-01-26)
+
+
+### Bug Fixes
+
+* **jobs:** prevent duplicate scheduling of ProcessScheduledReportsJob ([947be57](https://github.com/LindemannRock/craft-report-manager/commit/947be57cb6abed3dbe791b24b8725bff1c622dc9))
+* permission-based settings, dynamic data source names, and scheduled report improvements ([5f5ad94](https://github.com/LindemannRock/craft-report-manager/commit/5f5ad94b0ee478d80ad0bc541893d36e2030c73f))
+
 ## [5.1.2](https://github.com/LindemannRock/craft-report-manager/compare/v5.1.1...v5.1.2) (2026-01-24)
 
 
