@@ -352,7 +352,6 @@ class ReportManager extends Plugin
             ->from('{{%queue}}')
             ->where(['like', 'job', 'reportmanager'])
             ->andWhere(['like', 'job', 'ProcessScheduledReportsJob'])
-            ->andWhere(['<=', 'timePushed', time() + 86400]) // Within next 24 hours
             ->exists();
 
         if (!$existingJob) {

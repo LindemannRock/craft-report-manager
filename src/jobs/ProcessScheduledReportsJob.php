@@ -162,6 +162,19 @@ class ProcessScheduledReportsJob extends BaseJob
             return;
         }
 
+        // Prevent duplicate scheduling - check if another job already exists
+        // This prevents fan-out if multiple jobs end up in the queue (manual runs, retries, etc.)
+        $existingJob = (new \craft\db\Query())
+            ->from('{{%queue}}')
+            ->where(['like', 'job', 'reportmanager'])
+            ->andWhere(['like', 'job', 'ProcessScheduledReportsJob'])
+            ->exists();
+
+        if ($existingJob) {
+            $this->logDebug('Skipping reschedule - reports processing job already exists');
+            return;
+        }
+
         $delay = $this->calculateNextRunDelay();
 
         if ($delay > 0) {
