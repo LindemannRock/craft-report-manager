@@ -1,5 +1,12 @@
 # Changelog
 
+## [5.1.4](https://github.com/LindemannRock/craft-report-manager/compare/v5.1.3...v5.1.4) (2026-01-28)
+
+
+### Code Refactoring
+
+* **ReportManager:** enhance logging bootstrap with color configurations ([6f37191](https://github.com/LindemannRock/craft-report-manager/commit/6f3719145a73837116a2e927bed825f1a113ea97))
+
 ## [5.1.3](https://github.com/LindemannRock/craft-report-manager/compare/v5.1.2...v5.1.3) (2026-01-26)
 
 
