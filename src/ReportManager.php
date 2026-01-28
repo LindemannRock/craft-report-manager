@@ -16,6 +16,7 @@ use craft\events\RegisterUserPermissionsEvent;
 use craft\services\UserPermissions;
 use craft\web\twig\variables\Cp;
 use craft\web\UrlManager;
+use lindemannrock\base\helpers\ColorHelper;
 use lindemannrock\base\helpers\PluginHelper;
 use lindemannrock\logginglibrary\LoggingLibrary;
 use lindemannrock\logginglibrary\traits\LoggingTrait;
@@ -91,12 +92,32 @@ class ReportManager extends Plugin
         // Set logging handle
         $this->setLoggingHandle('report-manager');
 
-        // Bootstrap with base plugin helper
+        // Bootstrap with base plugin helper (logging + Twig extension + colors)
         PluginHelper::bootstrap(
             $this,
             'reportHelper',
             ['reportManager:viewLogs'],
-            ['reportManager:downloadLogs']
+            ['reportManager:downloadLogs'],
+            [
+                'colorSets' => [
+                    'exportStatus' => [
+                        'completed' => ColorHelper::getPaletteColor('green'),
+                        'processing' => ColorHelper::getPaletteColor('blue'),
+                        'pending' => ColorHelper::getPaletteColor('amber'),
+                        'failed' => ColorHelper::getPaletteColor('red'),
+                    ],
+                    'triggerType' => [
+                        'manual' => ColorHelper::getPaletteColor('indigo'),
+                        'scheduled' => ColorHelper::getPaletteColor('teal'),
+                        'api' => ColorHelper::getPaletteColor('purple'),
+                    ],
+                    'exportFormat' => [
+                        'xlsx' => ColorHelper::getPaletteColor('green'),
+                        'csv' => ColorHelper::getPaletteColor('blue'),
+                        'json' => ColorHelper::getPaletteColor('amber'),
+                    ],
+                ],
+            ]
         );
 
         // Apply plugin name from config file

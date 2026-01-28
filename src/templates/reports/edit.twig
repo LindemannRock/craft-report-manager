@@ -113,7 +113,7 @@
                     {% if entities|length > 0 %}
                         {% for entity in entities %}
                             {{ forms.checkboxField({
-                                label: entity.name ~ ' <span class="light">(' ~ entity.submissionCount ~ ' submissions)</span>',
+                                label: entity.name ~ ' - (' ~ entity.submissionCount|number ~ ' submissions)',
                                 name: 'entityIds[]',
                                 value: entity.id,
                                 checked: entity.id in selectedEntityIds
