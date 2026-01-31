@@ -270,10 +270,6 @@ class ReportManager extends Plugin
                 $event->rules['report-manager/api/entities/<dataSource:{handle}>'] = 'report-manager/api/entities';
                 $event->rules['report-manager/api/fields/<dataSource:{handle}>/<entityId:\d+>'] = 'report-manager/api/fields';
                 $event->rules['report-manager/api/analytics/<dataSource:{handle}>/<entityId:\d+>'] = 'report-manager/api/analytics';
-
-                // Logging routes
-                $event->rules['report-manager/logs'] = 'logging-library/logs/index';
-                $event->rules['report-manager/logs/download'] = 'logging-library/logs/download';
             }
         );
     }
@@ -319,10 +315,10 @@ class ReportManager extends Plugin
                             ],
                         ],
                         'reportManager:viewLogs' => [
-                            'label' => Craft::t('report-manager', 'View Logs'),
+                            'label' => Craft::t('report-manager', 'View System Logs'),
                             'nested' => [
                                 'reportManager:downloadLogs' => [
-                                    'label' => Craft::t('report-manager', 'Download Logs'),
+                                    'label' => Craft::t('report-manager', 'Download System Logs'),
                                 ],
                             ],
                         ],

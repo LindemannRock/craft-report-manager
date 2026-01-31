@@ -53,7 +53,7 @@ class DashboardController extends Controller
                 return $this->redirect('report-manager/reports');
             }
             if ($user->checkPermission('reportManager:viewLogs')) {
-                return $this->redirect('report-manager/logs');
+                return $this->redirect('report-manager/logs/system');
             }
             if ($user->checkPermission('reportManager:manageSettings')) {
                 return $this->redirect('report-manager/settings');

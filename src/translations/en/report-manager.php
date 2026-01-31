@@ -217,8 +217,8 @@ return [
     'Create Exports' => 'Create Exports',
     'Download Exports' => 'Download Exports',
     'Delete Exports' => 'Delete Exports',
-    'View Logs' => 'View Logs',
-    'Download Logs' => 'Download Logs',
+    'View System Logs' => 'View System Logs',
+    'Download System Logs' => 'Download System Logs',
 
     // Schedule Options
     'Every 6 Hours' => 'Every 6 Hours',
