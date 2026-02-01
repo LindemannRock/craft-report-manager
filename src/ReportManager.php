@@ -96,8 +96,8 @@ class ReportManager extends Plugin
         PluginHelper::bootstrap(
             $this,
             'reportHelper',
-            ['reportManager:viewLogs'],
-            ['reportManager:downloadLogs'],
+            ['reportManager:viewSystemLogs'],
+            ['reportManager:downloadSystemLogs'],
             [
                 'colorSets' => [
                     'exportStatus' => [
@@ -193,10 +193,9 @@ class ReportManager extends Plugin
         // }
 
         // Add logs section using the logging library
-        if (Craft::$app->getPlugins()->isPluginInstalled('logging-library') &&
-            Craft::$app->getPlugins()->isPluginEnabled('logging-library')) {
+        if (PluginHelper::isPluginEnabled('logging-library')) {
             $navItem = LoggingLibrary::addLogsNav($navItem, $this->handle, [
-                'reportManager:viewLogs',
+                'reportManager:viewSystemLogs',
             ]);
         }
 
@@ -315,10 +314,15 @@ class ReportManager extends Plugin
                             ],
                         ],
                         'reportManager:viewLogs' => [
-                            'label' => Craft::t('report-manager', 'View System Logs'),
+                            'label' => Craft::t('report-manager', 'View Logs'),
                             'nested' => [
-                                'reportManager:downloadLogs' => [
-                                    'label' => Craft::t('report-manager', 'Download System Logs'),
+                                'reportManager:viewSystemLogs' => [
+                                    'label' => Craft::t('report-manager', 'View System Logs'),
+                                    'nested' => [
+                                        'reportManager:downloadSystemLogs' => [
+                                            'label' => Craft::t('report-manager', 'Download System Logs'),
+                                        ],
+                                    ],
                                 ],
                             ],
                         ],
