@@ -10,6 +10,7 @@ namespace lindemannrock\reportmanager\controllers;
 
 use Craft;
 use craft\web\Controller;
+use lindemannrock\base\helpers\CpNavHelper;
 use lindemannrock\reportmanager\records\ExportRecord;
 use lindemannrock\reportmanager\ReportManager;
 use yii\web\Response;
@@ -46,17 +47,14 @@ class DashboardController extends Controller
     public function actionIndex(): Response
     {
         $user = Craft::$app->getUser();
+        $settings = ReportManager::getInstance()->getSettings();
 
         // If user doesn't have viewDashboard permission, redirect to first accessible section
         if (!$user->checkPermission('reportManager:viewDashboard')) {
-            if ($user->checkPermission('reportManager:viewReports')) {
-                return $this->redirect('report-manager/reports');
-            }
-            if ($user->checkPermission('reportManager:viewSystemLogs')) {
-                return $this->redirect('report-manager/logs');
-            }
-            if ($user->checkPermission('reportManager:manageSettings')) {
-                return $this->redirect('report-manager/settings');
+            $sections = ReportManager::getInstance()->getCpSections($settings, false, true);
+            $route = CpNavHelper::firstAccessibleRoute($user, $settings, $sections);
+            if ($route) {
+                return $this->redirect($route);
             }
 
             // No access at all - require permission (will show 403)

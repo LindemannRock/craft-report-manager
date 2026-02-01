@@ -17,6 +17,7 @@ use craft\services\UserPermissions;
 use craft\web\twig\variables\Cp;
 use craft\web\UrlManager;
 use lindemannrock\base\helpers\ColorHelper;
+use lindemannrock\base\helpers\CpNavHelper;
 use lindemannrock\base\helpers\PluginHelper;
 use lindemannrock\logginglibrary\LoggingLibrary;
 use lindemannrock\logginglibrary\traits\LoggingTrait;
@@ -158,39 +159,9 @@ class ReportManager extends Plugin
         $navItem['label'] = $settings->pluginName;
         $navItem['icon'] = '@appicons/chart-bar.svg';
 
-        // Check permissions
-        /** @var \craft\elements\User|null $currentUser */
-        $currentUser = Craft::$app->getUser()->getIdentity();
-
-        if (!$currentUser) {
-            return null;
-        }
-
-        $navItem['subnav'] = [];
-
-        // Dashboard
-        if ($currentUser->can('reportManager:viewDashboard')) {
-            $navItem['subnav']['dashboard'] = [
-                'label' => Craft::t('report-manager', 'Dashboard'),
-                'url' => 'report-manager',
-            ];
-        }
-
-        // Reports
-        if ($currentUser->can('reportManager:viewReports')) {
-            $navItem['subnav']['reports'] = [
-                'label' => Craft::t('report-manager', 'Reports'),
-                'url' => 'report-manager/reports',
-            ];
-        }
-
-        // Exports - hidden for now (accessible via Reports > View Generated)
-        // if ($currentUser->can('reportManager:viewExports')) {
-        //     $navItem['subnav']['exports'] = [
-        //         'label' => Craft::t('report-manager', 'Exports'),
-        //         'url' => 'report-manager/exports',
-        //     ];
-        // }
+        $user = Craft::$app->getUser();
+        $sections = $this->getCpSections($settings);
+        $navItem['subnav'] = CpNavHelper::buildSubnav($user, $settings, $sections);
 
         // Add logs section using the logging library
         if (PluginHelper::isPluginEnabled('logging-library')) {
@@ -199,15 +170,63 @@ class ReportManager extends Plugin
             ]);
         }
 
-        // Settings
-        if ($currentUser->can('reportManager:manageSettings')) {
-            $navItem['subnav']['settings'] = [
-                'label' => Craft::t('report-manager', 'Settings'),
-                'url' => 'report-manager/settings',
-            ];
+        // Hide from nav if no accessible subnav items
+        if (empty($navItem['subnav'])) {
+            return null;
         }
 
         return $navItem;
+    }
+
+    /**
+     * Get CP sections for nav + default route resolution
+     *
+     * @param Settings $settings
+     * @param bool $includeDashboard
+     * @param bool $includeLogs
+     * @return array
+     * @since 5.14.0
+     */
+    public function getCpSections(Settings $settings, bool $includeDashboard = true, bool $includeLogs = false): array
+    {
+        $sections = [];
+
+        if ($includeDashboard) {
+            $sections[] = [
+                'key' => 'dashboard',
+                'label' => Craft::t('report-manager', 'Dashboard'),
+                'url' => 'report-manager',
+                'permissionsAll' => ['reportManager:viewDashboard'],
+            ];
+        }
+
+        $sections[] = [
+            'key' => 'reports',
+            'label' => Craft::t('report-manager', 'Reports'),
+            'url' => 'report-manager/reports',
+            'permissionsAll' => ['reportManager:viewReports'],
+        ];
+
+        // Exports - hidden for now (accessible via Reports > View Generated)
+
+        if ($includeLogs) {
+            $sections[] = [
+                'key' => 'logs',
+                'label' => Craft::t('report-manager', 'Logs'),
+                'url' => 'report-manager/logs',
+                'permissionsAll' => ['reportManager:viewSystemLogs'],
+                'when' => fn() => PluginHelper::isPluginEnabled('logging-library'),
+            ];
+        }
+
+        $sections[] = [
+            'key' => 'settings',
+            'label' => Craft::t('report-manager', 'Settings'),
+            'url' => 'report-manager/settings',
+            'permissionsAll' => ['reportManager:manageSettings'],
+        ];
+
+        return $sections;
     }
 
     /**
