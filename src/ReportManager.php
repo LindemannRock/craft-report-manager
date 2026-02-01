@@ -185,7 +185,7 @@ class ReportManager extends Plugin
      * @param bool $includeDashboard
      * @param bool $includeLogs
      * @return array
-     * @since 5.14.0
+     * @since 5.2.0
      */
     public function getCpSections(Settings $settings, bool $includeDashboard = true, bool $includeLogs = false): array
     {
