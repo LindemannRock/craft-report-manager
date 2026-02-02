@@ -91,7 +91,7 @@ class ReportManager extends Plugin
         self::$plugin = $this;
 
         // Set logging handle
-        $this->setLoggingHandle('report-manager');
+        $this->setLoggingHandle($this->id);
 
         // Bootstrap with base plugin helper (logging + Twig extension + colors)
         PluginHelper::bootstrap(

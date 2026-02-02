@@ -57,7 +57,7 @@ class ExportService extends Component
     public function init(): void
     {
         parent::init();
-        $this->setLoggingHandle('report-manager');
+        $this->setLoggingHandle(ReportManager::$plugin->id);
         $this->_initializeStorage();
     }
 

@@ -44,7 +44,7 @@ class ProcessScheduledReportsJob extends BaseJob
     public function init(): void
     {
         parent::init();
-        $this->setLoggingHandle('report-manager');
+        $this->setLoggingHandle(ReportManager::$plugin->id);
 
         // Calculate and set next run time if not already set
         if ($this->reschedule && !$this->nextRunTime) {

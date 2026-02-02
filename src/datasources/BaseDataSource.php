@@ -11,6 +11,7 @@ namespace lindemannrock\reportmanager\datasources;
 use Craft;
 use DateTime;
 use lindemannrock\logginglibrary\traits\LoggingTrait;
+use lindemannrock\reportmanager\ReportManager;
 
 /**
  * Base Data Source
@@ -38,7 +39,7 @@ abstract class BaseDataSource implements DataSourceInterface
      */
     public function __construct()
     {
-        $this->setLoggingHandle('report-manager');
+        $this->setLoggingHandle(ReportManager::$plugin->id);
     }
 
     /**

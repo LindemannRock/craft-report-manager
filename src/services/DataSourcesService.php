@@ -13,6 +13,7 @@ use lindemannrock\logginglibrary\traits\LoggingTrait;
 use lindemannrock\reportmanager\datasources\DataSourceInterface;
 use lindemannrock\reportmanager\datasources\FormieDataSource;
 use lindemannrock\reportmanager\events\RegisterDataSourcesEvent;
+use lindemannrock\reportmanager\ReportManager;
 
 /**
  * Data Sources Service
@@ -48,7 +49,7 @@ class DataSourcesService extends Component
     public function init(): void
     {
         parent::init();
-        $this->setLoggingHandle('report-manager');
+        $this->setLoggingHandle(ReportManager::$plugin->id);
     }
 
     /**

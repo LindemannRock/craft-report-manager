@@ -147,7 +147,7 @@ class Settings extends Model
     public function init(): void
     {
         parent::init();
-        $this->setLoggingHandle('report-manager');
+        $this->setLoggingHandle(static::pluginHandle());
     }
 
     /**
