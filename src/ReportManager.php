@@ -50,6 +50,7 @@ class ReportManager extends Plugin
 
     /**
      * @var ReportManager|null Plugin instance
+     * @since 5.0.0
      */
     public static ?ReportManager $plugin = null;
 

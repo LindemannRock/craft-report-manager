@@ -38,6 +38,7 @@ class RegisterDataSourcesEvent extends Event
 {
     /**
      * @var array<string, array{handle: string, name: string, class: class-string}> Registered data sources
+     * @since 5.0.0
      */
     public array $dataSources = [];
 

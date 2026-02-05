@@ -26,11 +26,13 @@ class GenerateExportJob extends BaseJob
 {
     /**
      * @var int Export record ID
+     * @since 5.0.0
      */
     public int $exportId;
 
     /**
      * @var bool Whether this is a combined export (multiple forms)
+     * @since 5.0.0
      */
     public bool $combined = false;
 

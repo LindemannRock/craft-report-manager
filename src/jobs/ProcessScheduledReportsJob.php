@@ -30,11 +30,13 @@ class ProcessScheduledReportsJob extends BaseJob
 
     /**
      * @var bool Whether to reschedule this job after completion
+     * @since 5.0.0
      */
     public bool $reschedule = true;
 
     /**
      * @var string|null Next run time display string for queued jobs
+     * @since 5.0.0
      */
     public ?string $nextRunTime = null;
 

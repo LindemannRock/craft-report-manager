@@ -37,6 +37,7 @@ class Settings extends Model
 
     /**
      * @var string The public-facing name of the plugin
+     * @since 5.0.0
      */
     public string $pluginName = 'Report Manager';
 
@@ -46,27 +47,32 @@ class Settings extends Model
 
     /**
      * @var bool Enable scheduled report generation
+     * @since 5.0.0
      */
     public bool $enableScheduledReports = true;
 
     /**
      * @var string Default schedule for report generation
      * Options: disabled, every6hours, every12hours, daily, daily2am, weekly
+     * @since 5.0.0
      */
     public string $defaultSchedule = 'daily2am';
 
     /**
      * @var int Maximum records per export batch (for large datasets)
+     * @since 5.0.0
      */
     public int $maxExportBatchSize = 10000;
 
     /**
      * @var int Number of days to retain generated exports
+     * @since 5.0.0
      */
     public int $exportRetention = 30;
 
     /**
      * @var bool Auto-cleanup old exports
+     * @since 5.0.0
      */
     public bool $autoCleanupExports = true;
 
@@ -76,31 +82,37 @@ class Settings extends Model
 
     /**
      * @var string|null Asset volume UID for export storage (null = use exportPath)
+     * @since 5.0.0
      */
     public ?string $exportVolumeUid = null;
 
     /**
      * @var string The path where exports should be stored
+     * @since 5.0.0
      */
     public string $exportPath = '@storage/report-manager/exports';
 
     /**
      * @var string Default export format (csv, json)
+     * @since 5.0.0
      */
     public string $defaultExportFormat = 'csv';
 
     /**
      * @var string CSV delimiter character
+     * @since 5.0.0
      */
     public string $csvDelimiter = ',';
 
     /**
      * @var string CSV enclosure character
+     * @since 5.0.0
      */
     public string $csvEnclosure = '"';
 
     /**
      * @var bool Include BOM in CSV exports (for Excel compatibility)
+     * @since 5.0.0
      */
     public bool $csvIncludeBom = true;
 
@@ -110,16 +122,19 @@ class Settings extends Model
 
     /**
      * @var bool Enable analytics dashboard
+     * @since 5.0.0
      */
     public bool $enableAnalytics = true;
 
     /**
      * @var string Default date range for analytics
+     * @since 5.0.0
      */
     public string $defaultDateRange = 'last30days';
 
     /**
      * @var int Dashboard refresh interval in seconds (0 = disabled)
+     * @since 5.0.0
      */
     public int $dashboardRefreshInterval = 0;
 
@@ -129,6 +144,7 @@ class Settings extends Model
 
     /**
      * @var int Items per page in list views
+     * @since 5.0.0
      */
     public int $itemsPerPage = 50;
 
@@ -138,6 +154,7 @@ class Settings extends Model
 
     /**
      * @var string Log level for the logging library
+     * @since 5.0.0
      */
     public string $logLevel = 'error';
 
