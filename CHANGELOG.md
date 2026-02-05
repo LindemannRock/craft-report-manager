@@ -1,5 +1,12 @@
 # Changelog
 
+## [5.1.5](https://github.com/LindemannRock/craft-report-manager/compare/v5.1.4...v5.1.5) (2026-02-05)
+
+
+### Bug Fixes
+
+* **ReportManager:** update [@since](https://github.com/since) version for getCpSections method to 5.2.0 ([8b1729d](https://github.com/LindemannRock/craft-report-manager/commit/8b1729dd14528e492526a0af222081e5b9bb484e))
+
 ## [5.1.4](https://github.com/LindemannRock/craft-report-manager/compare/v5.1.3...v5.1.4) (2026-01-28)
 
 
