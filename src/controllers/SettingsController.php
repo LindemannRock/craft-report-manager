@@ -94,7 +94,9 @@ class SettingsController extends Controller
 
         $settings = ReportManager::getInstance()->getSettings();
         $postedSettings = Craft::$app->getRequest()->getBodyParam('settings', []);
-        $section = Craft::$app->getRequest()->getBodyParam('section', 'general');
+        $section = $this->_validSettingsSection(
+            Craft::$app->getRequest()->getBodyParam('section', 'general'),
+        );
 
         // Fields that should be cast to int
         $intFields = ['maxExportBatchSize', 'exportRetention', 'dashboardRefreshInterval', 'itemsPerPage'];
@@ -142,5 +144,18 @@ class SettingsController extends Controller
         Craft::$app->getSession()->setNotice(Craft::t('report-manager', 'Settings saved.'));
 
         return $this->redirectToPostedUrl();
+    }
+
+    /**
+     * Validate and sanitize the settings section parameter
+     *
+     * @param string $section The section from POST data
+     * @return string A validated section name
+     */
+    private function _validSettingsSection(string $section): string
+    {
+        $allowed = ['general', 'export'];
+
+        return in_array($section, $allowed, true) ? $section : 'general';
     }
 }
