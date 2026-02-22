@@ -1,5 +1,13 @@
 # Changelog
 
+## [5.1.6](https://github.com/LindemannRock/craft-report-manager/compare/v5.1.5...v5.1.6) (2026-02-22)
+
+
+### Miscellaneous Chores
+
+* add .gitattributes with export-ignore for Packagist distribution ([5dd1da9](https://github.com/LindemannRock/craft-report-manager/commit/5dd1da99730164481586bbf75d4e3f5af1a9b1dd))
+* switch to Craft License for commercial release ([a1a6562](https://github.com/LindemannRock/craft-report-manager/commit/a1a6562d9ae04d3d1562649ef72a1b1ff111b9c2))
+
 ## [5.1.5](https://github.com/LindemannRock/craft-report-manager/compare/v5.1.4...v5.1.5) (2026-02-05)
 
 
