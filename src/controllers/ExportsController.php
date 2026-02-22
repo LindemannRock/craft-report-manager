@@ -36,7 +36,7 @@ class ExportsController extends Controller
             return false;
         }
 
-        $this->requirePermission('reportManager:viewExports');
+        $this->requirePermission('reportManager:manageExports');
 
         // Additional permissions for specific actions
         if (in_array($action->id, ['new', 'quick-export', 'create'], true)) {

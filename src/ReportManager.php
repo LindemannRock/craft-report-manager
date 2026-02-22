@@ -205,7 +205,7 @@ class ReportManager extends Plugin
             'key' => 'reports',
             'label' => Craft::t('report-manager', 'Reports'),
             'url' => 'report-manager/reports',
-            'permissionsAll' => ['reportManager:viewReports'],
+            'permissionsAll' => ['reportManager:manageReports'],
         ];
 
         // Exports - hidden for now (accessible via Reports > View Generated)
@@ -228,6 +228,14 @@ class ReportManager extends Plugin
         ];
 
         return $sections;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function setSettings(array|Model $settings): void
+    {
+        // No-op: settings come from loadFromDatabase() in createSettingsModel()
     }
 
     /**
@@ -303,24 +311,29 @@ class ReportManager extends Plugin
             UserPermissions::EVENT_REGISTER_PERMISSIONS,
             function(RegisterUserPermissionsEvent $event) {
                 $settings = $this->getSettings();
-                $pluginName = $settings->pluginName;
 
                 $event->permissions[] = [
-                    'heading' => $pluginName,
+                    'heading' => $settings->getFullName(),
                     'permissions' => [
                         'reportManager:viewDashboard' => [
                             'label' => Craft::t('report-manager', 'View Dashboard'),
                         ],
-                        'reportManager:viewReports' => [
-                            'label' => Craft::t('report-manager', 'View Reports'),
+                        'reportManager:manageReports' => [
+                            'label' => Craft::t('report-manager', 'Manage Reports'),
                             'nested' => [
-                                'reportManager:manageReports' => [
-                                    'label' => Craft::t('report-manager', 'Manage Reports'),
+                                'reportManager:createReports' => [
+                                    'label' => Craft::t('report-manager', 'Create Reports'),
+                                ],
+                                'reportManager:editReports' => [
+                                    'label' => Craft::t('report-manager', 'Edit Reports'),
+                                ],
+                                'reportManager:deleteReports' => [
+                                    'label' => Craft::t('report-manager', 'Delete Reports'),
                                 ],
                             ],
                         ],
-                        'reportManager:viewExports' => [
-                            'label' => Craft::t('report-manager', 'View Exports'),
+                        'reportManager:manageExports' => [
+                            'label' => Craft::t('report-manager', 'Manage Exports'),
                             'nested' => [
                                 'reportManager:createExports' => [
                                     'label' => Craft::t('report-manager', 'Create Exports'),

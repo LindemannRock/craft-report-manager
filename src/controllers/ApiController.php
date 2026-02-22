@@ -34,7 +34,7 @@ class ApiController extends Controller
         }
 
         $this->requireAcceptsJson();
-        $this->requirePermission('reportManager:viewReports');
+        $this->requirePermission('reportManager:manageReports');
 
         return true;
     }

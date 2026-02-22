@@ -37,11 +37,15 @@ class ReportsController extends Controller
             return false;
         }
 
-        $this->requirePermission('reportManager:viewReports');
+        $this->requirePermission('reportManager:manageReports');
 
-        // Require manage permission for edit/delete actions
-        if (in_array($action->id, ['edit', 'save', 'delete', 'reorder', 'bulk-enable', 'bulk-disable', 'bulk-delete'], true)) {
-            $this->requirePermission('reportManager:manageReports');
+        // Require specific write permissions for edit/delete actions
+        if (in_array($action->id, ['edit', 'save', 'reorder', 'bulk-enable', 'bulk-disable'], true)) {
+            $this->requirePermission('reportManager:editReports');
+        }
+
+        if (in_array($action->id, ['delete', 'bulk-delete'], true)) {
+            $this->requirePermission('reportManager:deleteReports');
         }
 
         // Require export permissions for generate action
@@ -49,9 +53,9 @@ class ReportsController extends Controller
             $this->requirePermission('reportManager:createExports');
         }
 
-        // Require download permission for generated view
+        // Require exports access for generated view
         if ($action->id === 'generated') {
-            $this->requirePermission('reportManager:viewExports');
+            $this->requirePermission('reportManager:manageExports');
         }
 
         return true;
