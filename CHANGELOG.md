@@ -1,5 +1,13 @@
 # Changelog
 
+## [5.1.7](https://github.com/LindemannRock/craft-report-manager/compare/v5.1.6...v5.1.7) (2026-02-23)
+
+
+### Bug Fixes
+
+* **permissions:** update report permissions for manage access ([59cb5c1](https://github.com/LindemannRock/craft-report-manager/commit/59cb5c19909e47abc8c9506586b7e567ee2ac5f3))
+* **settings:** validate and sanitize settings section parameter ([458d193](https://github.com/LindemannRock/craft-report-manager/commit/458d1932d85c88fac1586775a5db184a30e86002))
+
 ## [5.1.6](https://github.com/LindemannRock/craft-report-manager/compare/v5.1.5...v5.1.6) (2026-02-22)
 
 
