@@ -24,7 +24,6 @@ interface DataSourceInterface
      * Get the data source type handle
      *
      * @return string Unique handle (e.g., 'formie', 'survey-campaigns')
-     * @since 5.0.0
      */
     public static function handle(): string;
 
@@ -32,7 +31,6 @@ interface DataSourceInterface
      * Get the display name for the data source
      *
      * @return string Human-readable name (e.g., 'Formie', 'Survey Campaigns')
-     * @since 5.0.0
      */
     public static function displayName(): string;
 
@@ -40,7 +38,6 @@ interface DataSourceInterface
      * Get the data source description
      *
      * @return string Short description of the data source
-     * @since 5.0.0
      */
     public static function description(): string;
 
@@ -48,7 +45,6 @@ interface DataSourceInterface
      * Get the data source icon URL
      *
      * @return string|null URL to data source icon
-     * @since 5.0.0
      */
     public static function iconUrl(): ?string;
 
@@ -56,7 +52,6 @@ interface DataSourceInterface
      * Check if this data source is available (plugin installed/enabled)
      *
      * @return bool
-     * @since 5.0.0
      */
     public static function isAvailable(): bool;
 
@@ -66,7 +61,6 @@ interface DataSourceInterface
      * Returns items that can be reported on (e.g., forms for Formie, campaigns for survey-campaigns)
      *
      * @return array<array{id: int, name: string, handle: string, submissionCount: int}>
-     * @since 5.0.0
      */
     public function getAvailableEntities(): array;
 
@@ -75,7 +69,6 @@ interface DataSourceInterface
      *
      * @param int $entityId The entity ID
      * @return array{id: int, name: string, handle: string}|null
-     * @since 5.0.0
      */
     public function getEntity(int $entityId): ?array;
 
@@ -86,7 +79,6 @@ interface DataSourceInterface
      *
      * @param int $entityId The entity ID
      * @return array<array{handle: string, label: string, type: string, exportable: bool}>
-     * @since 5.0.0
      */
     public function getEntityFields(int $entityId): array;
 
@@ -96,7 +88,6 @@ interface DataSourceInterface
      * @param int $entityId The entity ID
      * @param array $options Query options (dateStart, dateEnd, limit, offset, status, etc.)
      * @return array Array of submission data
-     * @since 5.0.0
      */
     public function getSubmissions(int $entityId, array $options = []): array;
 
@@ -106,7 +97,6 @@ interface DataSourceInterface
      * @param int $entityId The entity ID
      * @param array $options Query options (dateStart, dateEnd, status, etc.)
      * @return int
-     * @since 5.0.0
      */
     public function getSubmissionCount(int $entityId, array $options = []): int;
 
@@ -118,7 +108,6 @@ interface DataSourceInterface
      * @param int $entityId The entity ID
      * @param string $dateRange Date range (today, last7days, last30days, last90days, all)
      * @return array Analytics data (totals, trends, etc.)
-     * @since 5.0.0
      */
     public function getAnalytics(int $entityId, string $dateRange = 'last30days'): array;
 
@@ -128,7 +117,6 @@ interface DataSourceInterface
      * @param int $entityId The entity ID
      * @param string $dateRange Date range
      * @return array{labels: array, values: array}
-     * @since 5.0.0
      */
     public function getTrendData(int $entityId, string $dateRange = 'last30days'): array;
 
@@ -139,7 +127,6 @@ interface DataSourceInterface
      * @param array $fieldHandles Field handles to include (empty = all)
      * @param array $options Query options
      * @return array Array of export rows with headers
-     * @since 5.0.0
      */
     public function exportToArray(int $entityId, array $fieldHandles = [], array $options = []): array;
 
@@ -147,7 +134,6 @@ interface DataSourceInterface
      * Get the settings HTML for this data source (if any)
      *
      * @return string|null HTML for settings form
-     * @since 5.0.0
      */
     public function getSettingsHtml(): ?string;
 }

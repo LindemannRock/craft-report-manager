@@ -65,7 +65,6 @@ class ReportsController extends Controller
      * Reports index action
      *
      * @return Response
-     * @since 5.0.0
      */
     public function actionIndex(): Response
     {
@@ -113,7 +112,6 @@ class ReportsController extends Controller
      * @param int|null $reportId Report ID (null for new)
      * @param ReportRecord|null $report Report record (for validation errors)
      * @return Response
-     * @since 5.0.0
      */
     public function actionEdit(?int $reportId = null, ?ReportRecord $report = null): Response
     {
@@ -181,7 +179,6 @@ class ReportsController extends Controller
      * Save report action
      *
      * @return Response|null
-     * @since 5.0.0
      */
     public function actionSave(): ?Response
     {
@@ -278,7 +275,6 @@ class ReportsController extends Controller
      * Queue initial export when scheduling is first enabled
      *
      * @param ReportRecord $report
-     * @since 5.0.0
      */
     private function queueInitialScheduledExport(ReportRecord $report): void
     {
@@ -339,7 +335,6 @@ class ReportsController extends Controller
      * Delete report action
      *
      * @return Response
-     * @since 5.0.0
      */
     public function actionDelete(): Response
     {
@@ -376,7 +371,6 @@ class ReportsController extends Controller
      * Reorder reports action
      *
      * @return Response
-     * @since 5.0.0
      */
     public function actionReorder(): Response
     {
@@ -401,7 +395,6 @@ class ReportsController extends Controller
      * Generate report export action
      *
      * @return Response
-     * @since 5.0.0
      */
     public function actionGenerate(): Response
     {
@@ -516,7 +509,6 @@ class ReportsController extends Controller
      *
      * @param int $reportId Report ID
      * @return Response
-     * @since 5.0.0
      */
     public function actionGenerated(int $reportId): Response
     {
@@ -556,7 +548,6 @@ class ReportsController extends Controller
      * Bulk enable reports action
      *
      * @return Response
-     * @since 5.0.0
      */
     public function actionBulkEnable(): Response
     {
@@ -597,7 +588,6 @@ class ReportsController extends Controller
      * Bulk disable reports action
      *
      * @return Response
-     * @since 5.0.0
      */
     public function actionBulkDisable(): Response
     {
@@ -638,7 +628,6 @@ class ReportsController extends Controller
      * Bulk delete reports action
      *
      * @return Response
-     * @since 5.0.0
      */
     public function actionBulkDelete(): Response
     {

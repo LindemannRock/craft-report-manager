@@ -58,7 +58,6 @@ class ExportsController extends Controller
      * Exports index action
      *
      * @return Response
-     * @since 5.0.0
      */
     public function actionIndex(): Response
     {
@@ -105,7 +104,6 @@ class ExportsController extends Controller
      *
      * @param int $exportId Export ID
      * @return Response
-     * @since 5.0.0
      */
     public function actionView(int $exportId): Response
     {
@@ -131,7 +129,6 @@ class ExportsController extends Controller
      * New export action (quick export form)
      *
      * @return Response
-     * @since 5.0.0
      */
     public function actionNew(): Response
     {
@@ -156,7 +153,6 @@ class ExportsController extends Controller
      * Quick export action (create exports for multiple forms)
      *
      * @return Response|null
-     * @since 5.0.0
      */
     public function actionQuickExport(): ?Response
     {
@@ -309,7 +305,6 @@ class ExportsController extends Controller
      *
      * @param int $id Export ID
      * @return Response
-     * @since 5.0.0
      */
     public function actionDownload(int $id): Response
     {
@@ -364,7 +359,6 @@ class ExportsController extends Controller
      * Delete export action
      *
      * @return Response
-     * @since 5.0.0
      */
     public function actionDelete(): Response
     {
@@ -389,7 +383,6 @@ class ExportsController extends Controller
      * Get export status (AJAX)
      *
      * @return Response
-     * @since 5.0.0
      */
     public function actionStatus(): Response
     {
@@ -421,7 +414,6 @@ class ExportsController extends Controller
      * Bulk delete exports action
      *
      * @return Response
-     * @since 5.0.0
      */
     public function actionBulkDelete(): Response
     {

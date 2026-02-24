@@ -41,7 +41,6 @@ class SettingsController extends Controller
      * Settings index action
      *
      * @return Response
-     * @since 5.0.0
      */
     public function actionIndex(): Response
     {
@@ -52,7 +51,6 @@ class SettingsController extends Controller
      * General settings action
      *
      * @return Response
-     * @since 5.0.0
      */
     public function actionGeneral(): Response
     {
@@ -69,7 +67,6 @@ class SettingsController extends Controller
      * Export settings action
      *
      * @return Response
-     * @since 5.0.0
      */
     public function actionExport(): Response
     {
@@ -86,7 +83,6 @@ class SettingsController extends Controller
      * Save settings action
      *
      * @return Response|null
-     * @since 5.0.0
      */
     public function actionSave(): ?Response
     {

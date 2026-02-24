@@ -38,7 +38,6 @@ class RegisterDataSourcesEvent extends Event
 {
     /**
      * @var array<string, array{handle: string, name: string, class: class-string}> Registered data sources
-     * @since 5.0.0
      */
     public array $dataSources = [];
 
@@ -48,7 +47,6 @@ class RegisterDataSourcesEvent extends Event
      * @param string $handle Unique handle (e.g., 'formie', 'survey-campaigns')
      * @param string $name Display name (e.g., 'Formie', 'Survey Campaigns')
      * @param string $class Data source class that implements DataSourceInterface
-     * @since 5.0.0
      */
     public function register(string $handle, string $name, string $class): void
     {

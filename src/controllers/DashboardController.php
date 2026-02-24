@@ -42,7 +42,6 @@ class DashboardController extends Controller
      * Dashboard index action - lists all generated exports
      *
      * @return Response
-     * @since 5.0.0
      */
     public function actionIndex(): Response
     {

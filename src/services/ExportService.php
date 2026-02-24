@@ -99,7 +99,6 @@ class ExportService extends Component
      * Get the export base path (for display purposes)
      *
      * @return string
-     * @since 5.0.0
      */
     public function getExportBasePath(): string
     {
@@ -113,7 +112,6 @@ class ExportService extends Component
      * Check if using volume storage
      *
      * @return bool
-     * @since 5.0.0
      */
     public function isUsingVolume(): bool
     {
@@ -125,7 +123,6 @@ class ExportService extends Component
      *
      * @param int|null $limit Maximum number to return
      * @return ExportRecord[]
-     * @since 5.0.0
      */
     public function getAllExports(?int $limit = null): array
     {
@@ -145,7 +142,6 @@ class ExportService extends Component
      *
      * @param array $params Filter parameters
      * @return array{exports: ExportRecord[], totalCount: int, totalPages: int, offset: int}
-     * @since 5.0.0
      */
     public function getFilteredExports(array $params = []): array
     {
@@ -224,7 +220,6 @@ class ExportService extends Component
      * @param int $reportId Report ID
      * @param int|null $limit Maximum number to return
      * @return ExportRecord[]
-     * @since 5.0.0
      */
     public function getExportsByReport(int $reportId, ?int $limit = null): array
     {
@@ -246,7 +241,6 @@ class ExportService extends Component
      * @param int $reportId Report ID
      * @param array $params Pagination parameters
      * @return array{exports: ExportRecord[], totalCount: int, totalPages: int, offset: int}
-     * @since 5.0.0
      */
     public function getExportsForReport(int $reportId, array $params = []): array
     {
@@ -279,7 +273,6 @@ class ExportService extends Component
      *
      * @param int $id Export ID
      * @return ExportRecord|null
-     * @since 5.0.0
      */
     public function getExportById(int $id): ?ExportRecord
     {
@@ -295,7 +288,6 @@ class ExportService extends Component
      * @param string $format Export format
      * @param array $options Additional options
      * @return ExportRecord
-     * @since 5.0.0
      */
     public function createExport(
         string $dataSource,
@@ -360,7 +352,6 @@ class ExportService extends Component
      *
      * @param ExportRecord $export Export record
      * @return bool
-     * @since 5.0.0
      */
     public function generateExport(ExportRecord $export): bool
     {
@@ -622,7 +613,6 @@ class ExportService extends Component
      * @param string $format Export format
      * @param array $options Additional options
      * @return ExportRecord
-     * @since 5.0.0
      */
     public function createCombinedExport(
         string $dataSource,
@@ -677,7 +667,6 @@ class ExportService extends Component
      *
      * @param ExportRecord $export Export record
      * @return bool
-     * @since 5.0.0
      */
     public function generateCombinedExport(ExportRecord $export): bool
     {
@@ -829,7 +818,6 @@ class ExportService extends Component
      *
      * @param int $id Export ID
      * @return bool
-     * @since 5.0.0
      */
     public function deleteExport(int $id): bool
     {
@@ -889,7 +877,6 @@ class ExportService extends Component
      *
      * @param ExportRecord $export Export record
      * @return string|null File content or null if not found
-     * @since 5.0.0
      */
     public function getFileContent(ExportRecord $export): ?string
     {
@@ -924,7 +911,6 @@ class ExportService extends Component
      *
      * @param ExportRecord $export Export record
      * @return bool
-     * @since 5.0.0
      */
     public function fileExists(ExportRecord $export): bool
     {
@@ -947,7 +933,6 @@ class ExportService extends Component
      *
      * @param ExportRecord $export Export record
      * @return string|null
-     * @since 5.0.0
      */
     public function getDownloadUrl(ExportRecord $export): ?string
     {
@@ -964,7 +949,6 @@ class ExportService extends Component
      * Cleanup old exports based on retention settings
      *
      * @return int Number of exports deleted
-     * @since 5.0.0
      */
     public function cleanupOldExports(): int
     {
@@ -999,7 +983,6 @@ class ExportService extends Component
      * Get export statistics
      *
      * @return array
-     * @since 5.0.0
      */
     public function getExportStats(): array
     {

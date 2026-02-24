@@ -44,7 +44,6 @@ class ApiController extends Controller
      *
      * @param string $dataSource Data source handle
      * @return Response
-     * @since 5.0.0
      */
     public function actionEntities(string $dataSource): Response
     {
@@ -72,7 +71,6 @@ class ApiController extends Controller
      * @param string $dataSource Data source handle
      * @param int $entityId Entity ID
      * @return Response
-     * @since 5.0.0
      */
     public function actionFields(string $dataSource, int $entityId): Response
     {
@@ -100,7 +98,6 @@ class ApiController extends Controller
      * @param string $dataSource Data source handle
      * @param int $entityId Entity ID
      * @return Response
-     * @since 5.0.0
      */
     public function actionAnalytics(string $dataSource, int $entityId): Response
     {
@@ -130,7 +127,6 @@ class ApiController extends Controller
      * Get submission count for an entity
      *
      * @return Response
-     * @since 5.0.0
      */
     public function actionSubmissionCount(): Response
     {

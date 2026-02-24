@@ -70,7 +70,6 @@ class ExportRecord extends ActiveRecord
      * Get report relation
      *
      * @return \yii\db\ActiveQuery
-     * @since 5.0.0
      */
     public function getReport(): \yii\db\ActiveQuery
     {
@@ -86,7 +85,6 @@ class ExportRecord extends ActiveRecord
      * Get field handles used as array
      *
      * @return array
-     * @since 5.0.0
      */
     public function getFieldHandlesUsedArray(): array
     {
@@ -103,7 +101,6 @@ class ExportRecord extends ActiveRecord
      * Set field handles used from array
      *
      * @param array $handles
-     * @since 5.0.0
      */
     public function setFieldHandlesUsedArray(array $handles): void
     {
@@ -114,7 +111,6 @@ class ExportRecord extends ActiveRecord
      * Get site IDs used as array
      *
      * @return int[]
-     * @since 5.0.0
      */
     public function getSiteIdsUsedArray(): array
     {
@@ -131,7 +127,6 @@ class ExportRecord extends ActiveRecord
      * Set site IDs used from array
      *
      * @param int[] $siteIds
-     * @since 5.0.0
      */
     public function setSiteIdsUsedArray(array $siteIds): void
     {
@@ -142,7 +137,6 @@ class ExportRecord extends ActiveRecord
      * Check if this is a combined export (multiple forms)
      *
      * @return bool
-     * @since 5.0.0
      */
     public function isCombinedExport(): bool
     {
@@ -153,7 +147,6 @@ class ExportRecord extends ActiveRecord
      * Get entity IDs for combined exports
      *
      * @return int[]
-     * @since 5.0.0
      */
     public function getEntityIdsArray(): array
     {
@@ -177,7 +170,6 @@ class ExportRecord extends ActiveRecord
      * Set entity IDs for combined exports
      *
      * @param int[] $entityIds
-     * @since 5.0.0
      */
     public function setEntityIdsArray(array $entityIds): void
     {
@@ -190,7 +182,6 @@ class ExportRecord extends ActiveRecord
      * Check if export is pending
      *
      * @return bool
-     * @since 5.0.0
      */
     public function isPending(): bool
     {
@@ -201,7 +192,6 @@ class ExportRecord extends ActiveRecord
      * Check if export is processing
      *
      * @return bool
-     * @since 5.0.0
      */
     public function isProcessing(): bool
     {
@@ -212,7 +202,6 @@ class ExportRecord extends ActiveRecord
      * Check if export is completed
      *
      * @return bool
-     * @since 5.0.0
      */
     public function isCompleted(): bool
     {
@@ -223,7 +212,6 @@ class ExportRecord extends ActiveRecord
      * Check if export failed
      *
      * @return bool
-     * @since 5.0.0
      */
     public function isFailed(): bool
     {
@@ -234,7 +222,6 @@ class ExportRecord extends ActiveRecord
      * Get formatted file size
      *
      * @return string
-     * @since 5.0.0
      */
     public function getFormattedFileSize(): string
     {
@@ -259,7 +246,6 @@ class ExportRecord extends ActiveRecord
      * Get status label
      *
      * @return string
-     * @since 5.0.0
      */
     public function getStatusLabel(): string
     {
@@ -276,7 +262,6 @@ class ExportRecord extends ActiveRecord
      * Get status color for UI
      *
      * @return string
-     * @since 5.0.0
      */
     public function getStatusColor(): string
     {
@@ -293,7 +278,6 @@ class ExportRecord extends ActiveRecord
      * Get trigger label
      *
      * @return string
-     * @since 5.0.0
      */
     public function getTriggerLabel(): string
     {

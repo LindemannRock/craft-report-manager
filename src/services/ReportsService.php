@@ -44,7 +44,6 @@ class ReportsService extends Component
      *
      * @param bool $enabledOnly Only return enabled reports
      * @return ReportRecord[]
-     * @since 5.0.0
      */
     public function getAllReports(bool $enabledOnly = false): array
     {
@@ -64,7 +63,6 @@ class ReportsService extends Component
      *
      * @param array $params Filter parameters
      * @return array{reports: ReportRecord[], totalCount: int, totalPages: int, offset: int}
-     * @since 5.0.0
      */
     public function getFilteredReports(array $params = []): array
     {
@@ -144,7 +142,6 @@ class ReportsService extends Component
      * @param string $dataSource Data source handle
      * @param bool $enabledOnly Only return enabled reports
      * @return ReportRecord[]
-     * @since 5.0.0
      */
     public function getReportsByDataSource(string $dataSource, bool $enabledOnly = false): array
     {
@@ -165,7 +162,6 @@ class ReportsService extends Component
      *
      * @param int $id Report ID
      * @return ReportRecord|null
-     * @since 5.0.0
      */
     public function getReportById(int $id): ?ReportRecord
     {
@@ -177,7 +173,6 @@ class ReportsService extends Component
      *
      * @param string $handle Report handle
      * @return ReportRecord|null
-     * @since 5.0.0
      */
     public function getReportByHandle(string $handle): ?ReportRecord
     {
@@ -189,7 +184,6 @@ class ReportsService extends Component
      *
      * @param ReportRecord $report Report record to save
      * @return bool
-     * @since 5.0.0
      */
     public function saveReport(ReportRecord $report): bool
     {
@@ -242,7 +236,6 @@ class ReportsService extends Component
      *
      * @param int $id Report ID
      * @return bool
-     * @since 5.0.0
      */
     public function deleteReport(int $id): bool
     {
@@ -274,7 +267,6 @@ class ReportsService extends Component
      * Get scheduled reports that are due to run
      *
      * @return ReportRecord[]
-     * @since 5.0.0
      */
     public function getScheduledReportsDue(): array
     {
@@ -296,7 +288,6 @@ class ReportsService extends Component
      *
      * @param ReportRecord $report Report record
      * @return bool
-     * @since 5.0.0
      */
     public function markReportGenerated(ReportRecord $report): bool
     {
@@ -317,7 +308,6 @@ class ReportsService extends Component
      *
      * @param ReportRecord $report Report record
      * @return bool
-     * @since 5.0.0
      */
     public function updateLastGenerated(ReportRecord $report): bool
     {
@@ -331,7 +321,6 @@ class ReportsService extends Component
      *
      * @param array $reportIds Ordered array of report IDs
      * @return bool
-     * @since 5.0.0
      */
     public function reorderReports(array $reportIds): bool
     {
@@ -473,7 +462,6 @@ class ReportsService extends Component
      * Get report count by data source
      *
      * @return array<string, int>
-     * @since 5.0.0
      */
     public function getReportCountByDataSource(): array
     {

@@ -69,8 +69,6 @@ class ReportRecord extends ActiveRecord
 
     /**
      * Validate that at least one entity (form) is selected
-     *
-     * @since 5.0.0
      */
     public function validateEntityIds(): void
     {
@@ -85,7 +83,6 @@ class ReportRecord extends ActiveRecord
      * Get entity IDs as array
      *
      * @return int[]
-     * @since 5.0.0
      */
     public function getEntityIdsArray(): array
     {
@@ -102,7 +99,6 @@ class ReportRecord extends ActiveRecord
      * Set entity IDs from array
      *
      * @param int[] $ids
-     * @since 5.0.0
      */
     public function setEntityIdsArray(array $ids): void
     {
@@ -113,7 +109,6 @@ class ReportRecord extends ActiveRecord
      * Get field handles as array
      *
      * @return array
-     * @since 5.0.0
      */
     public function getFieldHandlesArray(): array
     {
@@ -130,7 +125,6 @@ class ReportRecord extends ActiveRecord
      * Set field handles from array
      *
      * @param array $handles
-     * @since 5.0.0
      */
     public function setFieldHandlesArray(array $handles): void
     {
@@ -141,7 +135,6 @@ class ReportRecord extends ActiveRecord
      * Check if this is a combined export (multiple forms in one file)
      *
      * @return bool
-     * @since 5.0.0
      */
     public function isCombined(): bool
     {
@@ -152,7 +145,6 @@ class ReportRecord extends ActiveRecord
      * Get exports relation (generated files)
      *
      * @return \yii\db\ActiveQuery
-     * @since 5.0.0
      */
     public function getExports(): \yii\db\ActiveQuery
     {
@@ -164,7 +156,6 @@ class ReportRecord extends ActiveRecord
      * Get the latest export for this report
      *
      * @return ExportRecord|null
-     * @since 5.0.0
      */
     public function getLatestExport(): ?ExportRecord
     {
@@ -179,7 +170,6 @@ class ReportRecord extends ActiveRecord
      * Get export count for this report
      *
      * @return int
-     * @since 5.0.0
      */
     public function getExportCount(): int
     {
@@ -192,7 +182,6 @@ class ReportRecord extends ActiveRecord
      * Get human-readable schedule label
      *
      * @return string
-     * @since 5.0.0
      */
     public function getScheduleLabel(): string
     {

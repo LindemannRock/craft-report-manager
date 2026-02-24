@@ -106,7 +106,6 @@ abstract class BaseDataSource implements DataSourceInterface
      * Get date range label options
      *
      * @return array<array{value: string, label: string}>
-     * @since 5.0.0
      */
     public static function getDateRangeOptions(): array
     {

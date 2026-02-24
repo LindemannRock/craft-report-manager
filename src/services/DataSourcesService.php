@@ -56,7 +56,6 @@ class DataSourcesService extends Component
      * Get all registered data sources
      *
      * @return array<string, array{handle: string, name: string, class: class-string}>
-     * @since 5.0.0
      */
     public function getRegisteredDataSources(): array
     {
@@ -86,7 +85,6 @@ class DataSourcesService extends Component
      * Get available (installed and enabled) data sources
      *
      * @return array<string, array{handle: string, name: string, class: class-string, available: bool}>
-     * @since 5.0.0
      */
     public function getAvailableDataSources(): array
     {
@@ -113,7 +111,6 @@ class DataSourcesService extends Component
      *
      * @param string $handle Data source handle
      * @return DataSourceInterface|null
-     * @since 5.0.0
      */
     public function getDataSource(string $handle): ?DataSourceInterface
     {
@@ -158,7 +155,6 @@ class DataSourcesService extends Component
      *
      * @param string $handle Data source handle
      * @return bool
-     * @since 5.0.0
      */
     public function isDataSourceAvailable(string $handle): bool
     {
@@ -183,7 +179,6 @@ class DataSourcesService extends Component
      *
      * @param bool $onlyAvailable Only include available data sources
      * @return array<array{value: string, label: string, disabled: bool}>
-     * @since 5.0.0
      */
     public function getDataSourceOptions(bool $onlyAvailable = true): array
     {
@@ -211,7 +206,6 @@ class DataSourcesService extends Component
      * Get all entities from all available data sources
      *
      * @return array<string, array{dataSource: string, dataSourceName: string, entities: array}>
-     * @since 5.0.0
      */
     public function getAllEntities(): array
     {
