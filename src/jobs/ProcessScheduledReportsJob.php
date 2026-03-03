@@ -10,9 +10,11 @@ namespace lindemannrock\reportmanager\jobs;
 
 use Craft;
 use craft\queue\BaseJob;
+use lindemannrock\base\traits\QueueTtrTrait;
 use lindemannrock\logginglibrary\traits\LoggingTrait;
 use lindemannrock\reportmanager\records\ExportRecord;
 use lindemannrock\reportmanager\ReportManager;
+use yii\queue\RetryableJobInterface;
 
 /**
  * Process Scheduled Reports Job
@@ -24,8 +26,9 @@ use lindemannrock\reportmanager\ReportManager;
  * @package   ReportManager
  * @since     5.0.0
  */
-class ProcessScheduledReportsJob extends BaseJob
+class ProcessScheduledReportsJob extends BaseJob implements RetryableJobInterface
 {
+    use QueueTtrTrait;
     use LoggingTrait;
 
     /**
@@ -37,6 +40,14 @@ class ProcessScheduledReportsJob extends BaseJob
      * @var string|null Next run time display string for queued jobs
      */
     public ?string $nextRunTime = null;
+
+    /**
+     * @inheritdoc
+     */
+    public function canRetry($attempt, $error): bool
+    {
+        return false;
+    }
 
     /**
      * @inheritdoc

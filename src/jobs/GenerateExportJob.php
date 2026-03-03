@@ -10,8 +10,10 @@ namespace lindemannrock\reportmanager\jobs;
 
 use Craft;
 use craft\queue\BaseJob;
+use lindemannrock\base\traits\QueueTtrTrait;
 use lindemannrock\reportmanager\records\ExportRecord;
 use lindemannrock\reportmanager\ReportManager;
+use yii\queue\RetryableJobInterface;
 
 /**
  * Generate Export Job
@@ -22,8 +24,10 @@ use lindemannrock\reportmanager\ReportManager;
  * @package   ReportManager
  * @since     5.0.0
  */
-class GenerateExportJob extends BaseJob
+class GenerateExportJob extends BaseJob implements RetryableJobInterface
 {
+    use QueueTtrTrait;
+
     /**
      * @var int Export record ID
      */
@@ -33,6 +37,14 @@ class GenerateExportJob extends BaseJob
      * @var bool Whether this is a combined export (multiple forms)
      */
     public bool $combined = false;
+
+    /**
+     * @inheritdoc
+     */
+    public function canRetry($attempt, $error): bool
+    {
+        return false;
+    }
 
     /**
      * @inheritdoc
