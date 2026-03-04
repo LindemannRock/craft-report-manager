@@ -1,5 +1,13 @@
 # Changelog
 
+## [5.1.8](https://github.com/LindemannRock/craft-report-manager/compare/v5.1.7...v5.1.8) (2026-03-04)
+
+
+### Bug Fixes
+
+* **jobs:** implement RetryableJobInterface and canRetry method ([98be7ce](https://github.com/LindemannRock/craft-report-manager/commit/98be7cea0b87a372583f768da403a7877489e476))
+* **settings:** enhance settings validation and error handling ([9fd615e](https://github.com/LindemannRock/craft-report-manager/commit/9fd615ecdd9f81343a17ab413d06a27e1837b0fb))
+
 ## [5.1.7](https://github.com/LindemannRock/craft-report-manager/compare/v5.1.6...v5.1.7) (2026-02-23)
 
 
