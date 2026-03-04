@@ -55,6 +55,14 @@
     {% endif %}
     {{ csrfInput() }}
 
+    {% if report.hasErrors() %}
+        {{ include('lindemannrock-base/_partials/error-summary', {
+            errors: report.getErrors(),
+            linkMode: 'field-id',
+            translationCategory: 'report-manager'
+        }) }}
+    {% endif %}
+
     <div id="fields">
         {{ forms.textField({
             first: true,

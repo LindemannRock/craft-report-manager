@@ -40,6 +40,7 @@
             disabled: settings.isOverriddenByConfig('pluginName'),
             warning: settings.isOverriddenByConfig('pluginName') ?
                 "This is being overridden by the <code>pluginName</code> setting in <code>config/report-manager.php</code>."|t('report-manager')|raw : null,
+            errors: settings.getErrors('pluginName')
         }) }}
 
         <hr>
@@ -55,6 +56,7 @@
             disabled: settings.isOverriddenByConfig('enableScheduledReports'),
             warning: settings.isOverriddenByConfig('enableScheduledReports') ?
                 "This is being overridden by the <code>enableScheduledReports</code> setting in <code>config/report-manager.php</code>."|t('report-manager')|raw : null,
+            errors: settings.getErrors('enableScheduledReports')
         }) }}
 
         {{ forms.selectField({
@@ -67,6 +69,7 @@
             disabled: settings.isOverriddenByConfig('defaultSchedule'),
             warning: settings.isOverriddenByConfig('defaultSchedule') ?
                 "This is being overridden by the <code>defaultSchedule</code> setting in <code>config/report-manager.php</code>."|t('report-manager')|raw : null,
+            errors: settings.getErrors('defaultSchedule')
         }) }}
 
         <hr>
@@ -82,6 +85,7 @@
             disabled: settings.isOverriddenByConfig('enableAnalytics'),
             warning: settings.isOverriddenByConfig('enableAnalytics') ?
                 "This is being overridden by the <code>enableAnalytics</code> setting in <code>config/report-manager.php</code>."|t('report-manager')|raw : null,
+            errors: settings.getErrors('enableAnalytics')
         }) }}
 
         {{ forms.selectField({
@@ -94,6 +98,7 @@
             disabled: settings.isOverriddenByConfig('defaultDateRange'),
             warning: settings.isOverriddenByConfig('defaultDateRange') ?
                 "This is being overridden by the <code>defaultDateRange</code> setting in <code>config/report-manager.php</code>."|t('report-manager')|raw : null,
+            errors: settings.getErrors('defaultDateRange')
         }) }}
 
         {{ forms.textField({
@@ -107,6 +112,7 @@
             disabled: settings.isOverriddenByConfig('dashboardRefreshInterval'),
             warning: settings.isOverriddenByConfig('dashboardRefreshInterval') ?
                 "This is being overridden by the <code>dashboardRefreshInterval</code> setting in <code>config/report-manager.php</code>."|t('report-manager')|raw : null,
+            errors: settings.getErrors('dashboardRefreshInterval')
         }) }}
 
         <hr>
@@ -125,6 +131,7 @@
             disabled: settings.isOverriddenByConfig('itemsPerPage'),
             warning: settings.isOverriddenByConfig('itemsPerPage') ?
                 "This is being overridden by the <code>itemsPerPage</code> setting in <code>config/report-manager.php</code>."|t('report-manager')|raw : null,
+            errors: settings.getErrors('itemsPerPage')
         }) }}
 
         <hr>
@@ -153,6 +160,7 @@
             disabled: settings.isOverriddenByConfig('logLevel'),
             warning: settings.isOverriddenByConfig('logLevel') ?
                 "This is being overridden by the <code>logLevel</code> setting in <code>config/report-manager.php</code>."|t('report-manager')|raw : null,
+            errors: settings.getErrors('logLevel')
         }) }}
 
         <div class="buttons">

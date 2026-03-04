@@ -46,6 +46,7 @@
             name: 'settings[exportVolumeUid]',
             options: volumeOptions,
             value: settings.exportVolumeUid ?? '',
+            errors: settings.getErrors('exportVolumeUid'),
             disabled: settings.isOverriddenByConfig('exportVolumeUid'),
             warning: settings.isOverriddenByConfig('exportVolumeUid') ?
                 "This is being overridden by the <code>exportVolumeUid</code> setting in <code>config/report-manager.php</code>."|t('report-manager')|raw : null,
@@ -55,22 +56,24 @@
             {{ forms.autosuggestField({
                 label: 'Custom Export Path'|t('report-manager'),
                 instructions: 'The custom path where exports should be stored (only used when no volume is selected).'|t('report-manager'),
-                tip: "Use Craft path aliases: <code>@storage/report-manager/exports</code> (recommended) or <code>@root/exports/report-manager</code>. Paths must be outside webroot for security. Environment variables like <code>$ENV_VAR</code> are supported."|t('report-manager')|raw,
+                tip: "Use Craft path aliases only: <code>@storage/report-manager/exports</code> (recommended) or <code>@root/exports/report-manager</code>. Paths must be outside webroot for security."|t('report-manager')|raw,
                 id: 'exportPath',
                 name: 'settings[exportPath]',
                 value: settings.exportPath,
                 errors: settings.getErrors('exportPath'),
                 required: not settings.exportVolumeUid,
-                suggestEnvVars: true,
+                suggestEnvVars: false,
                 disabled: settings.isOverriddenByConfig('exportPath'),
                 warning: settings.isOverriddenByConfig('exportPath') ?
                     "This is being overridden by the <code>exportPath</code> setting in <code>config/report-manager.php</code>."|t('report-manager')|raw : null,
             }) }}
         </div>
 
-        {% include 'lindemannrock-base/_components/info-box' with {
-            message: '<strong>' ~ 'Export Location:'|t('report-manager') ~ '</strong> <code>' ~ settings.getExportPath() ~ '</code>'
-        } %}
+        {% if not settings.getErrors('exportPath') %}
+            {% include 'lindemannrock-base/_components/info-box' with {
+                message: '<strong>' ~ 'Export Location:'|t('report-manager') ~ '</strong> <code>' ~ settings.getExportPath() ~ '</code>'
+            } %}
+        {% endif %}
 
         <hr>
 
@@ -83,6 +86,7 @@
             name: 'settings[defaultExportFormat]',
             value: settings.defaultExportFormat,
             options: settings.getExportFormatOptions(),
+            errors: settings.getErrors('defaultExportFormat'),
             disabled: settings.isOverriddenByConfig('defaultExportFormat'),
             warning: settings.isOverriddenByConfig('defaultExportFormat') ?
                 "This is being overridden by the <code>defaultExportFormat</code> setting in <code>config/report-manager.php</code>."|t('report-manager')|raw : null,
@@ -97,6 +101,7 @@
             type: 'number',
             min: 100,
             max: 100000,
+            errors: settings.getErrors('maxExportBatchSize'),
             disabled: settings.isOverriddenByConfig('maxExportBatchSize'),
             warning: settings.isOverriddenByConfig('maxExportBatchSize') ?
                 "This is being overridden by the <code>maxExportBatchSize</code> setting in <code>config/report-manager.php</code>."|t('report-manager')|raw : null,
@@ -114,6 +119,7 @@
             value: settings.csvDelimiter,
             maxlength: 1,
             size: 1,
+            errors: settings.getErrors('csvDelimiter'),
             disabled: settings.isOverriddenByConfig('csvDelimiter'),
             warning: settings.isOverriddenByConfig('csvDelimiter') ?
                 "This is being overridden by the <code>csvDelimiter</code> setting in <code>config/report-manager.php</code>."|t('report-manager')|raw : null,
@@ -127,6 +133,7 @@
             value: settings.csvEnclosure,
             maxlength: 1,
             size: 1,
+            errors: settings.getErrors('csvEnclosure'),
             disabled: settings.isOverriddenByConfig('csvEnclosure'),
             warning: settings.isOverriddenByConfig('csvEnclosure') ?
                 "This is being overridden by the <code>csvEnclosure</code> setting in <code>config/report-manager.php</code>."|t('report-manager')|raw : null,
@@ -138,6 +145,7 @@
             id: 'csvIncludeBom',
             name: 'settings[csvIncludeBom]',
             on: settings.csvIncludeBom,
+            errors: settings.getErrors('csvIncludeBom'),
             disabled: settings.isOverriddenByConfig('csvIncludeBom'),
             warning: settings.isOverriddenByConfig('csvIncludeBom') ?
                 "This is being overridden by the <code>csvIncludeBom</code> setting in <code>config/report-manager.php</code>."|t('report-manager')|raw : null,
@@ -155,6 +163,7 @@
             value: settings.exportRetention,
             type: 'number',
             min: 0,
+            errors: settings.getErrors('exportRetention'),
             disabled: settings.isOverriddenByConfig('exportRetention'),
             warning: settings.isOverriddenByConfig('exportRetention') ?
                 "This is being overridden by the <code>exportRetention</code> setting in <code>config/report-manager.php</code>."|t('report-manager')|raw : null,
@@ -166,6 +175,7 @@
             id: 'autoCleanupExports',
             name: 'settings[autoCleanupExports]',
             on: settings.autoCleanupExports,
+            errors: settings.getErrors('autoCleanupExports'),
             disabled: settings.isOverriddenByConfig('autoCleanupExports'),
             warning: settings.isOverriddenByConfig('autoCleanupExports') ?
                 "This is being overridden by the <code>autoCleanupExports</code> setting in <code>config/report-manager.php</code>."|t('report-manager')|raw : null,

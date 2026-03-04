@@ -88,7 +88,8 @@ class SettingsController extends Controller
     {
         $this->requirePostRequest();
 
-        $settings = ReportManager::getInstance()->getSettings();
+        $plugin = ReportManager::getInstance();
+        $settings = $plugin->getSettings();
         $postedSettings = Craft::$app->getRequest()->getBodyParam('settings', []);
         $section = $this->_validSettingsSection(
             Craft::$app->getRequest()->getBodyParam('section', 'general'),
@@ -105,7 +106,7 @@ class SettingsController extends Controller
 
         // Update settings with posted values
         foreach ($postedSettings as $key => $value) {
-            if (property_exists($settings, $key)) {
+            if (property_exists($settings, $key) && !$settings->isOverriddenByConfig($key)) {
                 // Cast to appropriate type
                 if (in_array($key, $intFields, true)) {
                     $settings->$key = (int)$value;
@@ -119,21 +120,29 @@ class SettingsController extends Controller
             }
         }
 
+        $attributesToValidate = $this->_validationAttributesForSection($section);
+        $attributesToValidate = array_values(array_filter(
+            $attributesToValidate,
+            fn(string $attribute): bool => !$settings->isOverriddenByConfig($attribute),
+        ));
+
         // Validate
-        if (!$settings->validate()) {
+        if (!$settings->validate($attributesToValidate)) {
             Craft::$app->getSession()->setError(Craft::t('report-manager', 'Couldn\'t save settings.'));
 
             return $this->renderTemplate('report-manager/settings/' . $section, [
                 'settings' => $settings,
+                'selectedTab' => $section,
             ]);
         }
 
         // Save to database
-        if (!$settings->saveToDatabase()) {
+        if (!$settings->saveToDatabase($attributesToValidate)) {
             Craft::$app->getSession()->setError(Craft::t('report-manager', 'Couldn\'t save settings.'));
 
             return $this->renderTemplate('report-manager/settings/' . $section, [
                 'settings' => $settings,
+                'selectedTab' => $section,
             ]);
         }
 
@@ -153,5 +162,39 @@ class SettingsController extends Controller
         $allowed = ['general', 'export'];
 
         return in_array($section, $allowed, true) ? $section : 'general';
+    }
+
+    /**
+     * Get settings attributes that belong to a section.
+     *
+     * @param string $section
+     * @return array<int, string>
+     */
+    private function _validationAttributesForSection(string $section): array
+    {
+        return match ($section) {
+            'general' => [
+                'pluginName',
+                'enableScheduledReports',
+                'defaultSchedule',
+                'enableAnalytics',
+                'defaultDateRange',
+                'dashboardRefreshInterval',
+                'itemsPerPage',
+                'logLevel',
+            ],
+            'export' => [
+                'exportVolumeUid',
+                'exportPath',
+                'defaultExportFormat',
+                'maxExportBatchSize',
+                'csvDelimiter',
+                'csvEnclosure',
+                'csvIncludeBom',
+                'exportRetention',
+                'autoCleanupExports',
+            ],
+            default => [],
+        };
     }
 }

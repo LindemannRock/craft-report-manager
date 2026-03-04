@@ -10,11 +10,11 @@ namespace lindemannrock\reportmanager\models;
 
 use Craft;
 use craft\base\Model;
-use craft\behaviors\EnvAttributeParserBehavior;
 use lindemannrock\base\helpers\ExportHelper;
 use lindemannrock\base\traits\SettingsConfigTrait;
 use lindemannrock\base\traits\SettingsDisplayNameTrait;
 use lindemannrock\base\traits\SettingsPersistenceTrait;
+use lindemannrock\base\validators\StoragePathValidator;
 use lindemannrock\logginglibrary\traits\LoggingTrait;
 
 /**
@@ -155,12 +155,7 @@ class Settings extends Model
      */
     public function behaviors(): array
     {
-        return [
-            'parser' => [
-                'class' => EnvAttributeParserBehavior::class,
-                'attributes' => ['exportPath'],
-            ],
-        ];
+        return [];
     }
 
     // =========================================================================
@@ -256,14 +251,21 @@ class Settings extends Model
             ['csvEnclosure', 'default', 'value' => '"'],
             ['defaultDateRange', 'in', 'range' => ['today', 'yesterday', 'last7days', 'last30days', 'last90days', 'last365days', 'all']],
             ['defaultDateRange', 'default', 'value' => 'last30days'],
-            ['dashboardRefreshInterval', 'integer', 'min' => 0],
+            ['dashboardRefreshInterval', 'integer', 'min' => 0, 'max' => 3600],
             ['dashboardRefreshInterval', 'default', 'value' => 0],
             ['itemsPerPage', 'integer', 'min' => 10, 'max' => 500],
             ['itemsPerPage', 'default', 'value' => 50],
             [['logLevel'], 'in', 'range' => ['debug', 'info', 'warning', 'error']],
             [['logLevel'], 'validateLogLevel'],
             [['exportVolumeUid'], 'string'],
-            [['exportPath'], 'validateExportPath'],
+            [
+                ['exportPath'],
+                StoragePathValidator::class,
+                'translationCategory' => static::pluginHandle(),
+                'allowedAliases' => ['@storage', '@root'],
+                'preventWebroot' => true,
+                'requireAlias' => true,
+            ],
         ];
     }
 
