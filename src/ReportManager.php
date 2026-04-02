@@ -64,6 +64,11 @@ class ReportManager extends Plugin
     public bool $hasCpSettings = true;
 
     /**
+     * @var bool Whether the plugin settings page is accessible when allowAdminChanges is false
+     */
+    public bool $hasReadOnlyCpSettings = true;
+
+    /**
      * @inheritdoc
      */
     public bool $hasCpSection = true;
@@ -253,12 +258,17 @@ class ReportManager extends Plugin
     /**
      * @inheritdoc
      */
-    protected function settingsHtml(): ?string
+    public function getSettingsResponse(): mixed
     {
-        return Craft::$app->getView()->renderTemplate(
-            'report-manager/settings/index',
-            ['settings' => $this->getSettings()]
-        );
+        return Craft::$app->controller->redirect('report-manager/settings');
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function getReadOnlySettingsResponse(): mixed
+    {
+        return Craft::$app->controller->redirect('report-manager/settings');
     }
 
     /**
