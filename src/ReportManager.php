@@ -162,7 +162,6 @@ class ReportManager extends Plugin
 
         $settings = $this->getSettings();
         $navItem['label'] = $settings->pluginName;
-        $navItem['icon'] = '@appicons/chart-bar.svg';
 
         $user = Craft::$app->getUser();
         $sections = $this->getCpSections($settings);
