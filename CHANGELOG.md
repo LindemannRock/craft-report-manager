@@ -1,5 +1,18 @@
 # Changelog
 
+## [5.2.0](https://github.com/LindemannRock/craft-report-manager/compare/v5.1.8...v5.2.0) (2026-04-05)
+
+
+### Features
+
+* **icon:** replace old icon with new SVG design ([4e91d7d](https://github.com/LindemannRock/craft-report-manager/commit/4e91d7d7993faaab0757645ead924d64d426650f))
+
+
+### Bug Fixes
+
+* **ReportManager:** settings response methods and add read-only support ([f4bbdb2](https://github.com/LindemannRock/craft-report-manager/commit/f4bbdb265fc3d0d4839345200631e7191a399c27))
+* **settings:** remove submit button from export and general settings forms ([c7eebee](https://github.com/LindemannRock/craft-report-manager/commit/c7eebee6a104a0ea014b9801c63b47c5de52e098))
+
 ## [5.1.8](https://github.com/LindemannRock/craft-report-manager/compare/v5.1.7...v5.1.8) (2026-03-04)
 
 
