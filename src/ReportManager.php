@@ -161,7 +161,7 @@ class ReportManager extends Plugin
         }
 
         $settings = $this->getSettings();
-        $navItem['label'] = $settings->pluginName;
+        $navItem['label'] = $settings->getFullName();
 
         $user = Craft::$app->getUser();
         $sections = $this->getCpSections($settings);
@@ -247,7 +247,7 @@ class ReportManager extends Plugin
     protected function createSettingsModel(): ?Model
     {
         try {
-            return Settings::loadFromDatabase();
+            return PluginHelper::applyConfigOverridesToSettings(Settings::loadFromDatabase(), 'report-manager');
         } catch (\Exception $e) {
             Craft::error('Could not load settings from database: ' . $e->getMessage(), __METHOD__);
             return new Settings();
