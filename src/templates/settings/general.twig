@@ -22,13 +22,11 @@
 {% import "_includes/forms" as forms %}
 
 {% block content %}
-    <form method="post" accept-charset="UTF-8">
-        {{ actionInput('report-manager/settings/save') }}
-        {{ csrfInput() }}
-        {{ redirectInput('report-manager/settings/general') }}
-        {{ hiddenInput('section', 'general') }}
+    {{ actionInput('report-manager/settings/save') }}
+    {{ redirectInput('report-manager/settings/general') }}
+    {{ hiddenInput('section', 'general') }}
 
-        <h2 style="margin-top: 0px;">{{ "Plugin Settings"|t('report-manager') }}</h2>
+        <h2 class="first">{{ "Plugin Settings"|t('report-manager') }}</h2>
 
         {{ forms.textField({
             label: "Plugin Name"|t('report-manager'),
@@ -162,8 +160,6 @@
                 "This is being overridden by the <code>logLevel</code> setting in <code>config/report-manager.php</code>."|t('report-manager')|raw : null,
             errors: settings.getErrors('logLevel')
         }) }}
-
-    </form>
 
     {% include 'lindemannrock-base/_components/plugin-credit' %}
 {% endblock %}

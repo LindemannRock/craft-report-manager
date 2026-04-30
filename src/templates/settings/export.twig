@@ -22,13 +22,11 @@
 {% import "_includes/forms" as forms %}
 
 {% block content %}
-    <form method="post" accept-charset="UTF-8">
-        {{ actionInput('report-manager/settings/save') }}
-        {{ csrfInput() }}
-        {{ redirectInput('report-manager/settings/export') }}
-        {{ hiddenInput('section', 'export') }}
+    {{ actionInput('report-manager/settings/save') }}
+    {{ redirectInput('report-manager/settings/export') }}
+    {{ hiddenInput('section', 'export') }}
 
-        <h2 style="margin-top: 0px;">{{ 'Export Storage'|t('report-manager') }}</h2>
+        <h2 class="first">{{ 'Export Storage'|t('report-manager') }}</h2>
 
         {# Asset volume selection dropdown for exports #}
         {% set volumeOptions = [{label: 'Use custom path'|t('report-manager'), value: ''}] %}
@@ -180,8 +178,6 @@
             warning: settings.isOverriddenByConfig('autoCleanupExports') ?
                 "This is being overridden by the <code>autoCleanupExports</code> setting in <code>config/report-manager.php</code>."|t('report-manager')|raw : null,
         }) }}
-
-    </form>
 
     {% include 'lindemannrock-base/_components/plugin-credit' %}
 {% endblock %}
