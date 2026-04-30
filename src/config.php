@@ -88,7 +88,11 @@ return [
          * Default date range for analytics, logs, and dashboard pages
          * Options: 'today', 'yesterday', 'last7days', 'last30days', 'last90days',
          *          'thisMonth', 'lastMonth', 'thisYear', 'lastYear', 'all'
-         * Default: 'last30days' (from base plugin)
+         *
+         * Lives on the plugin's Settings model — set it via
+         * Settings → Default Date Range.
+         * Setting it here overrides the UI value.
+         * Default: 'last30days' (Settings model default)
          */
         // 'defaultDateRange' => 'last7days',
 
