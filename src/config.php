@@ -12,7 +12,7 @@
  * well, so you can have different settings groups for each environment, just as
  * you do for 'general.php'
  *
- * @since 5.0.0
+ * @since 5.1.5
  */
 
 return [
