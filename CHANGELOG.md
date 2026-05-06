@@ -1,5 +1,16 @@
 # Changelog
 
+## [5.2.1](https://github.com/LindemannRock/craft-report-manager/compare/v5.2.0...v5.2.1) (2026-05-06)
+
+
+### Bug Fixes
+
+* apply config overrides through shared settings helper ([c5e7676](https://github.com/LindemannRock/craft-report-manager/commit/c5e767691d99c63cebf5a8c2741987c3ee57ae3c))
+* clarify plugin name description in settings model ([67cb6e0](https://github.com/LindemannRock/craft-report-manager/commit/67cb6e0254cab2e5e13b9cafb2d99411fb59a8ff))
+* **config:** clarify default date range setting in config file ([c1c47b1](https://github.com/LindemannRock/craft-report-manager/commit/c1c47b14b64eaca897b0ed83c0933cd7d7e0bfea))
+* drop PAT requirement for release-please — use built-in GITHUB_TOKEN ([a0e2cdb](https://github.com/LindemannRock/craft-report-manager/commit/a0e2cdbbe285f77028cd6d95624a7fcdea940024))
+* update version in config file to 5.1.5 ([c9345ea](https://github.com/LindemannRock/craft-report-manager/commit/c9345ea6fac40e809e784de7c3bcda226e141a5f))
+
 ## [5.2.0](https://github.com/LindemannRock/craft-report-manager/compare/v5.1.8...v5.2.0) (2026-04-05)
 
 
