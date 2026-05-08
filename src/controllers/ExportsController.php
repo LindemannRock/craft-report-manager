@@ -14,6 +14,7 @@ use DateTime;
 use lindemannrock\base\helpers\ExportHelper;
 use lindemannrock\reportmanager\jobs\GenerateExportJob;
 use lindemannrock\reportmanager\records\ExportRecord;
+use lindemannrock\reportmanager\records\ReportRecord;
 use lindemannrock\reportmanager\ReportManager;
 use yii\web\BadRequestHttpException;
 use yii\web\ForbiddenHttpException;
@@ -116,11 +117,13 @@ class ExportsController extends Controller
             throw new NotFoundHttpException(Craft::t('report-manager', 'Export not found'));
         }
 
+        $report = $export->reportId !== null ? ReportRecord::findOne($export->reportId) : null;
         $dataSources = $plugin->dataSources->getAvailableDataSources();
 
         return $this->renderTemplate('report-manager/exports/view', [
             'settings' => $settings,
             'export' => $export,
+            'report' => $report,
             'dataSources' => $dataSources,
         ]);
     }

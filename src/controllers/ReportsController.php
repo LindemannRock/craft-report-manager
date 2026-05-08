@@ -151,6 +151,19 @@ class ReportsController extends Controller
         // Get entities for the current data source
         $entities = $allEntities[$currentDataSource]['entities'] ?? [];
 
+        $canViewGeneratedFiles = !$isNew && Craft::$app->getUser()->checkPermission('reportManager:manageExports');
+        $generatedExports = [];
+        $generatedExportsTotalCount = 0;
+
+        if ($canViewGeneratedFiles && $report->id !== null) {
+            $generatedExportsResult = $plugin->exports->getExportsForReport($report->id, [
+                'page' => 1,
+                'limit' => 10,
+            ]);
+            $generatedExports = $generatedExportsResult['exports'];
+            $generatedExportsTotalCount = $generatedExportsResult['totalCount'];
+        }
+
         // Build site options
         $siteOptions = [];
         if (Craft::$app->getIsMultiSite()) {
@@ -168,6 +181,9 @@ class ReportsController extends Controller
             'dataSourceOptions' => $dataSourceOptions,
             'allEntities' => $allEntities,
             'entities' => $entities,
+            'canViewGeneratedFiles' => $canViewGeneratedFiles,
+            'generatedExports' => $generatedExports,
+            'generatedExportsTotalCount' => $generatedExportsTotalCount,
             'siteOptions' => $siteOptions,
             'dateRangeOptions' => $settings->getDateRangeOptions(),
             'exportFormatOptions' => $settings->getExportFormatOptions(),

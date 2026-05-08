@@ -7,6 +7,21 @@
 {% set selectedSubnavItem = 'reports' %}
 {% set saveShortcutRedirect = cpUrl('report-manager/reports/{id}') %}
 {% set retainScrollOnSaveShortcut = true %}
+{% set tabs = {
+    fields: {
+        label: 'Settings'|t('report-manager'),
+        url: '#fields',
+    },
+} %}
+
+{% if not isNew and canViewGeneratedFiles %}
+    {% set tabs = tabs|merge({
+        generatedFiles: {
+            label: 'Generated Files'|t('report-manager'),
+            url: '#generated-files',
+        },
+    }) %}
+{% endif %}
 
 {% set crumbs = [
     { label: reportHelper.fullName, url: url('report-manager') },
@@ -142,6 +157,17 @@
         </div>
 
     </div>
+
+    {% if not isNew and canViewGeneratedFiles %}
+        <div id="generated-files" class="hidden">
+            {% include 'report-manager/reports/_partials/generated-files' with {
+                report: report,
+                exports: generatedExports,
+                totalCount: generatedExportsTotalCount,
+                canDownload: currentUser.can('reportManager:downloadExports'),
+            } only %}
+        </div>
+    {% endif %}
 {% endblock %}
 
 {% block details %}

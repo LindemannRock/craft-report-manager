@@ -1,0 +1,68 @@
+{#
+ # Embedded generated files table for report edit tabs.
+ # The full generated-files view remains available at reports/{id}/generated.
+ #}
+
+<div class="pane">
+    <div class="flex" style="align-items: center; margin-bottom: 16px;">
+        <div class="flex-grow">
+            <h2 style="margin: 0;">{{ 'Latest Generated Files'|t('report-manager') }}</h2>
+            {% if totalCount > 0 %}
+                <p class="light" style="margin: 4px 0 0;">
+                    {{ 'Showing the latest {shown} of {total} generated files.'|t('report-manager', {
+                        shown: exports|length,
+                        total: totalCount,
+                    }) }}
+                </p>
+            {% endif %}
+        </div>
+        <a href="{{ url('report-manager/reports/' ~ report.id ~ '/generated') }}" class="btn">
+            {{ 'View Full List'|t('report-manager') }}
+        </a>
+    </div>
+
+    <div class="generated-files-list">
+        {% if exports|length %}
+            {% for item in exports %}
+                {% if item.isCombinedExport() %}
+                    {% set displayName = 'Combined Export'|t('report-manager') %}
+                {% else %}
+                    {% set displayName = item.entityName ?? item.filename %}
+                {% endif %}
+                <div class="generated-file-row" style="display: flex; align-items: center; gap: 16px; padding: 14px 0; border-top: 1px solid var(--hairline-color);">
+                    <div class="flex-grow" style="min-width: 0;">
+                        <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                            {% if item.isCompleted() and canDownload %}
+                                <a href="{{ url('report-manager/exports/download/' ~ item.id) }}"><strong>{{ displayName }}</strong></a>
+                            {% else %}
+                                <strong>{{ displayName }}</strong>
+                            {% endif %}
+                            {% include 'lindemannrock-base/_components/badge' with {
+                                label: item.statusLabel ~ (item.isProcessing() ? ' (' ~ item.progress ~ '%)' : ''),
+                                value: item.status,
+                                colorSet: 'exportStatus',
+                            } only %}
+                        </div>
+                        <div class="light" style="margin-top: 4px;">
+                            {{ item.format|upper }}
+                            <span aria-hidden="true"> · </span>
+                            {{ item.recordCount|number_format }} {{ 'records'|t('report-manager') }}
+                            <span aria-hidden="true"> · </span>
+                            {{ item.formattedFileSize }}
+                            <span aria-hidden="true"> · </span>
+                            {{ item.dateCreated|lrDatetime('medium') }}
+                        </div>
+                        <div class="light code" style="font-size: 12px; margin-top: 4px; overflow-wrap: anywhere;">{{ item.filename }}</div>
+                    </div>
+                    <div>
+                        <a href="{{ url('report-manager/exports/' ~ item.id) }}" class="btn small">{{ 'Details'|t('report-manager') }}</a>
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <div style="text-align: center; padding: 2em;">
+                {{ 'No generated files yet.'|t('report-manager') }}
+            </div>
+        {% endif %}
+    </div>
+</div>

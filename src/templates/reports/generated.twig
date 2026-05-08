@@ -121,6 +121,11 @@
             <button type="button" class="btn menubtn" data-icon="settings" title="{{ 'Actions'|t('report-manager') }}"></button>
             <div class="menu">
                 <ul>
+                    <li>
+                        <a href="{{ url('report-manager/exports/' ~ item.id) }}">
+                            {{ 'Details'|t('report-manager') }}
+                        </a>
+                    </li>
                     {% if item.isCompleted() and canDownload %}
                         <li>
                             <a href="{{ url('report-manager/exports/download/' ~ item.id) }}">

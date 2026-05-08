@@ -2,6 +2,25 @@
 
 {% set title = 'Export Details'|t('report-manager') %}
 {% set selectedSubnavItem = 'exports' %}
+{% set exportMetadata = export.getMetadataArray() %}
+{% set exportWarnings = export.getWarningsArray() %}
+{% set progressMessage = exportMetadata.progressMessage ?? null %}
+{% set crumbs = [
+    { label: reportHelper.fullName, url: url('report-manager') },
+] %}
+{% if report ?? null %}
+    {% set crumbs = crumbs|merge([
+        { label: 'Reports'|t('report-manager'), url: url('report-manager/reports') },
+        { label: report.name, url: url('report-manager/reports/' ~ report.id) },
+        { label: 'Generated Files'|t('report-manager'), url: url('report-manager/reports/' ~ report.id ~ '/generated') },
+        { label: export.filename },
+    ]) %}
+{% else %}
+    {% set crumbs = crumbs|merge([
+        { label: 'Exports'|t('report-manager'), url: url('report-manager/exports') },
+        { label: export.filename },
+    ]) %}
+{% endif %}
 
 {% block actionButton %}
     {% if export.isCompleted and currentUser.can('reportManager:downloadExports') %}
@@ -22,6 +41,9 @@
                         {{ export.statusLabel }}
                         {% if export.isProcessing %}
                             <span class="light">({{ export.progress }}%)</span>
+                        {% endif %}
+                        {% if progressMessage %}
+                            <div class="light" style="margin-top: 4px;">{{ progressMessage }}</div>
                         {% endif %}
                     </td>
                 </tr>
@@ -118,12 +140,24 @@
         </div>
     {% endif %}
 
+    {% if exportWarnings %}
+        <div class="pane" style="margin-top: 24px;">
+            <h2>{{ 'Warnings'|t('report-manager') }}</h2>
+            <ul class="bullets">
+                {% for warning in exportWarnings %}
+                    <li>{{ warning }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+    {% endif %}
+
     {% if export.isPending or export.isProcessing %}
         <div class="pane" style="margin-top: 24px;">
             <h2>{{ 'Progress'|t('report-manager') }}</h2>
             <div class="progress-bar" style="background: #e5e7eb; height: 20px; border-radius: 4px; overflow: hidden;">
                 <div id="progress-fill" style="background: #3b82f6; height: 100%; width: {{ export.progress }}%; transition: width 0.3s;"></div>
             </div>
+            <p id="progress-message" class="light" style="margin-top: 8px;{{ progressMessage ? '' : ' display: none;' }}">{{ progressMessage }}</p>
             <p class="light" style="margin-top: 8px;">{{ 'Export is being processed. This page will refresh automatically.'|t('report-manager') }}</p>
         </div>
 
@@ -138,6 +172,9 @@
                         success: function(response) {
                             if (response.success) {
                                 $('#progress-fill').css('width', response.progress + '%');
+                                if (response.progressMessage) {
+                                    $('#progress-message').text(response.progressMessage).show();
+                                }
 
                                 if (response.isCompleted || response.status === 'failed') {
                                     clearInterval(checkInterval);
