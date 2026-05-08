@@ -69,8 +69,10 @@ class GenerateExportJob extends BaseJob implements RetryableJobInterface
 
         $exportService = ReportManager::getInstance()->exports;
 
-        // Use combined or standard generation based on export type
-        if ($this->combined || $export->isCombinedExport()) {
+        // Use provider, combined, or standard generation based on export type
+        if ($export->isProviderExport()) {
+            $success = $exportService->generateQueuedExport($export);
+        } elseif ($this->combined || $export->isCombinedExport()) {
             $success = $exportService->generateCombinedExport($export);
         } else {
             $success = $exportService->generateExport($export);

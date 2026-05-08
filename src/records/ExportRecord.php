@@ -9,6 +9,7 @@
 namespace lindemannrock\reportmanager\records;
 
 use craft\db\ActiveRecord;
+use craft\helpers\Json;
 
 /**
  * Export Record
@@ -20,6 +21,10 @@ use craft\db\ActiveRecord;
  * @property string $dataSource
  * @property int $entityId
  * @property string|null $entityName
+ * @property string|null $providerHandle
+ * @property string|null $payload JSON provider payload
+ * @property string|null $metadata JSON provider metadata
+ * @property string|null $warnings JSON provider warnings
  * @property string|null $dateRangeUsed
  * @property \DateTime|null $dateStartUsed
  * @property \DateTime|null $dateEndUsed
@@ -82,6 +87,98 @@ class ExportRecord extends ActiveRecord
     private ?array $entityIdsArray = null;
 
     /**
+     * Get provider payload as an array.
+     *
+     * @return array
+     */
+    public function getPayloadArray(): array
+    {
+        return $this->decodeJsonArray($this->payload);
+    }
+
+    /**
+     * Set provider payload from an array.
+     *
+     * @param array $payload
+     */
+    public function setPayloadArray(array $payload): void
+    {
+        $this->payload = $this->encodeJsonArray($payload);
+    }
+
+    /**
+     * Get provider metadata as an array.
+     *
+     * @return array
+     */
+    public function getMetadataArray(): array
+    {
+        return $this->decodeJsonArray($this->metadata);
+    }
+
+    /**
+     * Set provider metadata from an array.
+     *
+     * @param array $metadata
+     */
+    public function setMetadataArray(array $metadata): void
+    {
+        $this->metadata = $this->encodeJsonArray($metadata);
+    }
+
+    /**
+     * Get provider warnings as an array.
+     *
+     * @return string[]
+     */
+    public function getWarningsArray(): array
+    {
+        $warnings = $this->decodeJsonArray($this->warnings);
+
+        return array_values(array_filter($warnings, static fn($warning) => is_string($warning) && $warning !== ''));
+    }
+
+    /**
+     * Set provider warnings from an array.
+     *
+     * @param string[] $warnings
+     */
+    public function setWarningsArray(array $warnings): void
+    {
+        $this->warnings = $this->encodeJsonArray(array_values($warnings));
+    }
+
+    /**
+     * Check if this export was created by a queued export provider.
+     *
+     * @return bool
+     */
+    public function isProviderExport(): bool
+    {
+        return !empty($this->providerHandle);
+    }
+
+    /**
+     * Get a provider-specific permission by operation.
+     *
+     * @param string $operation Permission operation, e.g. `status` or `download`
+     * @return string|null
+     */
+    public function getProviderPermission(string $operation): ?string
+    {
+        $metadata = $this->getMetadataArray();
+        $permissions = $metadata['permissions'] ?? null;
+
+        if (!is_array($permissions)) {
+            return null;
+        }
+
+        $permission = $permissions[$operation] ?? null;
+
+        return is_string($permission) && $permission !== '' ? $permission : null;
+    }
+
+    /**
      * Get field handles used as array
      *
      * @return array
@@ -140,7 +237,7 @@ class ExportRecord extends ActiveRecord
      */
     public function isCombinedExport(): bool
     {
-        return $this->entityId === 0 && !empty($this->entityName);
+        return !$this->isProviderExport() && $this->entityId === 0 && !empty($this->entityName);
     }
 
     /**
@@ -287,5 +384,37 @@ class ExportRecord extends ActiveRecord
             self::TRIGGER_API => 'API',
             default => ucfirst($this->triggeredBy),
         };
+    }
+
+    /**
+     * Decode a JSON array field.
+     *
+     * @param string|null $value JSON value
+     * @return array
+     */
+    private function decodeJsonArray(?string $value): array
+    {
+        if (empty($value)) {
+            return [];
+        }
+
+        try {
+            $decoded = Json::decode($value);
+        } catch (\Throwable) {
+            return [];
+        }
+
+        return is_array($decoded) ? $decoded : [];
+    }
+
+    /**
+     * Encode an array for a nullable JSON field.
+     *
+     * @param array $value Array value
+     * @return string|null
+     */
+    private function encodeJsonArray(array $value): ?string
+    {
+        return !empty($value) ? Json::encode($value) : null;
     }
 }

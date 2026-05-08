@@ -25,6 +25,7 @@ use lindemannrock\reportmanager\jobs\ProcessScheduledReportsJob;
 use lindemannrock\reportmanager\models\Settings;
 use lindemannrock\reportmanager\services\DataSourcesService;
 use lindemannrock\reportmanager\services\ExportService;
+use lindemannrock\reportmanager\services\QueuedExportProvidersService;
 use lindemannrock\reportmanager\services\ReportsService;
 use yii\base\Event;
 
@@ -37,6 +38,7 @@ use yii\base\Event;
  * @property DataSourcesService $dataSources
  * @property ReportsService $reports
  * @property ExportService $exports
+ * @property QueuedExportProvidersService $queuedExportProviders
  * @property Settings $settings
  * @method Settings getSettings()
  *
@@ -56,7 +58,7 @@ class ReportManager extends Plugin
     /**
      * @inheritdoc
      */
-    public string $schemaVersion = '5.0.0';
+    public string $schemaVersion = '5.3.0';
 
     /**
      * @inheritdoc
@@ -83,6 +85,7 @@ class ReportManager extends Plugin
                 'dataSources' => DataSourcesService::class,
                 'reports' => ReportsService::class,
                 'exports' => ExportService::class,
+                'queuedExportProviders' => QueuedExportProvidersService::class,
             ],
         ];
     }
@@ -121,6 +124,7 @@ class ReportManager extends Plugin
                         'xlsx' => ColorHelper::getPaletteColor('green'),
                         'csv' => ColorHelper::getPaletteColor('blue'),
                         'json' => ColorHelper::getPaletteColor('amber'),
+                        'zip' => ColorHelper::getPaletteColor('purple'),
                     ],
                 ],
                 'installExperience' => [

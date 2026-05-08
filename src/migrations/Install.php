@@ -160,6 +160,11 @@ class Install extends Migration
             'dataSource' => $this->string(64)->notNull(),
             'entityId' => $this->integer()->notNull(),
             'entityName' => $this->string(255)->null(),
+            // Generic queued export provider details
+            'providerHandle' => $this->string(128)->null()->comment('Queued export provider handle'),
+            'payload' => $this->text()->null()->comment('JSON queued export payload'),
+            'metadata' => $this->text()->null()->comment('JSON queued export metadata'),
+            'warnings' => $this->text()->null()->comment('JSON queued export warnings'),
             // Configuration used
             'dateRangeUsed' => $this->string(32)->null(),
             'dateStartUsed' => $this->dateTime()->null(),
@@ -191,6 +196,7 @@ class Install extends Migration
         // Indexes
         $this->createIndex(null, '{{%reportmanager_exports}}', ['reportId'], false);
         $this->createIndex(null, '{{%reportmanager_exports}}', ['dataSource'], false);
+        $this->createIndex('idx_reportmanager_exports_providerHandle', '{{%reportmanager_exports}}', ['providerHandle'], false);
         $this->createIndex(null, '{{%reportmanager_exports}}', ['entityId'], false);
         $this->createIndex(null, '{{%reportmanager_exports}}', ['status'], false);
         $this->createIndex(null, '{{%reportmanager_exports}}', ['triggeredBy'], false);

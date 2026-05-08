@@ -15,6 +15,8 @@ use craft\helpers\Db;
 use craft\helpers\FileHelper;
 use DateTime;
 use lindemannrock\logginglibrary\traits\LoggingTrait;
+use lindemannrock\reportmanager\export\QueuedExportContext;
+use lindemannrock\reportmanager\export\QueuedExportResult;
 use lindemannrock\reportmanager\records\ExportRecord;
 use lindemannrock\reportmanager\ReportManager;
 
@@ -348,6 +350,77 @@ class ExportService extends Component
     }
 
     /**
+     * Create a queued provider export record.
+     *
+     * @param string $providerHandle Queued export provider handle
+     * @param string $format Export format
+     * @param array $payload Provider payload
+     * @param array $options Additional options
+     * @return ExportRecord
+     */
+    public function createQueuedExport(
+        string $providerHandle,
+        string $format,
+        array $payload = [],
+        array $options = [],
+    ): ExportRecord {
+        $provider = ReportManager::getInstance()->queuedExportProviders->getProvider($providerHandle);
+
+        if ($provider === null) {
+            throw new \InvalidArgumentException("Queued export provider '{$providerHandle}' not found or unavailable");
+        }
+
+        $format = $this->normalizeExportFormat($format);
+        $supportedFormats = array_map(
+            fn(string $supportedFormat) => $this->normalizeExportFormat($supportedFormat),
+            $provider::supportedFormats()
+        );
+
+        if (!in_array($format, $supportedFormats, true)) {
+            throw new \InvalidArgumentException("Queued export provider '{$providerHandle}' does not support {$format} exports");
+        }
+
+        $payload = $provider->normalizePayload($payload);
+        $metadata = $options['metadata'] ?? [];
+        $metadata = is_array($metadata) ? $metadata : [];
+        $permissions = array_filter(
+            $provider->getPermissions($payload),
+            static fn($permission) => is_string($permission) && $permission !== ''
+        );
+
+        if (!empty($permissions)) {
+            $metadata['permissions'] = $permissions;
+        }
+
+        $metadata['provider'] = [
+            'handle' => $providerHandle,
+            'name' => $provider::displayName(),
+        ];
+
+        $filename = $options['filename'] ?? $provider->getFilename($payload, $format);
+        $filename = $this->ensureFilenameExtension((string) $filename, $format);
+
+        $export = new ExportRecord();
+        $export->dataSource = mb_substr($providerHandle, 0, 64);
+        $export->entityId = 0;
+        $export->entityName = $options['entityName'] ?? $provider->getExportName($payload);
+        $export->providerHandle = $providerHandle;
+        $export->setPayloadArray($payload);
+        $export->setMetadataArray($metadata);
+        $export->format = $format;
+        $export->filename = $filename;
+        $export->filePath = $this->getExportFilePath($filename);
+        $export->status = ExportRecord::STATUS_PENDING;
+        $export->progress = 0;
+        $export->triggeredBy = $options['triggeredBy'] ?? ExportRecord::TRIGGER_API;
+        $export->triggeredByUserId = $options['triggeredByUserId'] ?? Craft::$app->getUser()->getId();
+        $export->reportId = $options['reportId'] ?? null;
+        $export->save();
+
+        return $export;
+    }
+
+    /**
      * Generate an export
      *
      * @param ExportRecord $export Export record
@@ -431,6 +504,97 @@ class ExportService extends Component
 
             $this->logError('Export generation failed', [
                 'id' => $export->id,
+                'error' => $e->getMessage(),
+            ]);
+
+            return false;
+        }
+    }
+
+    /**
+     * Generate a queued provider export.
+     *
+     * @param ExportRecord $export Export record
+     * @return bool
+     */
+    public function generateQueuedExport(ExportRecord $export): bool
+    {
+        $export->status = ExportRecord::STATUS_PROCESSING;
+        $export->startedAt = new DateTime();
+        $export->progress = max(1, (int) $export->progress);
+        $export->save();
+
+        try {
+            if (empty($export->providerHandle)) {
+                throw new \Exception('Export record is missing a queued export provider handle');
+            }
+
+            $provider = ReportManager::getInstance()->queuedExportProviders->getProvider($export->providerHandle);
+
+            if ($provider === null) {
+                throw new \Exception("Queued export provider '{$export->providerHandle}' not found or unavailable");
+            }
+
+            $format = $this->normalizeExportFormat($export->format);
+            $supportedFormats = array_map(
+                fn(string $supportedFormat) => $this->normalizeExportFormat($supportedFormat),
+                $provider::supportedFormats()
+            );
+
+            if (!in_array($format, $supportedFormats, true)) {
+                throw new \Exception("Queued export provider '{$export->providerHandle}' does not support {$format} exports");
+            }
+
+            $export->format = $format;
+            $export->filename = $this->ensureFilenameExtension($export->filename, $format);
+            $export->filePath = $this->getExportFilePath($export->filename);
+            $export->save();
+
+            $context = new QueuedExportContext(
+                $export,
+                fn(int $progress, ?string $message = null) => $this->updateQueuedExportProgress($export, $progress, $message)
+            );
+
+            $result = $provider->generate($export->getPayloadArray(), $context);
+
+            if (!$this->_useVolume) {
+                FileHelper::createDirectory($this->exportBasePath);
+            }
+
+            $fileResult = match ($result->getType()) {
+                QueuedExportResult::TYPE_TABLE => $this->generateProviderTableFile($export, $result),
+                QueuedExportResult::TYPE_WORKBOOK => $this->generateProviderWorkbookFile($export, $result),
+                QueuedExportResult::TYPE_FILES => $this->generateProviderZipFile($export, $result),
+                default => throw new \Exception("Unsupported queued export result type: {$result->getType()}"),
+            };
+
+            $export->filePath = $fileResult['path'];
+            $export->fileSize = $fileResult['size'];
+            $export->recordCount = $result->getRecordCount();
+            $export->setWarningsArray($result->getWarnings());
+            $export->status = ExportRecord::STATUS_COMPLETED;
+            $export->progress = 100;
+            $export->completedAt = new DateTime();
+            $export->save();
+
+            $this->logInfo('Queued provider export generated successfully', [
+                'id' => $export->id,
+                'providerHandle' => $export->providerHandle,
+                'format' => $export->format,
+                'recordCount' => $export->recordCount,
+                'fileSize' => $export->fileSize,
+            ]);
+
+            return true;
+        } catch (\Throwable $e) {
+            $export->status = ExportRecord::STATUS_FAILED;
+            $export->errorMessage = $e->getMessage();
+            $export->completedAt = new DateTime();
+            $export->save();
+
+            $this->logError('Queued provider export generation failed', [
+                'id' => $export->id,
+                'providerHandle' => $export->providerHandle,
                 'error' => $e->getMessage(),
             ]);
 
@@ -571,6 +735,212 @@ class ExportService extends Component
         unset($spreadsheet);
 
         return $this->_writeExportFile($export, $content);
+    }
+
+    /**
+     * Generate a provider table export.
+     *
+     * @param ExportRecord $export Export record
+     * @param QueuedExportResult $result Provider result
+     * @return array{path: string, size: int} File path and size
+     */
+    private function generateProviderTableFile(ExportRecord $export, QueuedExportResult $result): array
+    {
+        $data = $result->getTableData();
+
+        return match ($export->format) {
+            'csv' => $this->generateCsvFile($export, $data),
+            'json' => $this->generateJsonFile($export, $data),
+            'xlsx' => $this->generateXlsxFile($export, $data),
+            default => throw new \Exception("Unsupported table export format: {$export->format}"),
+        };
+    }
+
+    /**
+     * Generate a provider workbook export.
+     *
+     * @param ExportRecord $export Export record
+     * @param QueuedExportResult $result Provider result
+     * @return array{path: string, size: int} File path and size
+     */
+    private function generateProviderWorkbookFile(ExportRecord $export, QueuedExportResult $result): array
+    {
+        if ($export->format !== 'xlsx') {
+            throw new \Exception("Workbook export results require xlsx format, {$export->format} requested");
+        }
+
+        $sheets = $result->getSheets();
+        if (empty($sheets)) {
+            throw new \Exception('Workbook export result did not include any sheets');
+        }
+
+        $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
+        $usedTitles = [];
+
+        foreach ($sheets as $index => $sheetData) {
+            $sheet = $index === 0 ? $spreadsheet->getActiveSheet() : $spreadsheet->createSheet($index);
+            $title = $this->sanitizeSheetTitle($sheetData['name'], $usedTitles);
+            $usedTitles[] = $title;
+            $sheet->setTitle($title);
+            $this->writeWorksheet(
+                $sheet,
+                $sheetData['headers'],
+                $sheetData['rows']
+            );
+        }
+
+        $tempFile = tempnam(sys_get_temp_dir(), 'xlsx_');
+        $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
+        $writer->save($tempFile);
+
+        $content = file_get_contents($tempFile);
+        unlink($tempFile);
+
+        $spreadsheet->disconnectWorksheets();
+        unset($spreadsheet);
+
+        return $this->_writeExportFile($export, $content);
+    }
+
+    /**
+     * Generate a provider ZIP export.
+     *
+     * @param ExportRecord $export Export record
+     * @param QueuedExportResult $result Provider result
+     * @return array{path: string, size: int} File path and size
+     */
+    private function generateProviderZipFile(ExportRecord $export, QueuedExportResult $result): array
+    {
+        if ($export->format !== 'zip') {
+            throw new \Exception("File manifest export results require zip format, {$export->format} requested");
+        }
+
+        if (!class_exists(\ZipArchive::class)) {
+            throw new \Exception('The PHP Zip extension is required for queued file manifest exports');
+        }
+
+        $files = $result->getFiles();
+        if (empty($files)) {
+            throw new \Exception('File manifest export result did not include any files');
+        }
+
+        $tempFile = tempnam(sys_get_temp_dir(), 'zip_');
+        $zip = new \ZipArchive();
+        $opened = $zip->open($tempFile, \ZipArchive::CREATE | \ZipArchive::OVERWRITE);
+
+        if ($opened !== true) {
+            throw new \Exception('Could not create temporary ZIP export file');
+        }
+
+        foreach ($files as $index => $file) {
+            $filename = $this->sanitizeZipFilename($file['filename']);
+
+            if (array_key_exists('contents', $file)) {
+                $zip->addFromString($filename, (string) $file['contents']);
+                continue;
+            }
+
+            $path = $file['path'] ?? null;
+            if (!is_string($path) || !is_file($path)) {
+                throw new \Exception("Queued export file '{$filename}' is missing readable contents or path");
+            }
+
+            $zip->addFile($path, $filename);
+        }
+
+        $zip->close();
+
+        $content = file_get_contents($tempFile);
+        unlink($tempFile);
+
+        return $this->_writeExportFile($export, $content);
+    }
+
+    /**
+     * Write a worksheet from headers and rows.
+     *
+     * @param \PhpOffice\PhpSpreadsheet\Worksheet\Worksheet $sheet Worksheet
+     * @param string[] $headers Column headers
+     * @param array<int, array<int, mixed>> $rows Row values
+     */
+    private function writeWorksheet(\PhpOffice\PhpSpreadsheet\Worksheet\Worksheet $sheet, array $headers, array $rows): void
+    {
+        $headerCount = count($headers);
+
+        if ($headerCount > 0) {
+            foreach ($headers as $index => $header) {
+                $sheet->setCellValue([$index + 1, 1], $header);
+            }
+
+            $headerRange = 'A1:' . \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($headerCount) . '1';
+            $sheet->getStyle($headerRange)->applyFromArray([
+                'font' => [
+                    'bold' => true,
+                ],
+                'fill' => [
+                    'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
+                    'startColor' => [
+                        'rgb' => 'E5E7EB',
+                    ],
+                ],
+            ]);
+        }
+
+        $rowIndex = $headerCount > 0 ? 2 : 1;
+        foreach ($rows as $row) {
+            foreach (array_values($row) as $columnIndex => $value) {
+                $sheet->setCellValue([$columnIndex + 1, $rowIndex], $value);
+            }
+            $rowIndex++;
+        }
+
+        if ($headerCount > 0) {
+            foreach (range(1, $headerCount) as $columnIndex) {
+                $sheet->getColumnDimensionByColumn($columnIndex)->setAutoSize(true);
+            }
+            $sheet->freezePane('A2');
+        }
+    }
+
+    /**
+     * Sanitize and de-duplicate an XLSX sheet title.
+     *
+     * @param string $title Sheet title
+     * @param string[] $usedTitles Titles already used in the workbook
+     * @return string
+     */
+    private function sanitizeSheetTitle(string $title, array $usedTitles): string
+    {
+        $title = preg_replace('/[\\\\\/\*\?\[\]\:]/', '_', $title) ?: 'Sheet';
+        $title = trim($title) !== '' ? trim($title) : 'Sheet';
+        $title = mb_substr($title, 0, 31);
+        $candidate = $title;
+        $suffix = 2;
+
+        while (in_array($candidate, $usedTitles, true)) {
+            $suffixText = ' ' . $suffix;
+            $candidate = mb_substr($title, 0, 31 - mb_strlen($suffixText)) . $suffixText;
+            $suffix++;
+        }
+
+        return $candidate;
+    }
+
+    /**
+     * Sanitize a ZIP file path.
+     *
+     * @param string $filename File path inside the ZIP archive
+     * @return string
+     */
+    private function sanitizeZipFilename(string $filename): string
+    {
+        $filename = str_replace('\\', '/', $filename);
+        $parts = array_filter(
+            explode('/', $filename),
+            static fn(string $part) => $part !== '' && $part !== '.' && $part !== '..'
+        );
+
+        return !empty($parts) ? implode('/', $parts) : 'export-file.txt';
     }
 
     /**
@@ -943,6 +1313,82 @@ class ExportService extends Component
         return Craft::$app->getUrlManager()->createUrl(
             'report-manager/exports/download/' . $export->id
         );
+    }
+
+    /**
+     * Update progress for a queued provider export.
+     *
+     * @param ExportRecord $export Export record
+     * @param int $progress Progress percentage
+     * @param string|null $message Optional progress message
+     */
+    private function updateQueuedExportProgress(ExportRecord $export, int $progress, ?string $message = null): void
+    {
+        $progress = max(0, min(99, $progress));
+        $export->progress = $progress;
+
+        if ($message !== null && $message !== '') {
+            $metadata = $export->getMetadataArray();
+            $metadata['progressMessage'] = $message;
+            $export->setMetadataArray($metadata);
+        }
+
+        $export->save();
+    }
+
+    /**
+     * Normalize export format aliases.
+     *
+     * @param string $format Export format
+     * @return string
+     */
+    private function normalizeExportFormat(string $format): string
+    {
+        return match (strtolower(trim($format))) {
+            'excel', 'xls' => 'xlsx',
+            default => strtolower(trim($format)),
+        };
+    }
+
+    /**
+     * Ensure a filename has the expected extension.
+     *
+     * @param string $filename Filename from caller/provider
+     * @param string $format Normalized export format
+     * @return string
+     */
+    private function ensureFilenameExtension(string $filename, string $format): string
+    {
+        $filename = basename(str_replace('\\', '/', trim($filename)));
+        $filename = preg_replace('/[^a-zA-Z0-9._-]+/', '-', $filename) ?: 'export';
+        $filename = trim($filename, '.-_');
+
+        if ($filename === '') {
+            $filename = 'export';
+        }
+
+        $extension = strtolower($format);
+        if (!str_ends_with(strtolower($filename), '.' . $extension)) {
+            $filename = preg_replace('/\.[a-zA-Z0-9]+$/', '', $filename) ?: $filename;
+            $filename .= '.' . $extension;
+        }
+
+        return $filename;
+    }
+
+    /**
+     * Get the storage path for an export filename.
+     *
+     * @param string $filename Export filename
+     * @return string
+     */
+    private function getExportFilePath(string $filename): string
+    {
+        if ($this->_useVolume) {
+            return $this->_volumeSubPath . '/' . $filename;
+        }
+
+        return $this->exportBasePath . $filename;
     }
 
     /**

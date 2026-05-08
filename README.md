@@ -314,14 +314,185 @@ Data sources implement the `DataSourceInterface`:
 ```php
 interface DataSourceInterface
 {
-    public function getHandle(): string;
-    public function getName(): string;
-    public function getEntities(): array;
+    public static function handle(): string;
+    public static function displayName(): string;
+    public static function description(): string;
+    public static function iconUrl(): ?string;
+    public static function isAvailable(): bool;
+    public function getAvailableEntities(): array;
     public function getEntity(int $id): ?array;
     public function getEntityFields(int $entityId): array;
-    public function exportToArray(int $entityId, array $fieldHandles, array $options): array;
+    public function getSubmissions(int $entityId, array $options = []): array;
+    public function getSubmissionCount(int $entityId, array $options = []): int;
+    public function getAnalytics(int $entityId, string $dateRange = 'last30days'): array;
+    public function getTrendData(int $entityId, string $dateRange = 'last30days'): array;
+    public function exportToArray(int $entityId, array $fieldHandles = [], array $options = []): array;
+    public function getSettingsHtml(): ?string;
 }
 ```
+
+Register data sources through `DataSourcesService::EVENT_REGISTER_DATA_SOURCES`:
+
+```php
+use lindemannrock\reportmanager\events\RegisterDataSourcesEvent;
+use lindemannrock\reportmanager\services\DataSourcesService;
+use yii\base\Event;
+
+Event::on(
+    DataSourcesService::class,
+    DataSourcesService::EVENT_REGISTER_DATA_SOURCES,
+    function(RegisterDataSourcesEvent $event) {
+        $event->register(
+            MyDataSource::handle(),
+            MyDataSource::displayName(),
+            MyDataSource::class
+        );
+    }
+);
+```
+
+Use data sources when your report naturally has entities, fields, analytics, and tabular exports, such as forms or other record collections managed inside Report Manager.
+
+## Queued Export Providers
+
+Queued export providers let another plugin use Report Manager's queue, status, storage, and download flow without fitting the Formie-style `dataSource + entityId` model.
+
+Providers implement `QueuedExportProviderInterface` or extend `BaseQueuedExportProvider`, then register themselves with `QueuedExportProvidersService::EVENT_REGISTER_QUEUED_EXPORT_PROVIDERS`.
+
+Use providers when the source plugin already owns the UI and permissions, and only needs Report Manager to create, queue, store, track, and serve the export file.
+
+```php
+use lindemannrock\reportmanager\events\RegisterQueuedExportProvidersEvent;
+use lindemannrock\reportmanager\services\QueuedExportProvidersService;
+use yii\base\Event;
+
+Event::on(
+    QueuedExportProvidersService::class,
+    QueuedExportProvidersService::EVENT_REGISTER_QUEUED_EXPORT_PROVIDERS,
+    function(RegisterQueuedExportProvidersEvent $event) {
+        $event->register(
+            MyAnalyticsExportProvider::handle(),
+            MyAnalyticsExportProvider::displayName(),
+            MyAnalyticsExportProvider::class
+        );
+    }
+);
+```
+
+Provider contract:
+
+```php
+interface QueuedExportProviderInterface
+{
+    public static function handle(): string;
+    public static function displayName(): string;
+    public static function isAvailable(): bool;
+    public static function supportedFormats(): array;
+    public function normalizePayload(array $payload): array;
+    public function getExportName(array $payload): string;
+    public function getFilename(array $payload, string $format): string;
+    public function getPermissions(array $payload): array;
+    public function generate(array $payload, QueuedExportContext $context): QueuedExportResult;
+}
+```
+
+Create and queue a provider export:
+
+```php
+use lindemannrock\reportmanager\jobs\GenerateExportJob;
+use lindemannrock\reportmanager\ReportManager;
+
+$export = ReportManager::getInstance()->exports->createQueuedExport(
+    'my-plugin.analytics',
+    'xlsx',
+    ['dateRange' => 'last30days']
+);
+
+Craft::$app->getQueue()->push(new GenerateExportJob([
+    'exportId' => $export->id,
+]));
+```
+
+Report Manager stores the provider handle, normalized payload, metadata, warnings, status, progress, filename, storage path, and file size on the export record. The payload must be JSON-encodable.
+
+Providers can report progress while generating:
+
+```php
+$context->updateProgress(25, 'Collecting rows');
+$context->updateProgress(75, 'Writing workbook');
+```
+
+Provider results can be:
+- `QueuedExportResult::table($headers, $rows)` for CSV, JSON, or XLSX.
+- `QueuedExportResult::workbook($sheets)` for multi-sheet XLSX exports.
+- `QueuedExportResult::files($files)` for ZIP manifests containing generated contents or readable file paths.
+
+Example multi-sheet workbook result:
+
+```php
+return QueuedExportResult::workbook([
+    [
+        'name' => 'Summary',
+        'headers' => ['Metric', 'Value'],
+        'rows' => [
+            ['Total', 123],
+        ],
+    ],
+    [
+        'name' => 'Rows',
+        'headers' => ['Date', 'Name', 'Count'],
+        'rows' => $rows,
+    ],
+]);
+```
+
+Example ZIP result:
+
+```php
+return QueuedExportResult::files([
+    [
+        'filename' => 'summary.json',
+        'contents' => json_encode($summary, JSON_PRETTY_PRINT),
+    ],
+    [
+        'filename' => 'exports/raw.csv',
+        'path' => $temporaryCsvPath,
+    ],
+]);
+```
+
+Providers can return `status` and `download` permissions from `getPermissions()` so the source plugin can keep its own CP permission model while Report Manager handles the export file.
+
+```php
+public function getPermissions(array $payload): array
+{
+    return [
+        'status' => 'myPlugin:exportReports',
+        'download' => 'myPlugin:exportReports',
+    ];
+}
+```
+
+If a permission is omitted, Report Manager falls back to its own export permissions.
+
+### Development Schema Note
+
+While Report Manager is still in active development, existing test databases may need manual schema updates instead of a plugin migration file. Fresh installs receive the current schema from `src/migrations/Install.php`.
+
+For existing dev/test databases, apply the provider export columns if they are missing:
+
+```sql
+ALTER TABLE `reportmanager_exports`
+  ADD COLUMN `providerHandle` varchar(128) NULL DEFAULT NULL COMMENT 'Queued export provider handle' AFTER `entityName`,
+  ADD COLUMN `payload` text NULL DEFAULT NULL COMMENT 'JSON queued export payload' AFTER `providerHandle`,
+  ADD COLUMN `metadata` text NULL DEFAULT NULL COMMENT 'JSON queued export metadata' AFTER `payload`,
+  ADD COLUMN `warnings` text NULL DEFAULT NULL COMMENT 'JSON queued export warnings' AFTER `metadata`;
+
+CREATE INDEX `idx_reportmanager_exports_providerHandle`
+  ON `reportmanager_exports` (`providerHandle`);
+```
+
+Skip the SQL if the columns and index already exist. Apply your Craft table prefix if the site uses one.
 
 ## Troubleshooting
 

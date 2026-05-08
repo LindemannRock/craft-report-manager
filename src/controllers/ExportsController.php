@@ -13,8 +13,10 @@ use craft\web\Controller;
 use DateTime;
 use lindemannrock\base\helpers\ExportHelper;
 use lindemannrock\reportmanager\jobs\GenerateExportJob;
+use lindemannrock\reportmanager\records\ExportRecord;
 use lindemannrock\reportmanager\ReportManager;
 use yii\web\BadRequestHttpException;
+use yii\web\ForbiddenHttpException;
 use yii\web\NotFoundHttpException;
 use yii\web\Response;
 
@@ -36,15 +38,13 @@ class ExportsController extends Controller
             return false;
         }
 
-        $this->requirePermission('reportManager:manageExports');
+        if (!in_array($action->id, ['download', 'status'], true)) {
+            $this->requirePermission('reportManager:manageExports');
+        }
 
         // Additional permissions for specific actions
         if (in_array($action->id, ['new', 'quick-export', 'create'], true)) {
             $this->requirePermission('reportManager:createExports');
-        }
-
-        if ($action->id === 'download') {
-            $this->requirePermission('reportManager:downloadExports');
         }
 
         if (in_array($action->id, ['delete', 'bulk-delete'], true)) {
@@ -316,6 +316,8 @@ class ExportsController extends Controller
             throw new NotFoundHttpException(Craft::t('report-manager', 'Export not found'));
         }
 
+        $this->requireExportAccess($export, 'download', 'reportManager:downloadExports');
+
         if (!$export->isCompleted()) {
             throw new NotFoundHttpException(Craft::t('report-manager', 'Export is not ready for download'));
         }
@@ -330,6 +332,7 @@ class ExportsController extends Controller
             'csv' => 'text/csv',
             'json' => 'application/json',
             'xlsx' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'zip' => 'application/zip',
             default => 'application/octet-stream',
         };
 
@@ -400,11 +403,15 @@ class ExportsController extends Controller
             ]);
         }
 
+        $this->requireExportAccess($export, 'status', 'reportManager:manageExports');
+
         return $this->asJson([
             'success' => true,
             'status' => $export->status,
             'progress' => $export->progress,
+            'progressMessage' => $export->getMetadataArray()['progressMessage'] ?? null,
             'errorMessage' => $export->errorMessage,
+            'warnings' => $export->getWarningsArray(),
             'isCompleted' => $export->isCompleted(),
             'downloadUrl' => $export->isCompleted() ? $plugin->exports->getDownloadUrl($export) : null,
         ]);
@@ -442,5 +449,42 @@ class ExportsController extends Controller
             'success' => true,
             'deleted' => $deleted,
         ]);
+    }
+
+    /**
+     * Require access to a specific export operation.
+     *
+     * @param ExportRecord $export Export record
+     * @param string $operation Provider operation, e.g. `status` or `download`
+     * @param string $fallbackPermission Report Manager fallback permission
+     * @throws ForbiddenHttpException
+     */
+    private function requireExportAccess(ExportRecord $export, string $operation, string $fallbackPermission): void
+    {
+        if ($this->canAccessExport($export, $operation, $fallbackPermission)) {
+            return;
+        }
+
+        throw new ForbiddenHttpException(Craft::t('report-manager', 'User not permitted to access this export.'));
+    }
+
+    /**
+     * Check access to a specific export operation.
+     *
+     * @param ExportRecord $export Export record
+     * @param string $operation Provider operation, e.g. `status` or `download`
+     * @param string $fallbackPermission Report Manager fallback permission
+     * @return bool
+     */
+    private function canAccessExport(ExportRecord $export, string $operation, string $fallbackPermission): bool
+    {
+        $user = Craft::$app->getUser();
+        $providerPermission = $export->getProviderPermission($operation);
+
+        if ($providerPermission !== null && $user->checkPermission($providerPermission)) {
+            return true;
+        }
+
+        return $user->checkPermission($fallbackPermission);
     }
 }
