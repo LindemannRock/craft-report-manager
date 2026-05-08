@@ -123,6 +123,14 @@ class ReportManager extends Plugin
                         'json' => ColorHelper::getPaletteColor('amber'),
                     ],
                 ],
+                'installExperience' => [
+                    'headline' => Craft::t('report-manager', 'Report Manager'),
+                    'body' => Craft::t('report-manager', 'Create reports, review exports, and manage scheduled reporting from one control panel workspace.'),
+                    'ctaLabel' => Craft::t('report-manager', 'Open Report Manager'),
+                    'ctaUrl' => 'report-manager',
+                    'redirectUri' => 'report-manager',
+                    'confettiPreset' => 'surprise',
+                ],
             ]
         );
 

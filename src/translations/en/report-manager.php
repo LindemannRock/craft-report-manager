@@ -10,6 +10,8 @@ return [
     // General
     '{name} plugin loaded' => '{name} plugin loaded',
     'Report Manager' => 'Report Manager',
+    'Create reports, review exports, and manage scheduled reporting from one control panel workspace.' => 'Create reports, review exports, and manage scheduled reporting from one control panel workspace.',
+    'Open Report Manager' => 'Open Report Manager',
 
     // Navigation
     'Dashboard' => 'Dashboard',
