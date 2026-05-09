@@ -5,6 +5,7 @@
 {% set exportMetadata = export.getMetadataArray() %}
 {% set exportWarnings = export.getWarningsArray() %}
 {% set progressMessage = exportMetadata.progressMessage ?? null %}
+{% set isMissingFile = export.isCompleted() and not fileAvailable %}
 {% set crumbs = [
     { label: reportHelper.fullName, url: url('report-manager') },
 ] %}
@@ -23,7 +24,7 @@
 {% endif %}
 
 {% block actionButton %}
-    {% if export.isCompleted and currentUser.can('reportManager:downloadExports') %}
+    {% if export.isCompleted and currentUser.can('reportManager:downloadExports') and fileAvailable %}
         <a href="{{ url('report-manager/exports/download/' ~ export.id) }}" class="btn submit">{{ 'Download'|t('report-manager') }}</a>
     {% endif %}
 {% endblock %}
@@ -37,8 +38,11 @@
                 <tr>
                     <th style="width: 200px;">{{ 'Status'|t('report-manager') }}</th>
                     <td>
-                        <span class="status {{ export.statusColor }}"></span>
-                        {{ export.statusLabel }}
+                        {% include 'lindemannrock-base/_components/badge' with {
+                            label: isMissingFile ? 'Missing file'|t('report-manager') : export.statusLabel,
+                            value: isMissingFile ? 'missing' : export.status,
+                            colorSet: 'exportStatus',
+                        } only %}
                         {% if export.isProcessing %}
                             <span class="light">({{ export.progress }}%)</span>
                         {% endif %}
@@ -100,6 +104,12 @@
                     <th>{{ 'File Size'|t('report-manager') }}</th>
                     <td>{{ export.formattedFileSize }}</td>
                 </tr>
+                {% if isMissingFile %}
+                    <tr>
+                        <th>{{ 'Availability'|t('report-manager') }}</th>
+                        <td><span class="warning">{{ 'Stored file is missing, so this export cannot be downloaded.'|t('report-manager') }}</span></td>
+                    </tr>
+                {% endif %}
             </tbody>
         </table>
     </div>

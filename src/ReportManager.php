@@ -114,6 +114,7 @@ class ReportManager extends Plugin
                         'processing' => ColorHelper::getPaletteColor('blue'),
                         'pending' => ColorHelper::getPaletteColor('amber'),
                         'failed' => ColorHelper::getPaletteColor('red'),
+                        'missing' => ColorHelper::getPaletteColor('amber'),
                     ],
                     'triggerType' => [
                         'manual' => ColorHelper::getPaletteColor('indigo'),

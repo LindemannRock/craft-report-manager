@@ -10,6 +10,7 @@ namespace lindemannrock\reportmanager\models;
 
 use Craft;
 use craft\base\Model;
+use lindemannrock\base\helpers\DateRangeHelper;
 use lindemannrock\base\helpers\ExportHelper;
 use lindemannrock\base\traits\SettingsConfigTrait;
 use lindemannrock\base\traits\SettingsDisplayNameTrait;
@@ -249,7 +250,7 @@ class Settings extends Model
             ['csvDelimiter', 'default', 'value' => ','],
             ['csvEnclosure', 'string', 'length' => 1],
             ['csvEnclosure', 'default', 'value' => '"'],
-            ['defaultDateRange', 'in', 'range' => ['today', 'yesterday', 'last7days', 'last30days', 'last90days', 'last365days', 'all']],
+            ['defaultDateRange', 'in', 'range' => array_keys(DateRangeHelper::getOptions('assoc'))],
             ['defaultDateRange', 'default', 'value' => 'last30days'],
             ['dashboardRefreshInterval', 'integer', 'min' => 0, 'max' => 3600],
             ['dashboardRefreshInterval', 'default', 'value' => 0],
@@ -450,16 +451,8 @@ class Settings extends Model
      *
      * @return array
      */
-    public function getDateRangeOptions(): array
+    public function getDateRangeOptions(bool $includeCustom = false): array
     {
-        return [
-            ['value' => 'today', 'label' => Craft::t('report-manager', 'Today')],
-            ['value' => 'yesterday', 'label' => Craft::t('report-manager', 'Yesterday')],
-            ['value' => 'last7days', 'label' => Craft::t('report-manager', 'Last 7 Days')],
-            ['value' => 'last30days', 'label' => Craft::t('report-manager', 'Last 30 Days')],
-            ['value' => 'last90days', 'label' => Craft::t('report-manager', 'Last 90 Days')],
-            ['value' => 'last365days', 'label' => Craft::t('report-manager', 'Last Year')],
-            ['value' => 'all', 'label' => Craft::t('report-manager', 'All Time')],
-        ];
+        return DateRangeHelper::getOptions('array', $includeCustom);
     }
 }

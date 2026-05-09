@@ -118,11 +118,14 @@ class DashboardController extends Controller
         $query->offset($offset)->limit($limit);
 
         // Get exports
+        /** @var ExportRecord[] $exports */
         $exports = $query->all();
+        $exportFileExists = $plugin->exports->getFileAvailabilityMap($exports);
 
         return $this->renderTemplate('report-manager/dashboard/index', [
             'settings' => $settings,
             'exports' => $exports,
+            'exportFileExists' => $exportFileExists,
             'page' => $page,
             'totalPages' => $totalPages,
             'offset' => $offset,

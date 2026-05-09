@@ -22,7 +22,7 @@ This plugin is in active development and not yet available on the Craft Plugin S
 - **Saved Reports** - Create and save report configurations for repeated use
 - **Multiple Data Sources** - Extensible architecture starting with Formie integration
 - **Field Selection** - Choose which fields to include in exports
-- **Date Range Filtering** - Filter data by today, last 7/30/90/365 days, or custom range
+- **Date Range Filtering** - Filter data with the shared LindemannRock Base date presets or a custom range
 - **Multi-Site Support** - Filter exports by site
 
 ### Scheduled Reports

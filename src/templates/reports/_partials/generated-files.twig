@@ -29,17 +29,18 @@
                 {% else %}
                     {% set displayName = item.entityName ?? item.filename %}
                 {% endif %}
+                {% set fileAvailable = exportFileExists[item.id] ?? false %}
                 <div class="generated-file-row" style="display: flex; align-items: center; gap: 16px; padding: 14px 0; border-top: 1px solid var(--hairline-color);">
                     <div class="flex-grow" style="min-width: 0;">
                         <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
-                            {% if item.isCompleted() and canDownload %}
+                            {% if item.isCompleted() and canDownload and fileAvailable %}
                                 <a href="{{ url('report-manager/exports/download/' ~ item.id) }}"><strong>{{ displayName }}</strong></a>
                             {% else %}
                                 <strong>{{ displayName }}</strong>
                             {% endif %}
                             {% include 'lindemannrock-base/_components/badge' with {
-                                label: item.statusLabel ~ (item.isProcessing() ? ' (' ~ item.progress ~ '%)' : ''),
-                                value: item.status,
+                                label: item.isCompleted() and not fileAvailable ? 'Missing file'|t('report-manager') : item.statusLabel ~ (item.isProcessing() ? ' (' ~ item.progress ~ '%)' : ''),
+                                value: item.isCompleted() and not fileAvailable ? 'missing' : item.status,
                                 colorSet: 'exportStatus',
                             } only %}
                         </div>

@@ -10,6 +10,7 @@ namespace lindemannrock\reportmanager\datasources;
 
 use Craft;
 use DateTime;
+use lindemannrock\base\helpers\DateRangeHelper;
 use lindemannrock\logginglibrary\traits\LoggingTrait;
 use lindemannrock\reportmanager\ReportManager;
 
@@ -58,17 +59,7 @@ abstract class BaseDataSource implements DataSourceInterface
      */
     protected function getDateRangeStart(string $dateRange): ?DateTime
     {
-        $now = new DateTime();
-
-        return match ($dateRange) {
-            'today' => (clone $now)->setTime(0, 0, 0),
-            'yesterday' => (clone $now)->modify('-1 day')->setTime(0, 0, 0),
-            'last7days' => (clone $now)->modify('-7 days')->setTime(0, 0, 0),
-            'last30days' => (clone $now)->modify('-30 days')->setTime(0, 0, 0),
-            'last90days' => (clone $now)->modify('-90 days')->setTime(0, 0, 0),
-            'last365days', 'lastyear' => (clone $now)->modify('-365 days')->setTime(0, 0, 0),
-            default => null,
-        };
+        return DateRangeHelper::getBounds($dateRange)['start'];
     }
 
     /**
@@ -79,11 +70,7 @@ abstract class BaseDataSource implements DataSourceInterface
      */
     protected function getDateRangeEnd(string $dateRange): ?DateTime
     {
-        if ($dateRange === 'yesterday') {
-            return (new DateTime())->modify('-1 day')->setTime(23, 59, 59);
-        }
-
-        return null;
+        return DateRangeHelper::getBounds($dateRange)['end'];
     }
 
     /**
@@ -97,7 +84,8 @@ abstract class BaseDataSource implements DataSourceInterface
         return match ($dateRange) {
             'today', 'yesterday' => 'Y-m-d H:00',
             'last7days' => 'Y-m-d',
-            'last30days', 'last90days' => 'Y-m-d',
+            'last30days', 'last90days', 'thisMonth', 'lastMonth' => 'Y-m-d',
+            'thisYear', 'lastYear' => 'Y-m',
             default => 'Y-W',
         };
     }
@@ -109,15 +97,7 @@ abstract class BaseDataSource implements DataSourceInterface
      */
     public static function getDateRangeOptions(): array
     {
-        return [
-            ['value' => 'today', 'label' => Craft::t('report-manager', 'Today')],
-            ['value' => 'yesterday', 'label' => Craft::t('report-manager', 'Yesterday')],
-            ['value' => 'last7days', 'label' => Craft::t('report-manager', 'Last 7 Days')],
-            ['value' => 'last30days', 'label' => Craft::t('report-manager', 'Last 30 Days')],
-            ['value' => 'last90days', 'label' => Craft::t('report-manager', 'Last 90 Days')],
-            ['value' => 'last365days', 'label' => Craft::t('report-manager', 'Last Year')],
-            ['value' => 'all', 'label' => Craft::t('report-manager', 'All Time')],
-        ];
+        return DateRangeHelper::getOptions();
     }
 
     /**

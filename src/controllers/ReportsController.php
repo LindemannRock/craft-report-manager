@@ -92,11 +92,17 @@ class ReportsController extends Controller
             'limit' => $limit,
         ]);
 
+        $reportIds = array_map(
+            static fn(ReportRecord $report): int => (int) $report->id,
+            $result['reports']
+        );
+        $exportCounts = $plugin->exports->getExportCountsForReports($reportIds);
         $dataSources = $plugin->dataSources->getAvailableDataSources();
 
         return $this->renderTemplate('report-manager/reports/index', [
             'settings' => $settings,
             'reports' => $result['reports'],
+            'exportCounts' => $exportCounts,
             'dataSources' => $dataSources,
             'page' => $page,
             'limit' => $limit,
@@ -163,6 +169,7 @@ class ReportsController extends Controller
             $generatedExports = $generatedExportsResult['exports'];
             $generatedExportsTotalCount = $generatedExportsResult['totalCount'];
         }
+        $generatedExportFileExists = $plugin->exports->getFileAvailabilityMap($generatedExports);
 
         // Build site options
         $siteOptions = [];
@@ -183,9 +190,10 @@ class ReportsController extends Controller
             'entities' => $entities,
             'canViewGeneratedFiles' => $canViewGeneratedFiles,
             'generatedExports' => $generatedExports,
+            'generatedExportFileExists' => $generatedExportFileExists,
             'generatedExportsTotalCount' => $generatedExportsTotalCount,
             'siteOptions' => $siteOptions,
-            'dateRangeOptions' => $settings->getDateRangeOptions(),
+            'dateRangeOptions' => $settings->getDateRangeOptions(true),
             'exportFormatOptions' => $settings->getExportFormatOptions(),
             'scheduleOptions' => $settings->getScheduleOptions(),
         ]);
@@ -547,11 +555,13 @@ class ReportsController extends Controller
             'page' => $page,
             'limit' => $limit,
         ]);
+        $exportFileExists = $plugin->exports->getFileAvailabilityMap($result['exports']);
 
         return $this->renderTemplate('report-manager/reports/generated', [
             'settings' => $settings,
             'report' => $report,
             'exports' => $result['exports'],
+            'exportFileExists' => $exportFileExists,
             'page' => $page,
             'limit' => $limit,
             'offset' => $result['offset'],

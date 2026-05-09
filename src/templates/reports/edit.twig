@@ -163,6 +163,7 @@
             {% include 'report-manager/reports/_partials/generated-files' with {
                 report: report,
                 exports: generatedExports,
+                exportFileExists: generatedExportFileExists,
                 totalCount: generatedExportsTotalCount,
                 canDownload: currentUser.can('reportManager:downloadExports'),
             } only %}
@@ -194,7 +195,7 @@
             id: 'dateRange',
             name: 'dateRange',
             value: report.dateRange,
-            options: dateRangeOptions|merge([{ value: 'custom', label: 'Custom Range'|t('report-manager') }]),
+            options: dateRangeOptions,
             errors: report.getErrors('dateRange'),
             toggle: true,
             targetPrefix: 'daterange-'

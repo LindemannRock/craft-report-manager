@@ -118,7 +118,8 @@
     {# Name #}
     <td>
         {% set displayName = item.filename ?? ('Export #' ~ item.id) %}
-        {% if item.isCompleted() and canDownload %}
+        {% set fileAvailable = exportFileExists[item.id] ?? false %}
+        {% if item.isCompleted() and canDownload and fileAvailable %}
             <a href="{{ url('report-manager/exports/download/' ~ item.id) }}">
                 <strong>{{ displayName }}</strong>
             </a>
@@ -132,9 +133,11 @@
 
     {# Status #}
     <td>
+        {% set fileAvailable = exportFileExists[item.id] ?? false %}
+        {% set isMissingFile = item.isCompleted() and not fileAvailable %}
         {% include 'lindemannrock-base/_components/badge' with {
-            label: item.statusLabel ~ (item.isProcessing() ? ' (' ~ item.progress ~ '%)' : ''),
-            value: item.status,
+            label: isMissingFile ? 'Missing file'|t('report-manager') : item.statusLabel ~ (item.isProcessing() ? ' (' ~ item.progress ~ '%)' : ''),
+            value: isMissingFile ? 'missing' : item.status,
             colorSet: 'exportStatus',
         } only %}
     </td>
@@ -173,7 +176,8 @@
                             {{ 'View'|t('report-manager') }}
                         </a>
                     </li>
-                    {% if item.isCompleted() and canDownload %}
+                    {% set fileAvailable = exportFileExists[item.id] ?? false %}
+                    {% if item.isCompleted() and canDownload and fileAvailable %}
                         <li>
                             <a href="{{ url('report-manager/exports/download/' ~ item.id) }}">
                                 {{ 'Download'|t('report-manager') }}

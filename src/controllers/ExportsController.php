@@ -87,10 +87,12 @@ class ExportsController extends Controller
         ]);
 
         $exportStats = $plugin->exports->getExportStats();
+        $exportFileExists = $plugin->exports->getFileAvailabilityMap($result['exports']);
 
         return $this->renderTemplate('report-manager/exports/index', [
             'settings' => $settings,
             'exports' => $result['exports'],
+            'exportFileExists' => $exportFileExists,
             'exportStats' => $exportStats,
             'page' => $page,
             'limit' => $limit,
@@ -118,12 +120,14 @@ class ExportsController extends Controller
         }
 
         $report = $export->reportId !== null ? ReportRecord::findOne($export->reportId) : null;
+        $fileAvailable = $export->isCompleted() && $plugin->exports->fileExists($export);
         $dataSources = $plugin->dataSources->getAvailableDataSources();
 
         return $this->renderTemplate('report-manager/exports/view', [
             'settings' => $settings,
             'export' => $export,
             'report' => $report,
+            'fileAvailable' => $fileAvailable,
             'dataSources' => $dataSources,
         ]);
     }
@@ -147,7 +151,7 @@ class ExportsController extends Controller
             'dataSources' => $dataSources,
             'dataSourceOptions' => $dataSourceOptions,
             'allEntities' => $allEntities,
-            'dateRangeOptions' => $settings->getDateRangeOptions(),
+            'dateRangeOptions' => $settings->getDateRangeOptions(true),
             'exportFormatOptions' => $settings->getExportFormatOptions(),
         ]);
     }

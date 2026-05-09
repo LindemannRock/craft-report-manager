@@ -83,12 +83,13 @@
     table: {
         columns: [
             {key: 'name', label: 'Name'|t('report-manager'), sortable: true},
-            {key: 'dataSource', label: 'Source'|t('report-manager'), sortable: true},
-            {key: 'mode', label: 'Mode'|t('report-manager')},
-            {key: 'exportFormat', label: 'Format'|t('report-manager'), sortable: true},
-            {key: 'schedule', label: 'Schedule'|t('report-manager')},
-            {key: 'lastGeneratedAt', label: 'Last Run'|t('report-manager'), sortable: true},
-            {key: 'nextScheduledAt', label: 'Next Run'|t('report-manager'), sortable: true},
+            {key: 'dataSource', label: 'Source'|t('report-manager'), sortable: true, hideable: true},
+            {key: 'mode', label: 'Mode'|t('report-manager'), hideable: true},
+            {key: 'exportFormat', label: 'Format'|t('report-manager'), sortable: true, hideable: true},
+            {key: 'generatedFiles', label: 'Files'|t('report-manager'), hideable: true},
+            {key: 'schedule', label: 'Schedule'|t('report-manager'), hideable: true},
+            {key: 'lastGeneratedAt', label: 'Last Run'|t('report-manager'), sortable: true, hideable: true},
+            {key: 'nextScheduledAt', label: 'Next Run'|t('report-manager'), sortable: true, hideable: true},
             {key: 'enabled', label: 'Status'|t('report-manager'), sortable: true},
         ],
         items: reports,
@@ -115,7 +116,7 @@
 
 {% block tableRow %}
     {# Name #}
-    <td>
+    <td data-column="name">
         {% if canManage %}
             <a href="{{ url('report-manager/reports/' ~ item.id) }}">{{ item.name }}</a>
         {% else %}
@@ -124,13 +125,13 @@
     </td>
 
     {# Source #}
-    <td>{{ dataSources[item.dataSource].name ?? item.dataSource|capitalize }}</td>
+    <td data-column="dataSource" class="lr-hideable-column">{{ dataSources[item.dataSource].name ?? item.dataSource|capitalize }}</td>
 
     {# Mode #}
-    <td>{{ item.exportMode == 'combined' ? 'Combined'|t('report-manager') : 'Separate'|t('report-manager') }}</td>
+    <td data-column="mode" class="lr-hideable-column">{{ item.exportMode == 'combined' ? 'Combined'|t('report-manager') : 'Separate'|t('report-manager') }}</td>
 
     {# Format #}
-    <td>
+    <td data-column="exportFormat" class="lr-hideable-column">
         {% include 'lindemannrock-base/_components/badge' with {
             label: item.exportFormat|upper,
             value: item.exportFormat,
@@ -138,8 +139,18 @@
         } only %}
     </td>
 
+    {# Generated Files #}
+    <td data-column="generatedFiles" class="lr-hideable-column">
+        {% set exportCount = exportCounts[item.id] ?? 0 %}
+        {% if exportCount > 0 %}
+            <a href="{{ url('report-manager/reports/' ~ item.id ~ '/generated') }}">{{ exportCount|number_format }}</a>
+        {% else %}
+            <span class="light">0</span>
+        {% endif %}
+    </td>
+
     {# Schedule #}
-    <td>
+    <td data-column="schedule" class="lr-hideable-column">
         {% if item.enableSchedule %}
             {{ item.scheduleLabel }}
         {% else %}
@@ -148,7 +159,7 @@
     </td>
 
     {# Last Run #}
-    <td class="light">
+    <td data-column="lastGeneratedAt" class="light lr-hideable-column">
         {% if item.lastGeneratedAt %}
             {{ item.lastGeneratedAt|lrCompactDatetime }}
         {% else %}
@@ -157,7 +168,7 @@
     </td>
 
     {# Next Run #}
-    <td class="light">
+    <td data-column="nextScheduledAt" class="light lr-hideable-column">
         {% if item.enableSchedule and item.nextScheduledAt %}
             {{ item.nextScheduledAt|lrCompactDatetime }}
         {% else %}
@@ -166,7 +177,7 @@
     </td>
 
     {# Status #}
-    <td>
+    <td data-column="enabled">
         {% include 'lindemannrock-base/_components/badge' with {
             label: item.enabled ? 'Enabled'|t('report-manager') : 'Disabled'|t('report-manager'),
             value: item.enabled ? 'enabled' : 'disabled',

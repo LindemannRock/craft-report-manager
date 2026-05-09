@@ -100,11 +100,11 @@
         columns: [
             {key: 'entityName', label: 'Name'|t('report-manager'), sortable: true},
             {key: 'status', label: 'Status'|t('report-manager'), sortable: true},
-            {key: 'format', label: 'Format'|t('report-manager'), sortable: true},
-            {key: 'report', label: 'Report'|t('report-manager')},
-            {key: 'recordCount', label: 'Records'|t('report-manager'), sortable: true},
-            {key: 'fileSize', label: 'Size'|t('report-manager'), sortable: true},
-            {key: 'triggeredBy', label: 'Type'|t('report-manager'), sortable: true},
+            {key: 'format', label: 'Format'|t('report-manager'), sortable: true, hideable: true},
+            {key: 'report', label: 'Report'|t('report-manager'), hideable: true},
+            {key: 'recordCount', label: 'Records'|t('report-manager'), sortable: true, hideable: true},
+            {key: 'fileSize', label: 'Size'|t('report-manager'), sortable: true, hideable: true},
+            {key: 'triggeredBy', label: 'Type'|t('report-manager'), sortable: true, hideable: true},
             {key: 'dateCreated', label: 'Created'|t('report-manager'), sortable: true},
         ],
         items: exports,
@@ -131,9 +131,10 @@
 
 {% block tableRow %}
     {# Name #}
-    <td>
+    <td data-column="entityName">
         {% set displayName = item.filename ?? ('Export #' ~ item.id) %}
-        {% if item.isCompleted and canDownload %}
+        {% set fileAvailable = exportFileExists[item.id] ?? false %}
+        {% if item.isCompleted and canDownload and fileAvailable %}
             <a href="{{ url('report-manager/exports/download/' ~ item.id) }}">{{ displayName }}</a>
         {% else %}
             {{ displayName }}
@@ -141,16 +142,18 @@
     </td>
 
     {# Status #}
-    <td>
+    <td data-column="status">
+        {% set fileAvailable = exportFileExists[item.id] ?? false %}
+        {% set isMissingFile = item.isCompleted and not fileAvailable %}
         {% include 'lindemannrock-base/_components/badge' with {
-            label: item.status|capitalize,
-            value: item.status,
+            label: isMissingFile ? 'Missing file'|t('report-manager') : item.status|capitalize,
+            value: isMissingFile ? 'missing' : item.status,
             colorSet: 'exportStatus',
         } only %}
     </td>
 
     {# Format #}
-    <td>
+    <td data-column="format" class="lr-hideable-column">
         {% include 'lindemannrock-base/_components/badge' with {
             label: item.format|upper,
             value: item.format,
@@ -159,7 +162,7 @@
     </td>
 
     {# Report #}
-    <td>
+    <td data-column="report" class="lr-hideable-column">
         {% if item.reportId %}
             <a href="{{ url('report-manager/reports/' ~ item.reportId) }}">{{ item.report.name ?? ('Report #' ~ item.reportId) }}</a>
         {% else %}
@@ -168,13 +171,13 @@
     </td>
 
     {# Records #}
-    <td>{{ item.recordCount|number_format }}</td>
+    <td data-column="recordCount" class="lr-hideable-column">{{ item.recordCount|number_format }}</td>
 
     {# Size #}
-    <td>{{ item.formattedFileSize }}</td>
+    <td data-column="fileSize" class="lr-hideable-column">{{ item.formattedFileSize }}</td>
 
     {# Type #}
-    <td>
+    <td data-column="triggeredBy" class="lr-hideable-column">
         {% include 'lindemannrock-base/_components/badge' with {
             label: item.triggerLabel,
             value: item.triggeredBy,
@@ -183,7 +186,7 @@
     </td>
 
     {# Created #}
-    <td class="light">{{ item.dateCreated|lrDatetime('medium') }}</td>
+    <td data-column="dateCreated" class="light">{{ item.dateCreated|lrDatetime('medium') }}</td>
 {% endblock %}
 
 
@@ -196,7 +199,8 @@
         <button type="button" class="btn menubtn" data-icon="settings" title="{{ 'Actions'|t('report-manager') }}"></button>
         <div class="menu">
             <ul>
-                {% if item.isCompleted and canDownload %}
+                {% set fileAvailable = exportFileExists[item.id] ?? false %}
+                {% if item.isCompleted and canDownload and fileAvailable %}
                     <li>
                         <a href="{{ url('report-manager/exports/download/' ~ item.id) }}">
                             {{ 'Download'|t('report-manager') }}

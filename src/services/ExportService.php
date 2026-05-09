@@ -19,6 +19,7 @@ use lindemannrock\reportmanager\export\QueuedExportContext;
 use lindemannrock\reportmanager\export\QueuedExportResult;
 use lindemannrock\reportmanager\records\ExportRecord;
 use lindemannrock\reportmanager\ReportManager;
+use yii\db\Expression;
 
 /**
  * Export Service
@@ -268,6 +269,44 @@ class ExportService extends Component
             'totalPages' => $totalPages,
             'offset' => $offset,
         ];
+    }
+
+    /**
+     * Get export counts for reports.
+     *
+     * @param int[] $reportIds Report IDs
+     * @return array<int, int> Map of report ID to export count
+     */
+    public function getExportCountsForReports(array $reportIds): array
+    {
+        $reportIds = array_values(array_unique(array_filter(array_map('intval', $reportIds))));
+
+        if (empty($reportIds)) {
+            return [];
+        }
+
+        /** @var array<int, int> $counts */
+        $counts = array_fill_keys($reportIds, 0);
+
+        $rows = ExportRecord::find()
+            ->select([
+                'reportId',
+                'count' => new Expression('COUNT(*)'),
+            ])
+            ->where(['reportId' => $reportIds])
+            ->groupBy(['reportId'])
+            ->asArray()
+            ->all();
+
+        foreach ($rows as $row) {
+            $reportId = (int) ($row['reportId'] ?? 0);
+
+            if ($reportId > 0) {
+                $counts[$reportId] = (int) ($row['count'] ?? 0);
+            }
+        }
+
+        return $counts;
     }
 
     /**
@@ -1296,6 +1335,31 @@ class ExportService extends Component
         } catch (\Exception $e) {
             return false;
         }
+    }
+
+    /**
+     * Build a file availability map for visible exports.
+     *
+     * This is intended for listing pages and should only be called for the
+     * exports already loaded for the current page.
+     *
+     * @param ExportRecord[] $exports Export records
+     * @return array<int, bool> Map of export ID to file availability
+     */
+    public function getFileAvailabilityMap(array $exports): array
+    {
+        $availability = [];
+
+        foreach ($exports as $export) {
+            if (!$export->isCompleted()) {
+                $availability[$export->id] = false;
+                continue;
+            }
+
+            $availability[$export->id] = $this->fileExists($export);
+        }
+
+        return $availability;
     }
 
     /**

@@ -11,6 +11,7 @@ namespace lindemannrock\reportmanager\datasources;
 use Craft;
 use craft\helpers\Db;
 use DateTime;
+use lindemannrock\base\helpers\DateRangeHelper;
 use lindemannrock\base\helpers\PluginHelper;
 
 /**
@@ -568,15 +569,7 @@ class FormieDataSource extends BaseDataSource
      */
     private function getDateRangeDays(string $dateRange): int
     {
-        return match ($dateRange) {
-            'today' => 1,
-            'yesterday' => 1,
-            'last7days' => 7,
-            'last30days' => 30,
-            'last90days' => 90,
-            'last365days', 'lastyear' => 365,
-            default => 30,
-        };
+        return DateRangeHelper::getDaysCount($dateRange);
     }
 
     /**
