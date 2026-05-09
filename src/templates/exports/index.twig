@@ -173,7 +173,7 @@
                 <ul>
                     <li>
                         <a href="{{ url('report-manager/exports/' ~ item.id) }}">
-                            {{ 'View'|t('report-manager') }}
+                            {{ 'Details'|t('report-manager') }}
                         </a>
                     </li>
                     {% set fileAvailable = exportFileExists[item.id] ?? false %}

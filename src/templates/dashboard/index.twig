@@ -200,6 +200,11 @@
         <div class="menu">
             <ul>
                 {% set fileAvailable = exportFileExists[item.id] ?? false %}
+                <li>
+                    <a href="{{ url('report-manager/exports/' ~ item.id) }}">
+                        {{ 'Details'|t('report-manager') }}
+                    </a>
+                </li>
                 {% if item.isCompleted and canDownload and fileAvailable %}
                     <li>
                         <a href="{{ url('report-manager/exports/download/' ~ item.id) }}">
@@ -208,7 +213,7 @@
                     </li>
                 {% endif %}
                 {% if canDelete %}
-                    {% if item.isCompleted and canDownload %}<li><hr class="padded"></li>{% endif %}
+                    <li><hr class="padded"></li>
                     <li>
                         <a class="export-action error" data-action="delete" data-id="{{ item.id }}" data-name="{{ item.filename }}">
                             {{ 'Delete'|t('report-manager') }}
