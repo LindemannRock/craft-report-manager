@@ -13,7 +13,12 @@ use craft\base\Component;
 use craft\helpers\Db;
 use craft\helpers\StringHelper;
 use DateTime;
+use DateTimeZone;
+use lindemannrock\base\helpers\DateFormatHelper;
 use lindemannrock\logginglibrary\traits\LoggingTrait;
+use lindemannrock\reportmanager\jobs\GenerateExportJob;
+use lindemannrock\reportmanager\jobs\ProcessScheduledReportJob;
+use lindemannrock\reportmanager\records\ExportRecord;
 use lindemannrock\reportmanager\records\ReportRecord;
 use lindemannrock\reportmanager\ReportManager;
 
@@ -233,6 +238,12 @@ class ReportsService extends Component
             'handle' => $report->handle,
         ]);
 
+        if ($report->enabled && $report->enableSchedule) {
+            $this->queueScheduledReportJob($report);
+        } else {
+            $this->deleteScheduledReportJobs((int) $report->id);
+        }
+
         return true;
     }
 
@@ -251,6 +262,7 @@ class ReportsService extends Component
         }
 
         $name = $report->name;
+        $this->deleteScheduledReportJobs((int) $report->id);
 
         if (!$report->delete()) {
             $this->logError('Failed to delete report', [
@@ -286,6 +298,182 @@ class ReportsService extends Component
     }
 
     /**
+     * Queue scheduled report jobs for all active scheduled reports.
+     *
+     * @return int Number of queued reports
+     */
+    public function queueAllScheduledReportJobs(): int
+    {
+        if (!ReportManager::getInstance()->getSettings()->enableScheduledReports) {
+            return 0;
+        }
+
+        /** @var ReportRecord[] $reports */
+        $reports = ReportRecord::find()
+            ->where(['enabled' => true])
+            ->andWhere(['enableSchedule' => true])
+            ->andWhere(['not', ['nextScheduledAt' => null]])
+            ->all();
+
+        $queued = 0;
+
+        foreach ($reports as $report) {
+            if ($this->queueScheduledReportJob($report)) {
+                $queued++;
+            }
+        }
+
+        return $queued;
+    }
+
+    /**
+     * Queue the next scheduled run for one report.
+     *
+     * @param ReportRecord $report
+     * @param bool $replaceExisting
+     * @return bool
+     */
+    public function queueScheduledReportJob(ReportRecord $report, bool $replaceExisting = true): bool
+    {
+        if (!ReportManager::getInstance()->getSettings()->enableScheduledReports) {
+            return false;
+        }
+
+        $nextScheduledAt = $this->normalizeDateTime($report->nextScheduledAt);
+
+        if (!$report->id || !$report->enabled || !$report->enableSchedule || !$nextScheduledAt) {
+            return false;
+        }
+
+        if ($replaceExisting) {
+            $this->deleteScheduledReportJobs((int) $report->id);
+        } elseif ($this->hasScheduledReportJob((int) $report->id)) {
+            return false;
+        }
+
+        $delay = max(0, $nextScheduledAt->getTimestamp() - time());
+        $displayDate = DateFormatHelper::toCraftTimezone(clone $nextScheduledAt);
+        $runAtTime = $displayDate?->format('M j, g:ia') ?? $nextScheduledAt->format('M j, g:ia');
+
+        Craft::$app->getQueue()->delay($delay)->push(new ProcessScheduledReportJob([
+            'reportId' => (int) $report->id,
+            'runAtTime' => $runAtTime,
+        ]));
+
+        $this->logInfo('Queued scheduled report job', [
+            'reportId' => $report->id,
+            'delay_seconds' => $delay,
+            'run_at' => $runAtTime,
+        ]);
+
+        return true;
+    }
+
+    /**
+     * Delete queued scheduled-report jobs.
+     *
+     * @param int|null $reportId Limit deletion to a report ID
+     * @return int Number of deleted queue rows
+     */
+    public function deleteScheduledReportJobs(?int $reportId = null): int
+    {
+        $condition = [
+            'and',
+            ['like', 'job', 'reportmanager'],
+            [
+                'or',
+                ['like', 'job', 'ProcessScheduledReportJob'],
+                ['like', 'job', 'ProcessScheduledReportsJob'],
+            ],
+        ];
+
+        if ($reportId !== null) {
+            $condition[] = ['like', 'job', 'reportId";i:' . $reportId . ';'];
+        }
+
+        return (int) Craft::$app->getDb()->createCommand()->delete('{{%queue}}', $condition)->execute();
+    }
+
+    /**
+     * Delete queued legacy global scheduled-report processor jobs.
+     *
+     * @return int Number of deleted queue rows
+     */
+    public function deleteLegacyScheduledReportJobs(): int
+    {
+        return (int) Craft::$app->getDb()->createCommand()->delete('{{%queue}}', [
+            'and',
+            ['like', 'job', 'reportmanager'],
+            ['like', 'job', 'ProcessScheduledReportsJob'],
+        ])->execute();
+    }
+
+    /**
+     * Create scheduled export records for a report and queue generation jobs.
+     *
+     * @param ReportRecord $report
+     * @return int Number of generation jobs queued
+     */
+    public function queueScheduledReportExports(ReportRecord $report): int
+    {
+        $plugin = ReportManager::getInstance();
+        $entityIds = $report->getEntityIdsArray();
+        $siteIds = $report->siteId ? [$report->siteId] : [];
+        $queued = 0;
+
+        if ($report->isCombined()) {
+            $export = $plugin->exports->createCombinedExport(
+                $report->dataSource,
+                $entityIds,
+                $report->exportFormat,
+                [
+                    'reportId' => $report->id,
+                    'dateRange' => $report->dateRange,
+                    'dateStart' => $report->customDateStart,
+                    'dateEnd' => $report->customDateEnd,
+                    'fieldHandles' => $report->getFieldHandlesArray(),
+                    'siteIds' => $siteIds,
+                    'triggeredBy' => ExportRecord::TRIGGER_SCHEDULED,
+                    'triggeredByUserId' => null,
+                ]
+            );
+
+            Craft::$app->getQueue()->push(new GenerateExportJob([
+                'exportId' => $export->id,
+                'combined' => true,
+            ]));
+
+            return 1;
+        }
+
+        foreach ($entityIds as $entityId) {
+            $export = $plugin->exports->createExport(
+                $report->dataSource,
+                $entityId,
+                $report->exportFormat,
+                [
+                    'reportId' => $report->id,
+                    'dateRange' => $report->dateRange,
+                    'dateStart' => $report->customDateStart,
+                    'dateEnd' => $report->customDateEnd,
+                    'fieldHandles' => $report->getFieldHandlesArray(),
+                    'siteIds' => $siteIds,
+                    'triggeredBy' => ExportRecord::TRIGGER_SCHEDULED,
+                    'triggeredByUserId' => null,
+                ]
+            );
+
+            Craft::$app->getQueue()->push(new GenerateExportJob([
+                'exportId' => $export->id,
+            ]));
+
+            $queued++;
+        }
+
+        return $queued;
+    }
+
+    /**
      * Mark report as generated by scheduled job and update schedule
      *
      * Updates lastGeneratedAt and calculates next fixed schedule time.
@@ -303,6 +491,41 @@ class ReportsService extends Component
         }
 
         return $report->save();
+    }
+
+    /**
+     * Check whether a scheduled report job is already queued for a report.
+     *
+     * @param int $reportId
+     * @return bool
+     */
+    private function hasScheduledReportJob(int $reportId): bool
+    {
+        return (new \craft\db\Query())
+            ->from('{{%queue}}')
+            ->where(['like', 'job', 'reportmanager'])
+            ->andWhere(['like', 'job', 'ProcessScheduledReportJob'])
+            ->andWhere(['like', 'job', 'reportId";i:' . $reportId . ';'])
+            ->exists();
+    }
+
+    /**
+     * Normalize database date values to DateTime.
+     *
+     * @param mixed $value
+     * @return DateTime|null
+     */
+    private function normalizeDateTime(mixed $value): ?DateTime
+    {
+        if ($value instanceof DateTime) {
+            return $value;
+        }
+
+        if (is_string($value) && $value !== '') {
+            return new DateTime($value, new DateTimeZone('UTC'));
+        }
+
+        return null;
     }
 
     /**

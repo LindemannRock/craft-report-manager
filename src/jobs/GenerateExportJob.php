@@ -88,14 +88,19 @@ class GenerateExportJob extends BaseJob implements RetryableJobInterface
      */
     protected function defaultDescription(): ?string
     {
+        $settings = ReportManager::getInstance()->getSettings();
         $export = ExportRecord::findOne($this->exportId);
 
         if ($export) {
-            return Craft::t('report-manager', 'Generating export: {name}', [
+            return Craft::t('report-manager', '{pluginName}: Generating export - {name}', [
+                'pluginName' => $settings->getDisplayName(),
                 'name' => $export->entityName ?? "Export #{$this->exportId}",
             ]);
         }
 
-        return Craft::t('report-manager', 'Generating export #{id}', ['id' => $this->exportId]);
+        return Craft::t('report-manager', '{pluginName}: Generating export #{id}', [
+            'pluginName' => $settings->getDisplayName(),
+            'id' => $this->exportId,
+        ]);
     }
 }

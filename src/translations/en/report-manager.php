@@ -256,11 +256,22 @@ return [
     'IP Address' => 'IP Address',
 
     // Queue Jobs
-    'Generating export: {name}' => 'Generating export: {name}',
-    'Generating export #{id}' => 'Generating export #{id}',
+    '{pluginName}: Generating export - {name}' => '{pluginName}: Generating export - {name}',
+    '{pluginName}: Generating export #{id}' => '{pluginName}: Generating export #{id}',
     'Processing scheduled reports' => 'Processing scheduled reports',
     'Processing report: {name}' => 'Processing report: {name}',
     'Processed {count} reports' => 'Processed {count} reports',
+    'Scheduled reports disabled' => 'Scheduled reports disabled',
+    'Scheduled report no longer active' => 'Scheduled report no longer active',
+    'Scheduled report is not due yet' => 'Scheduled report is not due yet',
+    'Queueing report exports' => 'Queueing report exports',
+    'Queued {count} export(s)' => 'Queued {count} export(s)',
+    'Report #{id}' => 'Report #{id}',
+    '{pluginName}: Scheduled report - {name}' => '{pluginName}: Scheduled report - {name}',
+    'Export cleanup disabled' => 'Export cleanup disabled',
+    'Cleaning up old exports' => 'Cleaning up old exports',
+    'Cleaned up {count} export(s)' => 'Cleaned up {count} export(s)',
+    '{pluginName}: Cleaning up old exports' => '{pluginName}: Cleaning up old exports',
 
     // Validation
     'Please select at least one form.' => 'Please select at least one form.',

@@ -132,6 +132,10 @@ return [
 ];
 ```
 
+Export retention is rolling time-based retention. For example, `exportRetention => 1`
+keeps exports from the last 24 hours, not the current and previous calendar day.
+Set `exportRetention` to `0` to keep generated exports until they are manually deleted.
+
 ### Environment-Specific Configuration
 
 ```php
@@ -207,10 +211,11 @@ Report Manager uses Craft's queue system for scheduled report generation.
 
 ### How It Works
 
-1. When enabled, the plugin pushes a `ProcessScheduledReportsJob` to the queue
-2. The job checks for reports due for generation
-3. After processing, it reschedules itself based on your schedule setting
-4. Jobs appear in the queue as: **Report Manager: Processing scheduled reports (Jan 24, 3:00am)**
+1. When enabled, each scheduled report gets its own `ProcessScheduledReportJob` queued for its next run time
+2. The report job creates export records and dispatches `GenerateExportJob` jobs for the actual file generation
+3. After dispatching export jobs, the report job calculates that report's next run time and queues the next report job
+4. Export retention runs independently through `CleanupExportsJob`
+5. Jobs appear in the queue as: **Report Manager: Scheduled report - Weekly Leads (Jan 24, 3:00am)**
 
 ### Queue Worker
 

@@ -305,55 +305,7 @@ class ReportsController extends Controller
     private function queueInitialScheduledExport(ReportRecord $report): void
     {
         $plugin = ReportManager::getInstance();
-        $entityIds = $report->getEntityIdsArray();
-        $siteIds = $report->siteId ? [$report->siteId] : [];
-
-        // Combined mode: single export with all forms
-        if ($report->isCombined()) {
-            $export = $plugin->exports->createCombinedExport(
-                $report->dataSource,
-                $entityIds,
-                $report->exportFormat,
-                [
-                    'reportId' => $report->id,
-                    'dateRange' => $report->dateRange,
-                    'dateStart' => $report->customDateStart,
-                    'dateEnd' => $report->customDateEnd,
-                    'fieldHandles' => $report->getFieldHandlesArray(),
-                    'siteIds' => $siteIds,
-                    'triggeredBy' => \lindemannrock\reportmanager\records\ExportRecord::TRIGGER_SCHEDULED,
-                ]
-            );
-
-            Craft::$app->getQueue()->push(new GenerateExportJob([
-                'exportId' => $export->id,
-                'combined' => true,
-            ]));
-        } else {
-            // Separate mode: one export per form
-            foreach ($entityIds as $entityId) {
-                $export = $plugin->exports->createExport(
-                    $report->dataSource,
-                    $entityId,
-                    $report->exportFormat,
-                    [
-                        'reportId' => $report->id,
-                        'dateRange' => $report->dateRange,
-                        'dateStart' => $report->customDateStart,
-                        'dateEnd' => $report->customDateEnd,
-                        'fieldHandles' => $report->getFieldHandlesArray(),
-                        'siteIds' => $siteIds,
-                        'triggeredBy' => \lindemannrock\reportmanager\records\ExportRecord::TRIGGER_SCHEDULED,
-                    ]
-                );
-
-                Craft::$app->getQueue()->push(new GenerateExportJob([
-                    'exportId' => $export->id,
-                ]));
-            }
-        }
-
-        // Update last generated timestamp
+        $plugin->reports->queueScheduledReportExports($report);
         $plugin->reports->updateLastGenerated($report);
     }
 
@@ -600,7 +552,7 @@ class ReportsController extends Controller
             if ($report && !$report->enabled) {
                 $report->enabled = true;
 
-                if ($report->save()) {
+                if ($plugin->reports->saveReport($report)) {
                     $updated++;
                 }
             }
@@ -640,7 +592,7 @@ class ReportsController extends Controller
             if ($report && $report->enabled) {
                 $report->enabled = false;
 
-                if ($report->save()) {
+                if ($plugin->reports->saveReport($report)) {
                     $updated++;
                 }
             }

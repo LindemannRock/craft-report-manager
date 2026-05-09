@@ -127,6 +127,7 @@ class SettingsController extends Controller
             Craft::$app->getRequest()->getBodyParam('section', 'general'),
         );
         $scheduledReportsWereEnabled = $settings->enableScheduledReports;
+        $exportCleanupWasEnabled = $settings->autoCleanupExports && $settings->exportRetention > 0;
 
         // Fields that should be cast to int
         $intFields = ['maxExportBatchSize', 'exportRetention', 'itemsPerPage'];
@@ -179,8 +180,22 @@ class SettingsController extends Controller
             ]);
         }
 
-        if ($section === 'scheduling' && $scheduledReportsWereEnabled && !$settings->enableScheduledReports) {
-            $this->_deleteScheduledReportJobs();
+        if ($section === 'scheduling') {
+            if ($scheduledReportsWereEnabled && !$settings->enableScheduledReports) {
+                $plugin->reports->deleteScheduledReportJobs();
+            } elseif ($settings->enableScheduledReports) {
+                $plugin->reports->queueAllScheduledReportJobs();
+            }
+        }
+
+        if ($section === 'export') {
+            $exportCleanupIsEnabled = $settings->autoCleanupExports && $settings->exportRetention > 0;
+
+            if ($exportCleanupWasEnabled && !$exportCleanupIsEnabled) {
+                $plugin->deleteExportCleanupJobs();
+            } elseif ($exportCleanupIsEnabled) {
+                $plugin->scheduleExportCleanupJob();
+            }
         }
 
         Craft::$app->getSession()->setNotice(Craft::t('report-manager', 'Settings saved.'));
@@ -235,19 +250,5 @@ class SettingsController extends Controller
             ],
             default => [],
         };
-    }
-
-    /**
-     * Delete queued scheduled-report worker jobs.
-     *
-     * @return int Number of deleted queue rows
-     */
-    private function _deleteScheduledReportJobs(): int
-    {
-        return (int) Craft::$app->getDb()->createCommand()->delete('{{%queue}}', [
-            'and',
-            ['like', 'job', 'reportmanager'],
-            ['like', 'job', 'ProcessScheduledReportsJob'],
-        ])->execute();
     }
 }

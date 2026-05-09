@@ -21,7 +21,7 @@ use lindemannrock\base\helpers\CpNavHelper;
 use lindemannrock\base\helpers\PluginHelper;
 use lindemannrock\logginglibrary\LoggingLibrary;
 use lindemannrock\logginglibrary\traits\LoggingTrait;
-use lindemannrock\reportmanager\jobs\ProcessScheduledReportsJob;
+use lindemannrock\reportmanager\jobs\CleanupExportsJob;
 use lindemannrock\reportmanager\models\Settings;
 use lindemannrock\reportmanager\services\DataSourcesService;
 use lindemannrock\reportmanager\services\ExportService;
@@ -151,9 +151,10 @@ class ReportManager extends Plugin
         // Register CP nav items
         $this->registerCpNavItems();
 
-        // Schedule reports processing job (only on non-console requests to avoid running during migrations)
+        // Schedule recurring jobs (only on non-console requests to avoid running during migrations)
         if (!Craft::$app->getRequest()->getIsConsoleRequest()) {
-            $this->scheduleReportsJob();
+            $this->scheduleReportJobs();
+            $this->scheduleExportCleanupJob();
         }
 
         Craft::info(
@@ -411,37 +412,74 @@ class ReportManager extends Plugin
     }
 
     /**
-     * Schedule reports processing job
-     * Called on every plugin init to ensure job is always in queue
+     * Ensure per-report scheduled jobs are queued.
      */
-    private function scheduleReportsJob(): void
+    private function scheduleReportJobs(): void
     {
         $settings = $this->getSettings();
 
-        // Only schedule if scheduled reports are enabled
         if (!$settings->enableScheduledReports) {
             return;
         }
 
-        // Check if a reports processing job is already scheduled
+        $legacyDeleted = $this->reports->deleteLegacyScheduledReportJobs();
+        $queued = $this->reports->queueAllScheduledReportJobs();
+
+        if ($legacyDeleted > 0 || $queued > 0) {
+            $this->logInfo('Queued scheduled report jobs', [
+                'legacy_deleted' => $legacyDeleted,
+                'queued' => $queued,
+            ]);
+        }
+    }
+
+    /**
+     * Ensure generated export cleanup is queued.
+     *
+     * @param int $delay Delay in seconds
+     */
+    public function scheduleExportCleanupJob(int $delay = 300): void
+    {
+        $settings = $this->getSettings();
+
+        if (!$settings->autoCleanupExports || $settings->exportRetention <= 0) {
+            return;
+        }
+
         $existingJob = (new \craft\db\Query())
             ->from('{{%queue}}')
             ->where(['like', 'job', 'reportmanager'])
-            ->andWhere(['like', 'job', 'ProcessScheduledReportsJob'])
+            ->andWhere(['like', 'job', 'CleanupExportsJob'])
             ->exists();
 
-        if (!$existingJob) {
-            $job = new ProcessScheduledReportsJob([
-                'reschedule' => true,
-            ]);
-
-            // Add to queue with a small initial delay (5 minutes)
-            Craft::$app->getQueue()->delay(5 * 60)->push($job);
-
-            $this->logInfo('Scheduled initial reports processing job', [
-                'delay' => '5 minutes',
-                'schedule' => $settings->defaultSchedule,
-            ]);
+        if ($existingJob) {
+            return;
         }
+
+        $nextRunTime = date('M j, g:ia', time() + $delay);
+
+        Craft::$app->getQueue()->delay($delay)->push(new CleanupExportsJob([
+            'reschedule' => true,
+            'nextRunTime' => $nextRunTime,
+        ]));
+
+        $this->logInfo('Scheduled export cleanup job', [
+            'delay_seconds' => $delay,
+            'next_run' => $nextRunTime,
+        ]);
+    }
+
+    /**
+     * Delete queued generated export cleanup jobs.
+     *
+     * @return int Number of deleted queue rows
+     */
+    public function deleteExportCleanupJobs(): int
+    {
+        return (int) Craft::$app->getDb()->createCommand()->delete('{{%queue}}', [
+            'and',
+            ['like', 'job', 'reportmanager'],
+            ['like', 'job', 'CleanupExportsJob'],
+        ])->execute();
     }
 }
