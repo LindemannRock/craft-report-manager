@@ -162,7 +162,7 @@ class SettingsController extends Controller
 
         // Validate
         if (!$settings->validate($attributesToValidate)) {
-            Craft::$app->getSession()->setError(Craft::t('report-manager', 'Couldn\'t save settings.'));
+            Craft::$app->getSession()->setError(Craft::t('report-manager', 'Could not save settings.'));
 
             return $this->renderTemplate('report-manager/settings/' . $section, [
                 'settings' => $settings,
@@ -172,7 +172,7 @@ class SettingsController extends Controller
 
         // Save to database
         if (!$settings->saveToDatabase($attributesToValidate)) {
-            Craft::$app->getSession()->setError(Craft::t('report-manager', 'Couldn\'t save settings.'));
+            Craft::$app->getSession()->setError(Craft::t('report-manager', 'Could not save settings.'));
 
             return $this->renderTemplate('report-manager/settings/' . $section, [
                 'settings' => $settings,
