@@ -168,7 +168,7 @@
 
         {{ forms.textField({
             label: 'Export Retention (Days)'|t('report-manager'),
-            instructions: 'Number of days to keep generated exports. Set to 0 to keep forever.'|t('report-manager'),
+            instructions: 'Number of days to keep generated export files and records. Set to 0 to keep forever.'|t('report-manager'),
             id: 'exportRetention',
             name: 'settings[exportRetention]',
             value: settings.exportRetention,
@@ -182,7 +182,7 @@
 
         {{ forms.lightswitchField({
             label: 'Auto Cleanup Exports'|t('report-manager'),
-            instructions: 'Automatically delete old exports based on retention setting.'|t('report-manager'),
+            instructions: 'Automatically delete old generated export files and records based on the retention setting.'|t('report-manager'),
             id: 'autoCleanupExports',
             name: 'settings[autoCleanupExports]',
             on: settings.autoCleanupExports,
@@ -191,6 +191,29 @@
             warning: settings.isOverriddenByConfig('autoCleanupExports') ?
                 "This is being overridden by the <code>autoCleanupExports</code> setting in <code>config/report-manager.php</code>."|t('report-manager')|raw : null,
         }) }}
+
+        {% if settings.autoCleanupExports and settings.exportRetention > 0 %}
+            {% include 'lindemannrock-base/_components/info-box' with {
+                message: 'Auto cleanup is enabled. Generated export files and their database records older than {days} days will be permanently deleted, so they will no longer appear in generated-file listings.'|t('report-manager', {
+                    days: settings.exportRetention,
+                }),
+                type: 'warning',
+                variant: 'colored',
+                allowHtml: false,
+            } %}
+        {% elseif settings.exportRetention == 0 %}
+            {% include 'lindemannrock-base/_components/info-box' with {
+                message: 'Export retention is set to 0, so generated exports are kept indefinitely unless they are deleted manually.'|t('report-manager'),
+                type: 'info',
+                allowHtml: false,
+            } %}
+        {% else %}
+            {% include 'lindemannrock-base/_components/info-box' with {
+                message: 'Auto cleanup is disabled. Generated exports are kept until they are deleted manually.'|t('report-manager'),
+                type: 'info',
+                allowHtml: false,
+            } %}
+        {% endif %}
 
     {% include 'lindemannrock-base/_components/plugin-credit' %}
 {% endblock %}
