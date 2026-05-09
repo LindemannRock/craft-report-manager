@@ -41,18 +41,71 @@ return [
         // ========================================
 
         /**
-         * Export file retention in days
-         * Set to 0 to keep files indefinitely
-         * Default: 30 days
+         * Default format selected for new exports
+         * Options: 'csv', 'xlsx', 'json'
+         * Default: 'csv'
          */
-        // 'exportRetentionDays' => 30,
+        // 'defaultExportFormat' => 'csv',
+
+        /**
+         * Default date range for new reports and exports
+         * Options: 'today', 'yesterday', 'last7days', 'last30days', 'last90days',
+         *          'thisMonth', 'lastMonth', 'thisYear', 'lastYear', 'all'
+         * Default: 'last30days'
+         */
+        // 'defaultDateRange' => 'last30days',
+
+        /**
+         * Maximum records to export in a single batch
+         * Range: 100-100000
+         * Default: 10000
+         */
+        // 'maxExportBatchSize' => 10000,
+
+        /**
+         * Asset volume UID for export storage
+         * Leave null to use exportPath instead
+         */
+        // 'exportVolumeUid' => null,
 
         /**
          * Export storage path
-         * Leave null to use default (@storage/report-manager/exports)
+         * Only used when exportVolumeUid is null
+         * Default: @storage/report-manager/exports
          * Can use environment variables: App::env('REPORT_EXPORT_PATH')
          */
-        // 'exportPath' => null,
+        // 'exportPath' => '@storage/report-manager/exports',
+
+        /**
+         * CSV delimiter character
+         * Default: ','
+         */
+        // 'csvDelimiter' => ',',
+
+        /**
+         * CSV enclosure character
+         * Default: '"'
+         */
+        // 'csvEnclosure' => '"',
+
+        /**
+         * Include UTF-8 BOM in CSV exports for Excel compatibility
+         * Default: true
+         */
+        // 'csvIncludeBom' => true,
+
+        /**
+         * Export file retention in days
+         * Set to 0 to keep files indefinitely
+         * Default: 30
+         */
+        // 'exportRetention' => 30,
+
+        /**
+         * Automatically delete old exports based on exportRetention
+         * Default: true
+         */
+        // 'autoCleanupExports' => true,
 
 
         // ========================================
@@ -80,6 +133,18 @@ return [
 
 
         // ========================================
+        // INTERFACE SETTINGS
+        // ========================================
+
+        /**
+         * Number of items to display per page in lists
+         * Range: 10-500
+         * Default: 50
+         */
+        // 'itemsPerPage' => 50,
+
+
+        // ========================================
         // BASE PLUGIN OVERRIDES
         // ========================================
         // These settings override lindemannrock-base defaults for this plugin only.
@@ -96,18 +161,6 @@ return [
         // 'dateOrder' => 'dmy',      // 'dmy', 'mdy', 'ymd'
         // 'dateSeparator' => '/',    // '/', '-', '.'
         // 'showSeconds' => false,    // Show seconds in time display
-
-        /**
-         * Default date range for new reports and exports
-         * Options: 'today', 'yesterday', 'last7days', 'last30days', 'last90days',
-         *          'thisMonth', 'lastMonth', 'thisYear', 'lastYear', 'all'
-         *
-         * Lives on the plugin's Settings model — set it via
-         * Settings → Export → Default Date Range.
-         * Setting it here overrides the UI value.
-         * Default: 'last30days' (Settings model default)
-         */
-        // 'defaultDateRange' => 'last7days',
 
         /**
          * Export format overrides
