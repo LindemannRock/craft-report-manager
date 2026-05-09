@@ -60,6 +60,19 @@ return [
         // ========================================
 
         /**
+         * Global scheduled report switch
+         * When disabled, report-level scheduling controls are hidden and scheduled jobs exit.
+         */
+        // 'enableScheduledReports' => true,
+
+        /**
+         * Default frequency selected when creating a new report
+         * Options: 'every6hours', 'every12hours', 'daily', 'daily2am', 'weekly',
+         *          'monthly', 'every2months', 'quarterly', 'every6months', 'yearly'
+         */
+        // 'defaultSchedule' => 'daily2am',
+
+        /**
          * Minimum interval between scheduled report checks (in minutes)
          * Default: 60 (1 hour)
          */
@@ -85,12 +98,12 @@ return [
         // 'showSeconds' => false,    // Show seconds in time display
 
         /**
-         * Default date range for analytics, logs, and dashboard pages
+         * Default date range for new reports and exports
          * Options: 'today', 'yesterday', 'last7days', 'last30days', 'last90days',
          *          'thisMonth', 'lastMonth', 'thisYear', 'lastYear', 'all'
          *
          * Lives on the plugin's Settings model — set it via
-         * Settings → Default Date Range.
+         * Settings → Export → Default Date Range.
          * Setting it here overrides the UI value.
          * Default: 'last30days' (Settings model default)
          */

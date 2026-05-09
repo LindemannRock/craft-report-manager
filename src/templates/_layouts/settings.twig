@@ -21,6 +21,16 @@
                 </a>
             </li>
             <li>
+                <a href="{{ url('report-manager/settings/interface') }}" {% if selectedSettingsItem == 'interface' %}class="sel"{% endif %} data-nav-item="interface">
+                    {{ 'Interface'|t('report-manager') }}
+                </a>
+            </li>
+            <li>
+                <a href="{{ url('report-manager/settings/scheduling') }}" {% if selectedSettingsItem == 'scheduling' %}class="sel"{% endif %} data-nav-item="scheduling">
+                    {{ 'Scheduling'|t('report-manager') }}
+                </a>
+            </li>
+            <li>
                 <a href="{{ url('report-manager/settings/export') }}" {% if selectedSettingsItem == 'export' %}class="sel"{% endif %} data-nav-item="export">
                     {{ 'Export'|t('report-manager') }}
                 </a>

@@ -238,24 +238,26 @@
             errors: report.getErrors('exportMode')
         }) }}
 
-        {{ forms.lightswitchField({
-            label: 'Scheduled'|t('report-manager'),
-            id: 'enableSchedule',
-            name: 'enableSchedule',
-            on: report.enableSchedule ?? false,
-            toggle: 'schedule-field'
-        }) }}
+        {% if settings.enableScheduledReports %}
+            {{ forms.lightswitchField({
+                label: 'Scheduled'|t('report-manager'),
+                id: 'enableSchedule',
+                name: 'enableSchedule',
+                on: report.enableSchedule ?? false,
+                toggle: 'schedule-field'
+            }) }}
 
-        {{ forms.selectField({
-            label: 'Frequency'|t('report-manager'),
-            id: 'schedule',
-            name: 'schedule',
-            value: report.schedule,
-            options: scheduleOptions|filter(o => o.value != 'disabled'),
-            errors: report.getErrors('schedule'),
-            fieldId: 'schedule-field',
-            fieldClass: (report.enableSchedule ?? false) ? '' : 'hidden'
-        }) }}
+            {{ forms.selectField({
+                label: 'Frequency'|t('report-manager'),
+                id: 'schedule',
+                name: 'schedule',
+                value: report.schedule,
+                options: scheduleOptions|filter(o => o.value != 'disabled'),
+                errors: report.getErrors('schedule'),
+                fieldId: 'schedule-field',
+                fieldClass: (report.enableSchedule ?? false) ? '' : 'hidden'
+            }) }}
+        {% endif %}
 
         {% if not isNew %}
             <div class="field" style="margin-top: 15px;">
@@ -300,7 +302,7 @@
                     <dd class="value">{{ report.lastGeneratedAt|lrDatetime }}</dd>
                 </div>
             {% endif %}
-            {% if report.enableSchedule and report.nextScheduledAt %}
+            {% if settings.enableScheduledReports and report.enableSchedule and report.nextScheduledAt %}
                 <div class="data">
                     <dt class="heading">{{ 'Next Scheduled'|t('report-manager') }}</dt>
                     <dd class="value">{{ report.nextScheduledAt|lrDatetime }}</dd>

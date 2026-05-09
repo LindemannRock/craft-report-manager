@@ -200,6 +200,11 @@ class ReportsService extends Component
             $report->handle = $this->generateUniqueHandle($report->handle);
         }
 
+        if (!ReportManager::getInstance()->getSettings()->enableScheduledReports) {
+            $report->enableSchedule = false;
+            $report->nextScheduledAt = null;
+        }
+
         // Calculate next scheduled time if schedule is enabled
         if ($report->enableSchedule && !empty($report->schedule)) {
             $report->nextScheduledAt = $this->calculateNextScheduledTime($report->schedule);
@@ -384,7 +389,8 @@ class ReportsService extends Component
      * - every12hours: 00:00, 12:00
      * - daily: 00:00
      * - daily2am: 02:00
-     * - weekly: Monday 00:00
+     * - weekly: configured Craft week start day at 00:00
+     * - monthly/every2months/quarterly/every6months/yearly: based on the day/time the report is scheduled
      *
      * @param string $schedule Schedule identifier
      * @return DateTime
@@ -398,9 +404,43 @@ class ReportsService extends Component
             'every12hours' => $this->getNextFixedHour($now, [0, 12]),
             'daily' => $this->getNextFixedHour($now, [0]),
             'daily2am' => $this->getNextFixedHour($now, [2]),
-            'weekly' => $this->getNextWeekday($now, 1), // Monday
+            'weekly' => $this->getNextWeekday($now, $this->getWeekStartIsoDay()),
+            'monthly' => $this->addMonthsClamped($now, 1),
+            'every2months' => $this->addMonthsClamped($now, 2),
+            'quarterly' => $this->addMonthsClamped($now, 3),
+            'every6months' => $this->addMonthsClamped($now, 6),
+            'yearly' => $this->addMonthsClamped($now, 12),
             default => $this->getNextFixedHour($now, [0]),
         };
+    }
+
+    /**
+     * Add months while keeping end-of-month schedules valid.
+     *
+     * @param DateTime $from Starting point
+     * @param int $months Months to add
+     * @return DateTime
+     */
+    private function addMonthsClamped(DateTime $from, int $months): DateTime
+    {
+        $target = clone $from;
+        $day = (int) $target->format('j');
+        $time = $target->format('H:i:s');
+
+        $target->modify('first day of this month');
+        $target->modify("+{$months} months");
+
+        $lastDay = (int) $target->format('t');
+        $target->setDate(
+            (int) $target->format('Y'),
+            (int) $target->format('n'),
+            min($day, $lastDay)
+        );
+
+        [$hour, $minute, $second] = array_map('intval', explode(':', $time));
+        $target->setTime($hour, $minute, $second);
+
+        return $target;
     }
 
     /**
@@ -431,7 +471,23 @@ class ReportsService extends Component
     }
 
     /**
-     * Get next occurrence of a weekday
+     * Get the configured Craft week start day as an ISO weekday.
+     *
+     * Craft stores week start as 0=Sunday, 1=Monday, ..., 6=Saturday.
+     * PHP's ISO weekday format uses 1=Monday, ..., 7=Sunday.
+     *
+     * @return int Day of week (1=Monday, 7=Sunday)
+     */
+    private function getWeekStartIsoDay(): int
+    {
+        $craftWeekday = (int) Craft::$app->getConfig()->getGeneral()->defaultWeekStartDay;
+        $craftWeekday = max(0, min(6, $craftWeekday));
+
+        return $craftWeekday === 0 ? 7 : $craftWeekday;
+    }
+
+    /**
+     * Get next occurrence of an ISO weekday
      *
      * @param DateTime $from Starting point
      * @param int $weekday Day of week (1=Monday, 7=Sunday)

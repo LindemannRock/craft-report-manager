@@ -228,6 +228,11 @@ return [
     'Daily' => 'Daily',
     'Daily at 2:00 AM' => 'Daily at 2:00 AM',
     'Weekly' => 'Weekly',
+    'Monthly' => 'Monthly',
+    'Every 2 Months' => 'Every 2 Months',
+    'Quarterly' => 'Quarterly',
+    'Every 6 Months' => 'Every 6 Months',
+    'Yearly' => 'Yearly',
 
     // Date Range Options
     'Today' => 'Today',

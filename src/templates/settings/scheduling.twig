@@ -1,0 +1,115 @@
+{% extends "report-manager/_layouts/settings" %}
+{% set title = "Scheduling Settings"|t('report-manager') %}
+{% set fullPageForm = true %}
+{% set selectedSettingsItem = 'scheduling' %}
+
+{% set plugin = craft.app.plugins.getPlugin('report-manager') %}
+{% set crumbs = [
+    {
+        label: reportHelper.fullName|t('report-manager'),
+        url: url('report-manager'),
+    },
+    {
+        label: 'Settings'|t('report-manager'),
+        url: url('report-manager/settings'),
+    },
+    {
+        label: 'Scheduling'|t('report-manager'),
+        url: url('report-manager/settings/scheduling'),
+    },
+] %}
+
+{% import "_includes/forms" as forms %}
+
+{% set weekStartDayNames = {
+    0: 'Sunday'|t('report-manager'),
+    1: 'Monday'|t('report-manager'),
+    2: 'Tuesday'|t('report-manager'),
+    3: 'Wednesday'|t('report-manager'),
+    4: 'Thursday'|t('report-manager'),
+    5: 'Friday'|t('report-manager'),
+    6: 'Saturday'|t('report-manager'),
+} %}
+{% set weekStartDay = craft.app.config.general.defaultWeekStartDay %}
+{% set weekStartDayName = weekStartDayNames[weekStartDay] ?? weekStartDayNames[1] %}
+
+{% set scheduleHelp = {
+    disabled: 'New reports are created without a schedule.'|t('report-manager'),
+    every6hours: 'New scheduled reports run at the next fixed slot: 00:00, 06:00, 12:00, or 18:00.'|t('report-manager'),
+    every12hours: 'New scheduled reports run at the next fixed slot: 00:00 or 12:00.'|t('report-manager'),
+    daily: 'New scheduled reports run daily at 00:00.'|t('report-manager'),
+    daily2am: 'New scheduled reports run daily at 02:00.'|t('report-manager'),
+    weekly: 'New scheduled reports run weekly on {day} at 00:00, based on Craft’s default week start day.'|t('report-manager', {
+        day: weekStartDayName,
+    }),
+    monthly: 'New scheduled reports run monthly from the day and time the report is first saved with scheduling enabled.'|t('report-manager'),
+    every2months: 'New scheduled reports run every 2 months from the day and time the report is first saved with scheduling enabled.'|t('report-manager'),
+    quarterly: 'New scheduled reports run every 3 months from the day and time the report is first saved with scheduling enabled.'|t('report-manager'),
+    every6months: 'New scheduled reports run every 6 months from the day and time the report is first saved with scheduling enabled.'|t('report-manager'),
+    yearly: 'New scheduled reports run every 12 months from the day and time the report is first saved with scheduling enabled.'|t('report-manager'),
+} %}
+
+{% block content %}
+
+    {{ actionInput('report-manager/settings/save') }}
+    {{ redirectInput('report-manager/settings/scheduling') }}
+    {{ hiddenInput('section', 'scheduling') }}
+
+        <h2 class="first">{{ "Scheduled Reports"|t('report-manager') }}</h2>
+
+        {{ forms.lightswitchField({
+            label: 'Enable Scheduled Reports'|t('report-manager'),
+            instructions: 'Allow enabled reports to generate exports automatically on their saved schedules.'|t('report-manager'),
+            id: 'enableScheduledReports',
+            name: 'settings[enableScheduledReports]',
+            on: settings.enableScheduledReports,
+            toggle: 'scheduled-reports-settings',
+            disabled: settings.isOverriddenByConfig('enableScheduledReports'),
+            warning: settings.isOverriddenByConfig('enableScheduledReports') ?
+                "This is being overridden by the <code>enableScheduledReports</code> setting in <code>config/report-manager.php</code>."|t('report-manager')|raw : null,
+            errors: settings.getErrors('enableScheduledReports')
+        }) }}
+
+        <div id="scheduled-reports-settings" class="{{ not settings.enableScheduledReports ? 'hidden' }}">
+            {{ forms.selectField({
+                label: 'Default Schedule'|t('report-manager'),
+                instructions: 'The default schedule selected when creating a new report.'|t('report-manager'),
+                id: 'defaultSchedule',
+                name: 'settings[defaultSchedule]',
+                value: settings.defaultSchedule,
+                options: settings.getScheduleOptions(),
+                disabled: settings.isOverriddenByConfig('defaultSchedule'),
+                warning: settings.isOverriddenByConfig('defaultSchedule') ?
+                    "This is being overridden by the <code>defaultSchedule</code> setting in <code>config/report-manager.php</code>."|t('report-manager')|raw : null,
+                errors: settings.getErrors('defaultSchedule')
+            }) }}
+
+            {% include 'lindemannrock-base/_components/info-box' with {
+                message: scheduleHelp[settings.defaultSchedule] ?? scheduleHelp.daily2am,
+                type: 'info',
+                messageId: 'default-schedule-help',
+                allowHtml: false,
+            } %}
+        </div>
+
+    {% include 'lindemannrock-base/_components/plugin-credit' %}
+{% endblock %}
+
+{% js %}
+    (() => {
+        const scheduleSelect = document.getElementById('defaultSchedule');
+        const helpText = document.getElementById('default-schedule-help');
+        const messages = {{ scheduleHelp|json_encode|raw }};
+
+        if (!scheduleSelect || !helpText) {
+            return;
+        }
+
+        const updateHelp = () => {
+            helpText.textContent = messages[scheduleSelect.value] || messages.daily2am;
+        };
+
+        scheduleSelect.addEventListener('change', updateHelp);
+        updateHelp();
+    })();
+{% endjs %}

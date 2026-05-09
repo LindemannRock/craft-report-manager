@@ -64,6 +64,38 @@ class SettingsController extends Controller
     }
 
     /**
+     * Interface settings action
+     *
+     * @return Response
+     */
+    public function actionInterface(): Response
+    {
+        $plugin = ReportManager::getInstance();
+        $settings = $plugin->getSettings();
+
+        return $this->renderTemplate('report-manager/settings/interface', [
+            'settings' => $settings,
+            'selectedTab' => 'interface',
+        ]);
+    }
+
+    /**
+     * Scheduling settings action
+     *
+     * @return Response
+     */
+    public function actionScheduling(): Response
+    {
+        $plugin = ReportManager::getInstance();
+        $settings = $plugin->getSettings();
+
+        return $this->renderTemplate('report-manager/settings/scheduling', [
+            'settings' => $settings,
+            'selectedTab' => 'scheduling',
+        ]);
+    }
+
+    /**
      * Export settings action
      *
      * @return Response
@@ -94,12 +126,13 @@ class SettingsController extends Controller
         $section = $this->_validSettingsSection(
             Craft::$app->getRequest()->getBodyParam('section', 'general'),
         );
+        $scheduledReportsWereEnabled = $settings->enableScheduledReports;
 
         // Fields that should be cast to int
-        $intFields = ['maxExportBatchSize', 'exportRetention', 'dashboardRefreshInterval', 'itemsPerPage'];
+        $intFields = ['maxExportBatchSize', 'exportRetention', 'itemsPerPage'];
 
         // Fields that should be cast to bool
-        $boolFields = ['enableScheduledReports', 'autoCleanupExports', 'csvIncludeBom', 'enableAnalytics'];
+        $boolFields = ['enableScheduledReports', 'autoCleanupExports', 'csvIncludeBom'];
 
         // Fields that should be nullable strings (empty string becomes null)
         $nullableStringFields = ['exportVolumeUid'];
@@ -146,6 +179,10 @@ class SettingsController extends Controller
             ]);
         }
 
+        if ($section === 'scheduling' && $scheduledReportsWereEnabled && !$settings->enableScheduledReports) {
+            $this->_deleteScheduledReportJobs();
+        }
+
         Craft::$app->getSession()->setNotice(Craft::t('report-manager', 'Settings saved.'));
 
         return $this->redirectToPostedUrl();
@@ -159,7 +196,7 @@ class SettingsController extends Controller
      */
     private function _validSettingsSection(string $section): string
     {
-        $allowed = ['general', 'export'];
+        $allowed = ['general', 'interface', 'scheduling', 'export'];
 
         return in_array($section, $allowed, true) ? $section : 'general';
     }
@@ -175,18 +212,20 @@ class SettingsController extends Controller
         return match ($section) {
             'general' => [
                 'pluginName',
+                'logLevel',
+            ],
+            'interface' => [
+                'itemsPerPage',
+            ],
+            'scheduling' => [
                 'enableScheduledReports',
                 'defaultSchedule',
-                'enableAnalytics',
-                'defaultDateRange',
-                'dashboardRefreshInterval',
-                'itemsPerPage',
-                'logLevel',
             ],
             'export' => [
                 'exportVolumeUid',
                 'exportPath',
                 'defaultExportFormat',
+                'defaultDateRange',
                 'maxExportBatchSize',
                 'csvDelimiter',
                 'csvEnclosure',
@@ -196,5 +235,19 @@ class SettingsController extends Controller
             ],
             default => [],
         };
+    }
+
+    /**
+     * Delete queued scheduled-report worker jobs.
+     *
+     * @return int Number of deleted queue rows
+     */
+    private function _deleteScheduledReportJobs(): int
+    {
+        return (int) Craft::$app->getDb()->createCommand()->delete('{{%queue}}', [
+            'and',
+            ['like', 'job', 'reportmanager'],
+            ['like', 'job', 'ProcessScheduledReportsJob'],
+        ])->execute();
     }
 }

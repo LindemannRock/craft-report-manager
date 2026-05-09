@@ -312,6 +312,8 @@ class ReportManager extends Plugin
                 // Settings
                 $event->rules['report-manager/settings'] = 'report-manager/settings/index';
                 $event->rules['report-manager/settings/general'] = 'report-manager/settings/general';
+                $event->rules['report-manager/settings/interface'] = 'report-manager/settings/interface';
+                $event->rules['report-manager/settings/scheduling'] = 'report-manager/settings/scheduling';
                 $event->rules['report-manager/settings/export'] = 'report-manager/settings/export';
 
                 // API endpoints

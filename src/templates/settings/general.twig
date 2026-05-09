@@ -26,7 +26,7 @@
     {{ redirectInput('report-manager/settings/general') }}
     {{ hiddenInput('section', 'general') }}
 
-        <h2 class="first">{{ "Plugin Settings"|t('report-manager') }}</h2>
+        <h2 class="first">{{ "General Settings"|t('report-manager') }}</h2>
 
         {{ forms.textField({
             label: "Plugin Name"|t('report-manager'),
@@ -35,101 +35,10 @@
             name: 'settings[pluginName]',
             value: settings.pluginName,
             required: true,
+            errors: settings.getErrors('pluginName'),
             disabled: settings.isOverriddenByConfig('pluginName'),
             warning: settings.isOverriddenByConfig('pluginName') ?
                 "This is being overridden by the <code>pluginName</code> setting in <code>config/report-manager.php</code>."|t('report-manager')|raw : null,
-            errors: settings.getErrors('pluginName')
-        }) }}
-
-        <hr>
-
-        <h2>{{ "Scheduled Reports"|t('report-manager') }}</h2>
-
-        {{ forms.lightswitchField({
-            label: 'Enable Scheduled Reports'|t('report-manager'),
-            instructions: 'Allow reports to be automatically generated on a schedule.'|t('report-manager'),
-            id: 'enableScheduledReports',
-            name: 'settings[enableScheduledReports]',
-            on: settings.enableScheduledReports,
-            disabled: settings.isOverriddenByConfig('enableScheduledReports'),
-            warning: settings.isOverriddenByConfig('enableScheduledReports') ?
-                "This is being overridden by the <code>enableScheduledReports</code> setting in <code>config/report-manager.php</code>."|t('report-manager')|raw : null,
-            errors: settings.getErrors('enableScheduledReports')
-        }) }}
-
-        {{ forms.selectField({
-            label: 'Default Schedule'|t('report-manager'),
-            instructions: 'The default schedule for new reports.'|t('report-manager'),
-            id: 'defaultSchedule',
-            name: 'settings[defaultSchedule]',
-            value: settings.defaultSchedule,
-            options: settings.getScheduleOptions(),
-            disabled: settings.isOverriddenByConfig('defaultSchedule'),
-            warning: settings.isOverriddenByConfig('defaultSchedule') ?
-                "This is being overridden by the <code>defaultSchedule</code> setting in <code>config/report-manager.php</code>."|t('report-manager')|raw : null,
-            errors: settings.getErrors('defaultSchedule')
-        }) }}
-
-        <hr>
-
-        <h2>{{ "Analytics"|t('report-manager') }}</h2>
-
-        {{ forms.lightswitchField({
-            label: 'Enable Analytics Dashboard'|t('report-manager'),
-            instructions: 'Show analytics and statistics on the dashboard.'|t('report-manager'),
-            id: 'enableAnalytics',
-            name: 'settings[enableAnalytics]',
-            on: settings.enableAnalytics,
-            disabled: settings.isOverriddenByConfig('enableAnalytics'),
-            warning: settings.isOverriddenByConfig('enableAnalytics') ?
-                "This is being overridden by the <code>enableAnalytics</code> setting in <code>config/report-manager.php</code>."|t('report-manager')|raw : null,
-            errors: settings.getErrors('enableAnalytics')
-        }) }}
-
-        {{ forms.selectField({
-            label: 'Default Date Range'|t('report-manager'),
-            instructions: 'The default date range for analytics and new reports.'|t('report-manager'),
-            id: 'defaultDateRange',
-            name: 'settings[defaultDateRange]',
-            value: settings.defaultDateRange,
-            options: settings.getDateRangeOptions(),
-            disabled: settings.isOverriddenByConfig('defaultDateRange'),
-            warning: settings.isOverriddenByConfig('defaultDateRange') ?
-                "This is being overridden by the <code>defaultDateRange</code> setting in <code>config/report-manager.php</code>."|t('report-manager')|raw : null,
-            errors: settings.getErrors('defaultDateRange')
-        }) }}
-
-        {{ forms.textField({
-            label: 'Dashboard Refresh Interval'|t('report-manager'),
-            instructions: 'Auto-refresh interval in seconds. Set to 0 to disable.'|t('report-manager'),
-            id: 'dashboardRefreshInterval',
-            name: 'settings[dashboardRefreshInterval]',
-            value: settings.dashboardRefreshInterval,
-            type: 'number',
-            min: 0,
-            disabled: settings.isOverriddenByConfig('dashboardRefreshInterval'),
-            warning: settings.isOverriddenByConfig('dashboardRefreshInterval') ?
-                "This is being overridden by the <code>dashboardRefreshInterval</code> setting in <code>config/report-manager.php</code>."|t('report-manager')|raw : null,
-            errors: settings.getErrors('dashboardRefreshInterval')
-        }) }}
-
-        <hr>
-
-        <h2>{{ "Interface"|t('report-manager') }}</h2>
-
-        {{ forms.textField({
-            label: 'Items Per Page'|t('report-manager'),
-            instructions: 'Number of items to show per page in list views.'|t('report-manager'),
-            id: 'itemsPerPage',
-            name: 'settings[itemsPerPage]',
-            value: settings.itemsPerPage,
-            type: 'number',
-            min: 10,
-            max: 500,
-            disabled: settings.isOverriddenByConfig('itemsPerPage'),
-            warning: settings.isOverriddenByConfig('itemsPerPage') ?
-                "This is being overridden by the <code>itemsPerPage</code> setting in <code>config/report-manager.php</code>."|t('report-manager')|raw : null,
-            errors: settings.getErrors('itemsPerPage')
         }) }}
 
         <hr>
@@ -155,10 +64,10 @@
             name: 'settings[logLevel]',
             value: settings.logLevel,
             options: logOptions,
+            errors: settings.getErrors('logLevel'),
             disabled: settings.isOverriddenByConfig('logLevel'),
             warning: settings.isOverriddenByConfig('logLevel') ?
                 "This is being overridden by the <code>logLevel</code> setting in <code>config/report-manager.php</code>."|t('report-manager')|raw : null,
-            errors: settings.getErrors('logLevel')
         }) }}
 
     {% include 'lindemannrock-base/_components/plugin-credit' %}

@@ -192,6 +192,11 @@ class ReportRecord extends ActiveRecord
             'daily' => \Craft::t('report-manager', 'Daily'),
             'daily2am' => \Craft::t('report-manager', 'Daily at 2:00 AM'),
             'weekly' => \Craft::t('report-manager', 'Weekly'),
+            'monthly' => \Craft::t('report-manager', 'Monthly'),
+            'every2months' => \Craft::t('report-manager', 'Every 2 Months'),
+            'quarterly' => \Craft::t('report-manager', 'Quarterly'),
+            'every6months' => \Craft::t('report-manager', 'Every 6 Months'),
+            'yearly' => \Craft::t('report-manager', 'Yearly'),
             default => $this->schedule ?? '',
         };
     }

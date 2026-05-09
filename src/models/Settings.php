@@ -52,7 +52,8 @@ class Settings extends Model
 
     /**
      * @var string Default schedule for report generation
-     * Options: disabled, every6hours, every12hours, daily, daily2am, weekly
+     * Options: disabled, every6hours, every12hours, daily, daily2am, weekly,
+     * monthly, every2months, quarterly, every6months, yearly
      */
     public string $defaultSchedule = 'daily2am';
 
@@ -106,21 +107,21 @@ class Settings extends Model
     public bool $csvIncludeBom = true;
 
     // =========================================================================
-    // ANALYTICS SETTINGS
+    // LEGACY DASHBOARD SETTINGS
     // =========================================================================
 
     /**
-     * @var bool Enable analytics dashboard
+     * @var bool Legacy analytics dashboard flag, retained for existing settings rows
      */
     public bool $enableAnalytics = true;
 
     /**
-     * @var string Default date range for analytics
+     * @var string Default date range for new reports and exports
      */
     public string $defaultDateRange = 'last30days';
 
     /**
-     * @var int Dashboard refresh interval in seconds (0 = disabled)
+     * @var int Legacy dashboard refresh interval, retained for existing settings rows
      */
     public int $dashboardRefreshInterval = 0;
 
@@ -237,7 +238,19 @@ class Settings extends Model
             [
                 'defaultSchedule',
                 'in',
-                'range' => ['disabled', 'every6hours', 'every12hours', 'daily', 'daily2am', 'weekly'],
+                'range' => [
+                    'disabled',
+                    'every6hours',
+                    'every12hours',
+                    'daily',
+                    'daily2am',
+                    'weekly',
+                    'monthly',
+                    'every2months',
+                    'quarterly',
+                    'every6months',
+                    'yearly',
+                ],
             ],
             ['defaultSchedule', 'default', 'value' => 'daily2am'],
             ['maxExportBatchSize', 'integer', 'min' => 100, 'max' => 100000],
@@ -431,6 +444,11 @@ class Settings extends Model
             ['value' => 'daily', 'label' => Craft::t('report-manager', 'Daily')],
             ['value' => 'daily2am', 'label' => Craft::t('report-manager', 'Daily at 2:00 AM')],
             ['value' => 'weekly', 'label' => Craft::t('report-manager', 'Weekly')],
+            ['value' => 'monthly', 'label' => Craft::t('report-manager', 'Monthly')],
+            ['value' => 'every2months', 'label' => Craft::t('report-manager', 'Every 2 Months')],
+            ['value' => 'quarterly', 'label' => Craft::t('report-manager', 'Quarterly')],
+            ['value' => 'every6months', 'label' => Craft::t('report-manager', 'Every 6 Months')],
+            ['value' => 'yearly', 'label' => Craft::t('report-manager', 'Yearly')],
         ];
     }
 

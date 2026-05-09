@@ -1,0 +1,48 @@
+{% extends "report-manager/_layouts/settings" %}
+{% set title = "Interface Settings"|t('report-manager') %}
+{% set fullPageForm = true %}
+{% set selectedSettingsItem = 'interface' %}
+
+{% set plugin = craft.app.plugins.getPlugin('report-manager') %}
+{% set crumbs = [
+    {
+        label: reportHelper.fullName|t('report-manager'),
+        url: url('report-manager'),
+    },
+    {
+        label: 'Settings'|t('report-manager'),
+        url: url('report-manager/settings'),
+    },
+    {
+        label: 'Interface'|t('report-manager'),
+        url: url('report-manager/settings/interface'),
+    },
+] %}
+
+{% import "_includes/forms" as forms %}
+
+{% block content %}
+    {{ actionInput('report-manager/settings/save') }}
+    {{ redirectInput('report-manager/settings/interface') }}
+    {{ hiddenInput('section', 'interface') }}
+
+        <h2 class="first">{{ "Interface Settings"|t('report-manager') }}</h2>
+
+        {{ forms.textField({
+            label: "Items Per Page"|t('report-manager'),
+            instructions: "Number of items to display per page in lists"|t('report-manager'),
+            id: 'itemsPerPage',
+            name: 'settings[itemsPerPage]',
+            type: 'number',
+            value: settings.itemsPerPage,
+            min: 10,
+            max: 500,
+            required: true,
+            disabled: settings.isOverriddenByConfig('itemsPerPage'),
+            warning: settings.isOverriddenByConfig('itemsPerPage') ?
+                "This is being overridden by the <code>itemsPerPage</code> setting in <code>config/report-manager.php</code>."|t('report-manager')|raw : null,
+            errors: settings.getErrors('itemsPerPage')
+        }) }}
+
+    {% include 'lindemannrock-base/_components/plugin-credit' %}
+{% endblock %}

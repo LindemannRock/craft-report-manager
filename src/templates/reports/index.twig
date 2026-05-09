@@ -151,7 +151,9 @@
 
     {# Schedule #}
     <td data-column="schedule" class="lr-hideable-column">
-        {% if item.enableSchedule %}
+        {% if not settings.enableScheduledReports %}
+            <span class="light">{{ 'Disabled'|t('report-manager') }}</span>
+        {% elseif item.enableSchedule %}
             {{ item.scheduleLabel }}
         {% else %}
             <span class="light">{{ 'Manual'|t('report-manager') }}</span>
@@ -169,7 +171,7 @@
 
     {# Next Run #}
     <td data-column="nextScheduledAt" class="light lr-hideable-column">
-        {% if item.enableSchedule and item.nextScheduledAt %}
+        {% if settings.enableScheduledReports and item.enableSchedule and item.nextScheduledAt %}
             {{ item.nextScheduledAt|lrCompactDatetime }}
         {% else %}
             <span class="light">-</span>

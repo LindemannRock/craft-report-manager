@@ -26,7 +26,52 @@
     {{ redirectInput('report-manager/settings/export') }}
     {{ hiddenInput('section', 'export') }}
 
-        <h2 class="first">{{ 'Export Storage'|t('report-manager') }}</h2>
+        <h2 class="first">{{ 'Export Defaults'|t('report-manager') }}</h2>
+
+        {{ forms.selectField({
+            label: 'Default Export Format'|t('report-manager'),
+            instructions: 'The default format for new exports.'|t('report-manager'),
+            id: 'defaultExportFormat',
+            name: 'settings[defaultExportFormat]',
+            value: settings.defaultExportFormat,
+            options: settings.getExportFormatOptions(),
+            errors: settings.getErrors('defaultExportFormat'),
+            disabled: settings.isOverriddenByConfig('defaultExportFormat'),
+            warning: settings.isOverriddenByConfig('defaultExportFormat') ?
+                "This is being overridden by the <code>defaultExportFormat</code> setting in <code>config/report-manager.php</code>."|t('report-manager')|raw : null,
+        }) }}
+
+        {{ forms.selectField({
+            label: 'Default Date Range'|t('report-manager'),
+            instructions: 'The default date range selected for new reports and exports.'|t('report-manager'),
+            id: 'defaultDateRange',
+            name: 'settings[defaultDateRange]',
+            value: settings.defaultDateRange,
+            options: settings.getDateRangeOptions(),
+            disabled: settings.isOverriddenByConfig('defaultDateRange'),
+            warning: settings.isOverriddenByConfig('defaultDateRange') ?
+                "This is being overridden by the <code>defaultDateRange</code> setting in <code>config/report-manager.php</code>."|t('report-manager')|raw : null,
+            errors: settings.getErrors('defaultDateRange')
+        }) }}
+
+        {{ forms.textField({
+            label: 'Maximum Export Batch Size'|t('report-manager'),
+            instructions: 'Maximum number of records to export in a single batch.'|t('report-manager'),
+            id: 'maxExportBatchSize',
+            name: 'settings[maxExportBatchSize]',
+            value: settings.maxExportBatchSize,
+            type: 'number',
+            min: 100,
+            max: 100000,
+            errors: settings.getErrors('maxExportBatchSize'),
+            disabled: settings.isOverriddenByConfig('maxExportBatchSize'),
+            warning: settings.isOverriddenByConfig('maxExportBatchSize') ?
+                "This is being overridden by the <code>maxExportBatchSize</code> setting in <code>config/report-manager.php</code>."|t('report-manager')|raw : null,
+        }) }}
+
+        <hr>
+
+        <h2>{{ 'Export Storage'|t('report-manager') }}</h2>
 
         {# Asset volume selection dropdown for exports #}
         {% set volumeOptions = [{label: 'Use custom path'|t('report-manager'), value: ''}] %}
@@ -72,38 +117,6 @@
                 message: '<strong>' ~ 'Export Location:'|t('report-manager') ~ '</strong> <code>' ~ settings.getExportPath() ~ '</code>'
             } %}
         {% endif %}
-
-        <hr>
-
-        <h2>{{ 'Export Format'|t('report-manager') }}</h2>
-
-        {{ forms.selectField({
-            label: 'Default Export Format'|t('report-manager'),
-            instructions: 'The default format for new exports.'|t('report-manager'),
-            id: 'defaultExportFormat',
-            name: 'settings[defaultExportFormat]',
-            value: settings.defaultExportFormat,
-            options: settings.getExportFormatOptions(),
-            errors: settings.getErrors('defaultExportFormat'),
-            disabled: settings.isOverriddenByConfig('defaultExportFormat'),
-            warning: settings.isOverriddenByConfig('defaultExportFormat') ?
-                "This is being overridden by the <code>defaultExportFormat</code> setting in <code>config/report-manager.php</code>."|t('report-manager')|raw : null,
-        }) }}
-
-        {{ forms.textField({
-            label: 'Maximum Export Batch Size'|t('report-manager'),
-            instructions: 'Maximum number of records to export in a single batch.'|t('report-manager'),
-            id: 'maxExportBatchSize',
-            name: 'settings[maxExportBatchSize]',
-            value: settings.maxExportBatchSize,
-            type: 'number',
-            min: 100,
-            max: 100000,
-            errors: settings.getErrors('maxExportBatchSize'),
-            disabled: settings.isOverriddenByConfig('maxExportBatchSize'),
-            warning: settings.isOverriddenByConfig('maxExportBatchSize') ?
-                "This is being overridden by the <code>maxExportBatchSize</code> setting in <code>config/report-manager.php</code>."|t('report-manager')|raw : null,
-        }) }}
 
         <hr>
 

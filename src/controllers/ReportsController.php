@@ -132,6 +132,7 @@ class ReportsController extends Controller
                 $report->dateRange = $settings->defaultDateRange;
                 $report->exportFormat = $settings->defaultExportFormat;
                 $report->exportMode = 'separate';
+                $report->schedule = $settings->defaultSchedule;
             } else {
                 $report = $plugin->reports->getReportById($reportId);
 
@@ -209,6 +210,7 @@ class ReportsController extends Controller
         $this->requirePostRequest();
 
         $plugin = ReportManager::getInstance();
+        $settings = $plugin->getSettings();
         $request = Craft::$app->getRequest();
 
         $reportId = $request->getBodyParam('reportId');
@@ -247,8 +249,8 @@ class ReportsController extends Controller
         }
 
         $report->exportMode = $request->getBodyParam('exportMode', 'separate');
-        $report->enableSchedule = (bool) $request->getBodyParam('enableSchedule');
-        $report->schedule = $request->getBodyParam('schedule');
+        $report->enableSchedule = $settings->enableScheduledReports && (bool) $request->getBodyParam('enableSchedule');
+        $report->schedule = $settings->enableScheduledReports ? $request->getBodyParam('schedule') : null;
         $report->enabled = (bool) $request->getBodyParam('enabled', true);
 
         // Handle entity IDs (multiple forms)

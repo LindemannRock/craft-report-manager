@@ -27,7 +27,7 @@ This plugin is in active development and not yet available on the Craft Plugin S
 
 ### Scheduled Reports
 - **Automatic Generation** - Schedule reports to run automatically
-- **Flexible Scheduling** - Every 6 hours, 12 hours, daily, or weekly
+- **Flexible Scheduling** - Hourly-style, daily, weekly, monthly, and longer recurring schedules
 - **Queue Integration** - Uses Craft's queue system for reliable background processing
 - **Self-Rescheduling** - Jobs automatically reschedule after completion
 
@@ -104,7 +104,7 @@ return [
 
     // Scheduled Reports
     'enableScheduledReports' => true,
-    'defaultSchedule' => 'daily2am',  // every6hours, every12hours, daily, daily2am, weekly
+    'defaultSchedule' => 'daily2am',  // every6hours, every12hours, daily, daily2am, weekly, monthly, every2months, quarterly, every6months, yearly
 
     // Export Settings
     'defaultExportFormat' => 'csv',  // csv, xlsx, json
@@ -121,10 +121,11 @@ return [
     'exportVolumeUid' => null,  // Volume UID for exports (null = local storage)
     'exportPath' => '@storage/report-manager/exports',  // Local path when not using volume
 
-    // Display
+    // Report/export defaults
     'defaultDateRange' => 'last30days',
+
+    // Interface
     'itemsPerPage' => 50,
-    'dashboardRefreshInterval' => 0,  // seconds (0 = disabled)
 
     // Logging
     'logLevel' => 'error',  // error, warning, info, debug
@@ -225,15 +226,20 @@ php craft queue/listen
 
 ### Schedule Options
 
-Schedules use **fixed time slots** to prevent drift:
+Short schedules use **fixed time slots** to prevent drift. Monthly and longer schedules are based on the day/time the report is scheduled and clamp to the last valid day of shorter months.
 
-| Setting | Fixed Times |
-|---------|-------------|
+| Setting | Timing |
+|---------|--------|
 | `every6hours` | 00:00, 06:00, 12:00, 18:00 |
 | `every12hours` | 00:00, 12:00 |
 | `daily` | 00:00 (midnight) |
 | `daily2am` | 02:00 (default) |
-| `weekly` | Monday 00:00 |
+| `weekly` | Craft’s default week start day at 00:00 |
+| `monthly` | Same day/time as the report schedule start |
+| `every2months` | Every 2 months from the report schedule start |
+| `quarterly` | Every 3 months from the report schedule start |
+| `every6months` | Every 6 months from the report schedule start |
+| `yearly` | Every 12 months from the report schedule start |
 
 **Note:** Manual report generation updates "Last Generated" but does not affect the schedule.
 
