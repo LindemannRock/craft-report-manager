@@ -177,7 +177,6 @@ class ReportsController extends Controller
         // Build site options
         $siteOptions = [];
         if (Craft::$app->getIsMultiSite()) {
-            $siteOptions[] = ['value' => '', 'label' => Craft::t('report-manager', 'All Sites')];
             foreach (Craft::$app->getSites()->getAllSites() as $site) {
                 $siteOptions[] = ['value' => $site->id, 'label' => $site->name];
             }
@@ -261,9 +260,9 @@ class ReportsController extends Controller
         $entityIds = $request->getBodyParam('entityIds', []);
         $report->setEntityIdsArray(is_array($entityIds) ? array_map('intval', $entityIds) : []);
 
-        // Handle site ID (null = all sites)
-        $siteId = $request->getBodyParam('siteId');
-        $report->siteId = !empty($siteId) ? (int) $siteId : null;
+        // Handle site IDs (empty = all sites)
+        $siteIds = $request->getBodyParam('siteIds', []);
+        $report->setSiteIdsArray(is_array($siteIds) ? $siteIds : []);
 
         // Handle custom date range
         $customDateStart = $request->getBodyParam('customDateStart');
@@ -414,9 +413,9 @@ class ReportsController extends Controller
         }
 
         $entityIds = $report->getEntityIdsArray();
-        $siteIds = $report->siteId ? [$report->siteId] : [];
+        $siteIds = $report->getSiteIdsArray();
 
-        // Combined mode: single export with all forms
+        // Combined mode: single export with all entities.
         if ($report->isCombined()) {
             $export = $plugin->exports->createCombinedExport(
                 $report->dataSource,
@@ -449,7 +448,7 @@ class ReportsController extends Controller
             return $this->redirect('report-manager/reports/' . $report->id . '/generated');
         }
 
-        // Separate mode: one export per form
+        // Separate mode: one export per entity.
         foreach ($entityIds as $entityId) {
             $export = $plugin->exports->createExport(
                 $report->dataSource,

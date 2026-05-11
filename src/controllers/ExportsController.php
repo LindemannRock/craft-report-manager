@@ -174,7 +174,7 @@ class ExportsController extends Controller
         $format = $request->getBodyParam('format', $settings->defaultExportFormat);
         $dateRange = $request->getBodyParam('dateRange', $settings->defaultDateRange);
         $exportMode = $request->getBodyParam('exportMode', 'separate');
-        $siteId = $request->getBodyParam('siteId', '');
+        $siteIds = $request->getBodyParam('siteIds', []);
 
         // Validate export format is enabled
         // Map xlsx to excel for config check
@@ -185,12 +185,14 @@ class ExportsController extends Controller
             ]));
         }
 
-        // Convert siteId to array format (empty = all sites, otherwise single site)
-        $siteIds = !empty($siteId) ? [(int) $siteId] : [];
+        // Empty site IDs means all sites.
+        $siteIds = is_array($siteIds)
+            ? array_values(array_unique(array_filter(array_map('intval', $siteIds))))
+            : [];
 
-        // Validate at least one form selected
+        // Validate at least one entity selected.
         if (empty($entityIds) || !is_array($entityIds)) {
-            Craft::$app->getSession()->setError(Craft::t('report-manager', 'Please select at least one form to export.'));
+            Craft::$app->getSession()->setError(Craft::t('report-manager', 'Please select at least one item.'));
 
             return $this->redirect('report-manager/exports/new');
         }
@@ -249,7 +251,7 @@ class ExportsController extends Controller
             return $this->redirect('report-manager/exports/' . $export->id);
         }
 
-        // Separate mode: one export per form
+        // Separate mode: one export per entity.
         $exports = [];
         $successCount = 0;
         $failCount = 0;

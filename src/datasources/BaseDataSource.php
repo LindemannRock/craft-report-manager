@@ -9,7 +9,9 @@
 namespace lindemannrock\reportmanager\datasources;
 
 use Craft;
+use craft\base\ElementInterface;
 use DateTime;
+use DateTimeInterface;
 use lindemannrock\base\helpers\DateRangeHelper;
 use lindemannrock\logginglibrary\traits\LoggingTrait;
 use lindemannrock\reportmanager\ReportManager;
@@ -198,6 +200,56 @@ abstract class BaseDataSource implements DataSourceInterface
     protected function formatNumber(int|float $number, int $decimals = 0): string
     {
         return number_format($number, $decimals);
+    }
+
+    /**
+     * Format a date for export.
+     *
+     * @param DateTimeInterface|null $date Date value
+     * @return string
+     */
+    protected function formatExportDate(?DateTimeInterface $date): string
+    {
+        return $date?->format('Y-m-d H:i:s') ?? '';
+    }
+
+    /**
+     * Format a field value for export.
+     *
+     * @param mixed $value Field value
+     * @return string
+     */
+    protected function formatExportValue(mixed $value): string
+    {
+        if ($value === null) {
+            return '';
+        }
+
+        if ($value instanceof DateTimeInterface) {
+            return $this->formatExportDate($value);
+        }
+
+        if ($value instanceof ElementInterface) {
+            return $value->getUiLabel();
+        }
+
+        if (is_array($value)) {
+            return implode(', ', array_map(fn($item) => $this->formatExportValue($item), $value));
+        }
+
+        if (is_object($value)) {
+            if (method_exists($value, 'all')) {
+                return implode(', ', array_map(fn($item) => $this->formatExportValue($item), $value->all()));
+            }
+
+            if (method_exists($value, '__toString')) {
+                return (string) $value;
+            }
+
+            return json_encode($value) ?: '';
+        }
+
+        return (string) $value;
     }
 
     /**

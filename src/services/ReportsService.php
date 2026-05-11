@@ -418,7 +418,7 @@ class ReportsService extends Component
     {
         $plugin = ReportManager::getInstance();
         $entityIds = $report->getEntityIdsArray();
-        $siteIds = $report->siteId ? [$report->siteId] : [];
+        $siteIds = $report->getSiteIdsArray();
         $queued = 0;
 
         if ($report->isCombined()) {

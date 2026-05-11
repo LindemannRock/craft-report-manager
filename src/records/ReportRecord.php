@@ -20,14 +20,15 @@ use craft\db\ActiveRecord;
  * @property string $handle
  * @property string|null $description
  * @property string $dataSource
- * @property string|null $entityIds JSON array of form IDs
+     * @property string|null $entityIds JSON array of data-source entity IDs
  * @property string $dateRange
  * @property \DateTime|null $customDateStart
  * @property \DateTime|null $customDateEnd
  * @property string|null $fieldHandles JSON array
  * @property string $exportFormat
  * @property string $exportMode separate or combined
- * @property int|null $siteId null = all sites
+ * @property int|null $siteId Legacy single-site filter; null = all sites
+ * @property string|null $siteIds JSON array of site IDs; null/empty = all sites
  * @property bool $enableSchedule
  * @property string|null $schedule
  * @property \DateTime|null $lastGeneratedAt
@@ -68,14 +69,14 @@ class ReportRecord extends ActiveRecord
     }
 
     /**
-     * Validate that at least one entity (form) is selected
+     * Validate that at least one data-source entity is selected.
      */
     public function validateEntityIds(): void
     {
         $ids = $this->getEntityIdsArray();
 
         if (empty($ids)) {
-            $this->addError('entityIds', \Craft::t('report-manager', 'Please select at least one form.'));
+            $this->addError('entityIds', \Craft::t('report-manager', 'Please select at least one item.'));
         }
     }
 
@@ -103,6 +104,38 @@ class ReportRecord extends ActiveRecord
     public function setEntityIdsArray(array $ids): void
     {
         $this->entityIds = json_encode(array_map('intval', $ids));
+    }
+
+    /**
+     * Get site IDs as array.
+     *
+     * Empty array means all sites.
+     *
+     * @return int[]
+     */
+    public function getSiteIdsArray(): array
+    {
+        if (!empty($this->siteIds)) {
+            $decoded = json_decode($this->siteIds, true);
+
+            return is_array($decoded) ? array_values(array_unique(array_map('intval', $decoded))) : [];
+        }
+
+        return !empty($this->siteId) ? [(int) $this->siteId] : [];
+    }
+
+    /**
+     * Set site IDs from array.
+     *
+     * Empty array means all sites.
+     *
+     * @param int[] $ids
+     */
+    public function setSiteIdsArray(array $ids): void
+    {
+        $ids = array_values(array_unique(array_filter(array_map('intval', $ids))));
+        $this->siteIds = !empty($ids) ? json_encode($ids) : null;
+        $this->siteId = count($ids) === 1 ? $ids[0] : null;
     }
 
     /**

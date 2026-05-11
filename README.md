@@ -6,7 +6,7 @@
 [![Logging Library](https://img.shields.io/badge/Logging%20Library-5.0+-green.svg)](https://github.com/LindemannRock/craft-logging-library)
 [![License](https://img.shields.io/packagist/l/lindemannrock/craft-report-manager.svg)](LICENSE)
 
-Report generation and export management for Craft CMS with extensible data source support.
+Saved reporting, content inventory, and export management for Craft CMS with extensible data source support.
 
 ## License
 
@@ -20,7 +20,7 @@ This plugin is in active development and not yet available on the Craft Plugin S
 
 ### Report Management
 - **Saved Reports** - Create and save report configurations for repeated use
-- **Multiple Data Sources** - Extensible architecture starting with Formie integration
+- **Multiple Data Sources** - Extensible architecture for Craft-native content, Formie, and future integrations
 - **Field Selection** - Choose which fields to include in exports
 - **Date Range Filtering** - Filter data with the shared LindemannRock Base date presets or a custom range
 - **Multi-Site Support** - Filter exports by site
@@ -40,7 +40,12 @@ This plugin is in active development and not yet available on the Craft Plugin S
 - **Dashboard** - View all generated exports with status, size, and download links
 - **Automatic Cleanup** - Configurable retention period for old exports
 - **Flexible Storage** - Store exports locally or in a Craft volume
-- **Combined Exports** - Merge multiple forms/entities into a single export file
+- **Combined Exports** - Merge multiple entities into a single export file
+
+### Craft Content Exports
+- **Content Inventory** - Export entries by section for audits, migrations, and Feed Me-compatible source files
+- **Field Mapping** - Include system fields and section field-layout fields
+- **Date Filtering** - Filter by entry creation date and site
 
 ### Formie Integration
 - **Form Selection** - Export submissions from any Formie form
@@ -310,6 +315,22 @@ return [
 ## Data Sources
 
 Report Manager uses an extensible data source architecture. Currently supported:
+
+### Craft Entries
+- Export entries by section
+- System fields and section field-layout fields
+- Date range filtering by entry creation date
+- Multi-site support with explicit site ID, handle, and name columns
+- Combined exports from multiple sections
+- Useful for content inventory, audit, migration, bulk-edit, and Feed Me-compatible source files
+
+### Craft Categories
+- Export categories by category group
+- System fields and group field-layout fields
+- Date range filtering by category creation date
+- Multi-site support with explicit site ID, handle, and name columns
+- Combined exports from multiple category groups
+- Useful for taxonomy inventory, audit, migration, bulk-edit, and Feed Me-compatible source files
 
 ### Formie
 - Export form submissions

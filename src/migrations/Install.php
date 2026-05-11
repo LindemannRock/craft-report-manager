@@ -111,7 +111,8 @@ class Install extends Migration
             // Data source configuration
             'dataSource' => $this->string(64)->notNull(), // e.g., 'formie'
             'entityIds' => $this->text()->null()->comment('JSON array of form IDs'),
-            'siteId' => $this->integer()->null(), // null = all sites
+            'siteId' => $this->integer()->null(), // Legacy single-site filter; null = all sites
+            'siteIds' => $this->text()->null()->comment('JSON array of site IDs'),
             // Report configuration
             'dateRange' => $this->string(32)->notNull()->defaultValue('last30days'),
             'customDateStart' => $this->dateTime()->null(),

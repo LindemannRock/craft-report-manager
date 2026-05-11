@@ -128,16 +128,17 @@
         }) }}
 
         {% if craft.app.getIsMultiSite() %}
-            {% set siteOptions = [{ value: '', label: 'All Sites'|t('report-manager') }] %}
+            {% set siteOptions = [] %}
             {% for site in craft.app.sites.getAllSites() %}
                 {% set siteOptions = siteOptions|merge([{ value: site.id, label: site.name }]) %}
             {% endfor %}
-            {{ forms.selectField({
-                label: 'Site'|t('report-manager'),
-                id: 'siteId',
-                name: 'siteId',
+            {{ forms.checkboxGroupField({
+                label: 'Sites'|t('report-manager'),
+                instructions: 'Which sites to export (leave all unchecked to export all sites)'|t('report-manager'),
+                id: 'siteIds',
+                name: 'siteIds',
                 options: siteOptions,
-                value: ''
+                values: []
             }) }}
         {% endif %}
     </div>

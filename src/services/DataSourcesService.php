@@ -10,7 +10,9 @@ namespace lindemannrock\reportmanager\services;
 
 use craft\base\Component;
 use lindemannrock\logginglibrary\traits\LoggingTrait;
+use lindemannrock\reportmanager\datasources\CategoriesDataSource;
 use lindemannrock\reportmanager\datasources\DataSourceInterface;
+use lindemannrock\reportmanager\datasources\EntriesDataSource;
 use lindemannrock\reportmanager\datasources\FormieDataSource;
 use lindemannrock\reportmanager\events\RegisterDataSourcesEvent;
 use lindemannrock\reportmanager\ReportManager;
@@ -66,7 +68,19 @@ class DataSourcesService extends Component
         // Start with built-in data sources
         $event = new RegisterDataSourcesEvent();
 
-        // Register Formie data source by default
+        // Register built-in data sources by default
+        $event->register(
+            EntriesDataSource::handle(),
+            EntriesDataSource::displayName(),
+            EntriesDataSource::class
+        );
+
+        $event->register(
+            CategoriesDataSource::handle(),
+            CategoriesDataSource::displayName(),
+            CategoriesDataSource::class
+        );
+
         $event->register(
             FormieDataSource::handle(),
             FormieDataSource::displayName(),

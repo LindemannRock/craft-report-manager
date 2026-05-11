@@ -124,40 +124,39 @@
             errors: report.getErrors('dataSource')
         }) }}
 
-        {# Multi-select data-source entities as checkboxes #}
-        <div class="field{{ report.getErrors('entityIds') ? ' has-errors' : '' }}" id="forms-field">
-            <div class="heading">
-                <label class="required" id="entity-selection-label">{{ dataSourceLabels.entitySelectionLabel ?? 'Items to Export'|t('report-manager') }}</label>
-            </div>
-            <div class="instructions">
-                <p id="entity-selection-instructions">{{ dataSourceLabels.entitySelectionInstructions ?? 'Select one or more items to include in this report.'|t('report-manager') }}</p>
-            </div>
-            <div class="input">
-                <div id="forms-container">
-                    {% if entities|length > 0 %}
-                        {% for entity in entities %}
-                            {% set recordCount = entity.recordCount ?? entity.submissionCount ?? 0 %}
-                            {% set recordLabel = entity.recordLabel ?? dataSourceLabels.recordPlural ?? 'records'|t('report-manager') %}
-                            {{ forms.checkboxField({
-                                label: entity.name ~ ' - (' ~ recordCount|number ~ ' ' ~ recordLabel ~ ')',
-                                name: 'entityIds[]',
-                                value: entity.id,
-                                checked: entity.id in selectedEntityIds
-                            }) }}
-                        {% endfor %}
-                    {% else %}
-                        <p class="light">{{ dataSourceLabels.emptyEntitiesMessage ?? 'No items available.'|t('report-manager') }}</p>
-                    {% endif %}
-                </div>
-            </div>
-            {% if report.getErrors('entityIds') %}
-                <ul class="errors">
-                    {% for error in report.getErrors('entityIds') %}
-                        <li>{{ error }}</li>
-                    {% endfor %}
-                </ul>
-            {% endif %}
-        </div>
+        {% if siteOptions|length > 0 %}
+            {{ forms.checkboxGroupField({
+                label: 'Sites'|t('report-manager'),
+                instructions: 'Which sites to export (leave all unchecked to export all sites)'|t('report-manager'),
+                id: 'siteIds',
+                name: 'siteIds',
+                values: report.getSiteIdsArray(),
+                options: siteOptions
+            }) }}
+        {% endif %}
+
+        {% set entityOptions = [] %}
+        {% for entity in entities %}
+            {% set recordCount = entity.recordCount ?? entity.submissionCount ?? 0 %}
+            {% set recordLabel = entity.recordLabel ?? dataSourceLabels.recordPlural ?? 'records'|t('report-manager') %}
+            {% set entityOptions = entityOptions|merge([{
+                label: entity.name ~ ' - (' ~ recordCount|number ~ ' ' ~ recordLabel ~ ')',
+                value: entity.id,
+            }]) %}
+        {% endfor %}
+
+        {{ forms.checkboxGroupField({
+            label: dataSourceLabels.entitySelectionLabel ?? 'Items to Export'|t('report-manager'),
+            instructions: dataSourceLabels.entitySelectionInstructions ?? 'Select one or more items to include in this report.'|t('report-manager'),
+            id: 'entityIds',
+            name: 'entityIds',
+            values: selectedEntityIds,
+            options: entityOptions,
+            required: true,
+            errors: report.getErrors('entityIds'),
+        }) }}
+
+        <p class="light{{ entities|length > 0 ? ' hidden' : '' }}" id="entities-empty-message">{{ dataSourceLabels.emptyEntitiesMessage ?? 'No items available.'|t('report-manager') }}</p>
 
     </div>
 
@@ -182,16 +181,6 @@
             name: 'enabled',
             on: report.enabled ?? true
         }) }}
-
-        {% if siteOptions|length > 0 %}
-            {{ forms.selectField({
-                label: 'Site'|t('report-manager'),
-                id: 'siteId',
-                name: 'siteId',
-                value: report.siteId ?? '',
-                options: siteOptions
-            }) }}
-        {% endif %}
 
         {{ forms.selectField({
             label: 'Date Range'|t('report-manager'),
@@ -369,9 +358,7 @@ function appendEntityLabel($label, entity, labels) {
     var recordCount = entity.recordCount ?? entity.submissionCount ?? 0;
     var recordLabel = entity.recordLabel || getDataSourceLabel(labels, 'recordPlural', '{{ 'records'|t('report-manager')|e('js') }}');
 
-    $label.append(' ');
-    $label.append(document.createTextNode(entity.name + ' '));
-    $label.append($('<span class="light">').text('(' + recordCount + ' ' + recordLabel + ')'));
+    $label.text(entity.name + ' - (' + recordCount + ' ' + recordLabel + ')');
 }
 
 // Load entities when data source changes
@@ -384,28 +371,31 @@ $('#dataSource').on('change', function() {
         type: 'GET',
         dataType: 'json',
         success: function(response) {
-            var $container = $('#forms-container');
+            var $container = $('#entityIds');
+            var $emptyMessage = $('#entities-empty-message');
             var labels = response.labels || fallbackDataSourceLabels;
             $container.empty();
 
-            $('#entity-selection-label').text(getDataSourceLabel(labels, 'entitySelectionLabel', '{{ 'Items to Export'|t('report-manager')|e('js') }}'));
-            $('#entity-selection-instructions').text(getDataSourceLabel(labels, 'entitySelectionInstructions', '{{ 'Select one or more items to include in this report.'|t('report-manager')|e('js') }}'));
+            $('#entityIds-field .heading label').text(getDataSourceLabel(labels, 'entitySelectionLabel', '{{ 'Items to Export'|t('report-manager')|e('js') }}'));
+            $('#entityIds-field .instructions p').text(getDataSourceLabel(labels, 'entitySelectionInstructions', '{{ 'Select one or more items to include in this report.'|t('report-manager')|e('js') }}'));
+            $container.append($('<input type="hidden" name="entityIds" value="">'));
 
             if (!response.success || response.entities.length === 0) {
-                $container.html($('<p class="light">').text(getDataSourceLabel(labels, 'emptyEntitiesMessage', '{{ 'No items available.'|t('report-manager')|e('js') }}')));
+                $emptyMessage.text(getDataSourceLabel(labels, 'emptyEntitiesMessage', '{{ 'No items available.'|t('report-manager')|e('js') }}')).removeClass('hidden');
                 return;
             }
 
-            response.entities.forEach(function(entity) {
-                var $wrapper = $('<div class="field checkboxfield">');
-                var $input = $('<div class="input ltr">');
-                var $label = $('<label>');
-                var $checkbox = $('<input type="checkbox" name="entityIds[]" value="' + entity.id + '">');
+            $emptyMessage.addClass('hidden');
 
-                $label.append($checkbox);
+            response.entities.forEach(function(entity) {
+                var id = 'entityIds-' + entity.id;
+                var $wrapper = $('<div>');
+                var $checkbox = $('<input type="checkbox" class="checkbox" name="entityIds[]" value="' + entity.id + '">').attr('id', id);
+                var $label = $('<label>').attr('for', id).attr('id', id + '-label');
+
                 appendEntityLabel($label, entity, labels);
-                $input.append($label);
-                $wrapper.append($input);
+                $wrapper.append($checkbox);
+                $wrapper.append($label);
                 $container.append($wrapper);
             });
         }

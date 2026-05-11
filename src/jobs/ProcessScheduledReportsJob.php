@@ -99,7 +99,7 @@ class ProcessScheduledReportsJob extends BaseJob implements RetryableJobInterfac
             );
 
             $entityIds = $report->getEntityIdsArray();
-            $siteIds = $report->siteId ? [$report->siteId] : [];
+            $siteIds = $report->getSiteIdsArray();
 
             // Combined mode: single export with all forms
             if ($report->isCombined()) {
@@ -121,7 +121,7 @@ class ProcessScheduledReportsJob extends BaseJob implements RetryableJobInterfac
 
                 $plugin->exports->generateCombinedExport($export);
             } else {
-                // Separate mode: one export per form
+                // Separate mode: one export per entity.
                 foreach ($entityIds as $entityId) {
                     $export = $plugin->exports->createExport(
                         $report->dataSource,
