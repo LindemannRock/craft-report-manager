@@ -132,7 +132,7 @@ class ReportRecord extends ActiveRecord
     }
 
     /**
-     * Check if this is a combined export (multiple forms in one file)
+     * Check if this is a combined export (multiple entities in one file)
      *
      * @return bool
      */

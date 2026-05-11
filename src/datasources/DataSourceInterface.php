@@ -12,7 +12,7 @@ namespace lindemannrock\reportmanager\datasources;
  * Data Source Interface
  *
  * Defines the contract for report data sources.
- * Each data source (Formie, Survey Campaigns, etc.) must implement this interface.
+ * Each data source (Formie, Freeform, Craft entries, etc.) must implement this interface.
  *
  * @author    LindemannRock
  * @package   ReportManager
@@ -42,6 +42,20 @@ interface DataSourceInterface
     public static function description(): string;
 
     /**
+     * Get UI labels for this data source.
+     *
+     * @return array<string, string>
+     */
+    public static function uiLabels(): array;
+
+    /**
+     * Get supported data-source capabilities.
+     *
+     * @return array<string, bool>
+     */
+    public static function capabilities(): array;
+
+    /**
      * Get the data source icon URL
      *
      * @return string|null URL to data source icon
@@ -58,9 +72,9 @@ interface DataSourceInterface
     /**
      * Get available entities for this data source
      *
-     * Returns items that can be reported on (e.g., forms for Formie, campaigns for survey-campaigns)
+     * Returns items that can be reported on (e.g., forms for Formie, sections for entries).
      *
-     * @return array<array{id: int, name: string, handle: string, submissionCount: int}>
+     * @return array<array{id: int, name: string, handle: string, recordCount?: int, recordLabel?: string}>
      */
     public function getAvailableEntities(): array;
 
@@ -83,22 +97,22 @@ interface DataSourceInterface
     public function getEntityFields(int $entityId): array;
 
     /**
-     * Get submissions/records for an entity
+     * Get records for an entity
      *
      * @param int $entityId The entity ID
      * @param array $options Query options (dateStart, dateEnd, limit, offset, status, etc.)
-     * @return array Array of submission data
+     * @return array Array of record data
      */
-    public function getSubmissions(int $entityId, array $options = []): array;
+    public function getRecords(int $entityId, array $options = []): array;
 
     /**
-     * Get total submission count for an entity
+     * Get total record count for an entity
      *
      * @param int $entityId The entity ID
      * @param array $options Query options (dateStart, dateEnd, status, etc.)
      * @return int
      */
-    public function getSubmissionCount(int $entityId, array $options = []): int;
+    public function getRecordCount(int $entityId, array $options = []): int;
 
     /**
      * Get analytics data for an entity
@@ -112,7 +126,7 @@ interface DataSourceInterface
     public function getAnalytics(int $entityId, string $dateRange = 'last30days'): array;
 
     /**
-     * Get submission trend data for charts
+     * Get record trend data for charts
      *
      * @param int $entityId The entity ID
      * @param string $dateRange Date range
@@ -121,7 +135,7 @@ interface DataSourceInterface
     public function getTrendData(int $entityId, string $dateRange = 'last30days'): array;
 
     /**
-     * Export submissions to array format
+     * Export records to array format
      *
      * @param int $entityId The entity ID
      * @param array $fieldHandles Field handles to include (empty = all)

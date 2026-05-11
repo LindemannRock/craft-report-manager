@@ -53,6 +53,27 @@ class FormieDataSource extends BaseDataSource
     /**
      * @inheritdoc
      */
+    public static function uiLabels(): array
+    {
+        return array_merge(parent::uiLabels(), [
+            'entitySingular' => Craft::t('report-manager', 'Form'),
+            'entityPlural' => Craft::t('report-manager', 'Forms'),
+            'recordSingular' => Craft::t('report-manager', 'submission'),
+            'recordPlural' => Craft::t('report-manager', 'submissions'),
+            'entitySelectionLabel' => Craft::t('report-manager', 'Forms to Export'),
+            'entitySelectionInstructions' => Craft::t('report-manager', 'Select one or more forms to include in this report.'),
+            'quickExportEntitySelectionInstructions' => Craft::t('report-manager', 'Select one or more forms to export. Each form will generate a separate export file.'),
+            'emptyEntitiesMessage' => Craft::t('report-manager', 'No forms available.'),
+            'selectedEntitiesLabel' => Craft::t('report-manager', 'Selected Forms'),
+            'combinedPrimaryColumnLabel' => Craft::t('report-manager', 'Form Name'),
+            'dateRangeInstructions' => Craft::t('report-manager', 'Filter submissions by date range.'),
+            'exportModeInstructions' => Craft::t('report-manager', 'How to handle multiple forms.'),
+        ]);
+    }
+
+    /**
+     * @inheritdoc
+     */
     public static function iconUrl(): ?string
     {
         return null;
@@ -94,6 +115,8 @@ class FormieDataSource extends BaseDataSource
                 'id' => $form->id,
                 'name' => $form->title,
                 'handle' => $form->handle,
+                'recordCount' => $submissionCount,
+                'recordLabel' => Craft::t('report-manager', 'submissions'),
                 'submissionCount' => $submissionCount,
             ];
         }
@@ -185,7 +208,7 @@ class FormieDataSource extends BaseDataSource
     /**
      * @inheritdoc
      */
-    public function getSubmissions(int $entityId, array $options = []): array
+    public function getRecords(int $entityId, array $options = []): array
     {
         if (!self::isAvailable()) {
             return [];
@@ -259,7 +282,7 @@ class FormieDataSource extends BaseDataSource
     /**
      * @inheritdoc
      */
-    public function getSubmissionCount(int $entityId, array $options = []): int
+    public function getRecordCount(int $entityId, array $options = []): int
     {
         if (!self::isAvailable()) {
             return 0;
@@ -330,19 +353,19 @@ class FormieDataSource extends BaseDataSource
         }
 
         // Current period submissions
-        $currentCount = $this->getSubmissionCount($entityId, ['dateRange' => $dateRange]);
+        $currentCount = $this->getRecordCount($entityId, ['dateRange' => $dateRange]);
 
         // Previous period for comparison
         $previousDateRange = $this->getPreviousDateRange($dateRange);
         $previousCount = $previousDateRange
-            ? $this->getSubmissionCount($entityId, [
+            ? $this->getRecordCount($entityId, [
                 'dateStart' => $previousDateRange['start'],
                 'dateEnd' => $previousDateRange['end'],
             ])
             : 0;
 
         // All time total
-        $totalCount = $this->getSubmissionCount($entityId);
+        $totalCount = $this->getRecordCount($entityId);
 
         // Spam count
         $spamCount = \verbb\formie\elements\Submission::find()
@@ -382,7 +405,7 @@ class FormieDataSource extends BaseDataSource
             return ['labels' => [], 'values' => []];
         }
 
-        $submissions = $this->getSubmissions($entityId, ['dateRange' => $dateRange]);
+        $submissions = $this->getRecords($entityId, ['dateRange' => $dateRange]);
         $dateFormat = $this->getDateFormatForRange($dateRange);
         $trendData = [];
 
@@ -437,7 +460,7 @@ class FormieDataSource extends BaseDataSource
         $fieldHandlesToExport = array_map(fn($f) => $f['handle'], $fieldsToExport);
 
         // Get submissions
-        $submissions = $this->getSubmissions($entityId, $options);
+        $submissions = $this->getRecords($entityId, $options);
 
         // Build rows
         $rows = [];
@@ -551,7 +574,7 @@ class FormieDataSource extends BaseDataSource
      */
     private function calculateAveragePerDay(int $entityId, string $dateRange): float
     {
-        $count = $this->getSubmissionCount($entityId, ['dateRange' => $dateRange]);
+        $count = $this->getRecordCount($entityId, ['dateRange' => $dateRange]);
         $days = $this->getDateRangeDays($dateRange);
 
         if ($days === 0) {

@@ -15,6 +15,7 @@
 {# Determine default data source and entities #}
 {% set defaultDataSource = dataSourceOptions|first.value ?? '' %}
 {% set currentEntities = allEntities[defaultDataSource].entities ?? [] %}
+{% set dataSourceLabels = allEntities[defaultDataSource].labels ?? {} %}
 
 {% block actionButton %}
     <div class="btngroup submit">
@@ -41,9 +42,9 @@
 
         <div class="field" id="forms-field">
             <div class="heading">
-                <label>{{ 'Forms to Export'|t('report-manager') }}</label>
+                <label id="entity-selection-label">{{ dataSourceLabels.entitySelectionLabel ?? 'Items to Export'|t('report-manager') }}</label>
                 <div class="instructions">
-                    <p>{{ 'Select one or more forms to export. Each form will generate a separate export file.'|t('report-manager') }}</p>
+                    <p id="entity-selection-instructions">{{ dataSourceLabels.quickExportEntitySelectionInstructions ?? 'Select one or more items to export. Each item will generate a separate export file.'|t('report-manager') }}</p>
                 </div>
             </div>
             <div class="input ltr">
@@ -53,15 +54,17 @@
                 </div>
                 <div id="forms-container">
                     {% for entity in currentEntities %}
+                        {% set recordCount = entity.recordCount ?? entity.submissionCount ?? 0 %}
+                        {% set recordLabel = entity.recordLabel ?? dataSourceLabels.recordPlural ?? 'records'|t('report-manager') %}
                         <div class="checkbox-wrapper" style="margin-bottom: 8px;">
                             <label>
                                 <input type="checkbox" name="entityIds[]" value="{{ entity.id }}">
                                 <strong>{{ entity.name }}</strong>
-                                <span class="light">({{ entity.submissionCount }} submissions)</span>
+                                <span class="light">({{ recordCount }} {{ recordLabel }})</span>
                             </label>
                         </div>
                     {% else %}
-                        <p class="light">{{ 'No forms available.'|t('report-manager') }}</p>
+                        <p class="light">{{ dataSourceLabels.emptyEntitiesMessage ?? 'No items available.'|t('report-manager') }}</p>
                     {% endfor %}
                 </div>
             </div>
@@ -71,7 +74,7 @@
 
         {{ forms.selectField({
             label: 'Date Range'|t('report-manager'),
-            instructions: 'Filter submissions by date range.'|t('report-manager'),
+            instructions: dataSourceLabels.dateRangeInstructions ?? 'Filter records by date range.'|t('report-manager'),
             id: 'dateRange',
             name: 'dateRange',
             value: settings.defaultDateRange,
@@ -98,7 +101,7 @@
     <div class="meta">
         {{ forms.selectField({
             label: 'Export Mode'|t('report-manager'),
-            instructions: 'How to handle multiple forms.'|t('report-manager'),
+            instructions: dataSourceLabels.exportModeInstructions ?? 'How to handle multiple items.'|t('report-manager'),
             id: 'exportMode',
             name: 'exportMode',
             value: 'separate',
@@ -142,7 +145,7 @@
     <fieldset>
         <dl class="meta read-only">
             <div class="data">
-                <dt class="heading">{{ 'Selected Forms'|t('report-manager') }}</dt>
+                <dt class="heading" id="selected-entities-label">{{ dataSourceLabels.selectedEntitiesLabel ?? 'Selected Items'|t('report-manager') }}</dt>
                 <dd class="value" id="selected-count">0</dd>
             </div>
         </dl>
@@ -152,6 +155,20 @@
 {% js %}
 // Store all entities data for JavaScript access
 var allEntitiesData = {{ allEntities|json_encode|raw }};
+
+function getDataSourceLabel(labels, key, fallback) {
+    return labels && labels[key] ? labels[key] : fallback;
+}
+
+function appendEntityLabel($label, entity, labels) {
+    var recordCount = entity.recordCount ?? entity.submissionCount ?? 0;
+    var recordLabel = entity.recordLabel || getDataSourceLabel(labels, 'recordPlural', '{{ 'records'|t('report-manager')|e('js') }}');
+
+    $label.append(' ');
+    $label.append($('<strong>').text(entity.name));
+    $label.append(' ');
+    $label.append($('<span class="light">').text('(' + recordCount + ' ' + recordLabel + ')'));
+}
 
 // Update selected count
 function updateSelectedCount() {
@@ -191,19 +208,31 @@ $('#dataSource').on('change', function() {
     $container.empty();
 
     if (dataSource && allEntitiesData[dataSource]) {
-        allEntitiesData[dataSource].entities.forEach(function(entity) {
+        var labels = allEntitiesData[dataSource].labels || {};
+        var entities = allEntitiesData[dataSource].entities || [];
+
+        $('#entity-selection-label').text(getDataSourceLabel(labels, 'entitySelectionLabel', '{{ 'Items to Export'|t('report-manager')|e('js') }}'));
+        $('#entity-selection-instructions').text(getDataSourceLabel(labels, 'quickExportEntitySelectionInstructions', '{{ 'Select one or more items to export. Each item will generate a separate export file.'|t('report-manager')|e('js') }}'));
+        $('#selected-entities-label').text(getDataSourceLabel(labels, 'selectedEntitiesLabel', '{{ 'Selected Items'|t('report-manager')|e('js') }}'));
+
+        if (entities.length === 0) {
+            $container.html($('<p class="light">').text(getDataSourceLabel(labels, 'emptyEntitiesMessage', '{{ 'No items available.'|t('report-manager')|e('js') }}')));
+            updateSelectedCount();
+            return;
+        }
+
+        entities.forEach(function(entity) {
             var $wrapper = $('<div class="checkbox-wrapper" style="margin-bottom: 8px;">');
             var $label = $('<label>');
             var $checkbox = $('<input type="checkbox" name="entityIds[]" value="' + entity.id + '">');
 
             $label.append($checkbox);
-            $label.append(' <strong>' + entity.name + '</strong>');
-            $label.append(' <span class="light">(' + entity.submissionCount + ' submissions)</span>');
+            appendEntityLabel($label, entity, labels);
             $wrapper.append($label);
             $container.append($wrapper);
         });
     } else {
-        $container.html('<p class="light">{{ 'No forms available.'|t('report-manager') }}</p>');
+        $container.html($('<p class="light">').text('{{ 'No items available.'|t('report-manager')|e('js') }}'));
     }
 
     updateSelectedCount();

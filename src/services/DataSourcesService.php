@@ -84,7 +84,7 @@ class DataSourcesService extends Component
     /**
      * Get available (installed and enabled) data sources
      *
-     * @return array<string, array{handle: string, name: string, class: class-string, available: bool}>
+     * @return array<string, array{handle: string, name: string, class: class-string, available: bool, labels: array<string, string>, capabilities: array<string, bool>}>
      */
     public function getAvailableDataSources(): array
     {
@@ -99,7 +99,11 @@ class DataSourcesService extends Component
 
             /** @var DataSourceInterface $class */
             if ($class::isAvailable()) {
-                $available[$handle] = array_merge($dataSource, ['available' => true]);
+                $available[$handle] = array_merge($dataSource, [
+                    'available' => true,
+                    'labels' => $class::uiLabels(),
+                    'capabilities' => $class::capabilities(),
+                ]);
             }
         }
 
@@ -205,7 +209,7 @@ class DataSourcesService extends Component
     /**
      * Get all entities from all available data sources
      *
-     * @return array<string, array{dataSource: string, dataSourceName: string, entities: array}>
+     * @return array<string, array{dataSource: string, dataSourceName: string, labels: array<string, string>, capabilities: array<string, bool>, entities: array}>
      */
     public function getAllEntities(): array
     {
@@ -221,10 +225,50 @@ class DataSourcesService extends Component
             $result[$handle] = [
                 'dataSource' => $handle,
                 'dataSourceName' => $dataSource['name'],
+                'labels' => $dataSource['labels'],
+                'capabilities' => $dataSource['capabilities'],
                 'entities' => $instance->getAvailableEntities(),
             ];
         }
 
         return $result;
+    }
+
+    /**
+     * Get UI labels for a data source.
+     *
+     * @param string|null $handle Data source handle
+     * @return array<string, string>
+     */
+    public function getDataSourceLabels(?string $handle): array
+    {
+        if ($handle !== null) {
+            $instance = $this->getDataSource($handle);
+
+            if ($instance !== null) {
+                return $instance::uiLabels();
+            }
+        }
+
+        return FormieDataSource::uiLabels();
+    }
+
+    /**
+     * Get capabilities for a data source.
+     *
+     * @param string|null $handle Data source handle
+     * @return array<string, bool>
+     */
+    public function getDataSourceCapabilities(?string $handle): array
+    {
+        if ($handle !== null) {
+            $instance = $this->getDataSource($handle);
+
+            if ($instance !== null) {
+                return $instance::capabilities();
+            }
+        }
+
+        return FormieDataSource::capabilities();
     }
 }

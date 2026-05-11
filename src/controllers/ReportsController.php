@@ -157,6 +157,8 @@ class ReportsController extends Controller
 
         // Get entities for the current data source
         $entities = $allEntities[$currentDataSource]['entities'] ?? [];
+        $dataSourceLabels = $plugin->dataSources->getDataSourceLabels($currentDataSource);
+        $dataSourceCapabilities = $plugin->dataSources->getDataSourceCapabilities($currentDataSource);
 
         $canViewGeneratedFiles = !$isNew && Craft::$app->getUser()->checkPermission('reportManager:manageExports');
         $generatedExports = [];
@@ -189,6 +191,8 @@ class ReportsController extends Controller
             'dataSourceOptions' => $dataSourceOptions,
             'allEntities' => $allEntities,
             'entities' => $entities,
+            'dataSourceLabels' => $dataSourceLabels,
+            'dataSourceCapabilities' => $dataSourceCapabilities,
             'canViewGeneratedFiles' => $canViewGeneratedFiles,
             'generatedExports' => $generatedExports,
             'generatedExportFileExists' => $generatedExportFileExists,
@@ -253,7 +257,7 @@ class ReportsController extends Controller
         $report->schedule = $settings->enableScheduledReports ? $request->getBodyParam('schedule') : null;
         $report->enabled = (bool) $request->getBodyParam('enabled', true);
 
-        // Handle entity IDs (multiple forms)
+        // Handle entity IDs
         $entityIds = $request->getBodyParam('entityIds', []);
         $report->setEntityIdsArray(is_array($entityIds) ? array_map('intval', $entityIds) : []);
 

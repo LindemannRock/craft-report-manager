@@ -1015,7 +1015,7 @@ class ExportService extends Component
     }
 
     /**
-     * Create a combined export record (multiple forms in one file)
+     * Create a combined export record (multiple entities in one file)
      *
      * @param string $dataSource Data source handle
      * @param int[] $entityIds Entity IDs
@@ -1072,7 +1072,7 @@ class ExportService extends Component
     }
 
     /**
-     * Generate a combined export (multiple forms in one file)
+     * Generate a combined export (multiple entities in one file)
      *
      * @param ExportRecord $export Export record
      * @return bool
@@ -1090,10 +1090,11 @@ class ExportService extends Component
                 throw new \Exception("Data source '{$export->dataSource}' not found");
             }
 
+            $labels = $dataSource::uiLabels();
             $entityIds = $export->getEntityIdsArray();
 
             if (empty($entityIds)) {
-                throw new \Exception('No forms selected for combined export');
+                throw new \Exception(Craft::t('report-manager', 'No items selected for combined export'));
             }
 
             // Build query options
@@ -1117,19 +1118,19 @@ class ExportService extends Component
                 $options['siteIds'] = $siteIds;
             }
 
-            // Collect all unique headers and data from all forms
-            $allHeaders = ['Form Name']; // First column is always form name
+            // Collect all unique headers and data from all selected entities.
+            $allHeaders = [$labels['combinedPrimaryColumnLabel'] ?? Craft::t('report-manager', 'Item Name')];
             $allRows = [];
-            $formFields = []; // Track fields per form
+            $entityFields = [];
 
             // First pass: collect all unique field headers
             foreach ($entityIds as $entityId) {
                 $entity = $dataSource->getEntity($entityId);
-                $formName = $entity['name'] ?? "Form {$entityId}";
+                $entityName = $entity['name'] ?? ($labels['entitySingular'] ?? Craft::t('report-manager', 'Item')) . " {$entityId}";
 
                 $fields = $dataSource->getEntityFields($entityId);
-                $formFields[$entityId] = [
-                    'name' => $formName,
+                $entityFields[$entityId] = [
+                    'name' => $entityName,
                     'fields' => $fields,
                 ];
 
@@ -1142,8 +1143,8 @@ class ExportService extends Component
 
             // Second pass: collect data with proper column alignment
             foreach ($entityIds as $entityId) {
-                $formName = $formFields[$entityId]['name'];
-                $fields = $formFields[$entityId]['fields'];
+                $entityName = $entityFields[$entityId]['name'];
+                $fields = $entityFields[$entityId]['fields'];
 
                 // Create a map of field handle to header position
                 $fieldToHeader = [];
@@ -1151,13 +1152,13 @@ class ExportService extends Component
                     $fieldToHeader[$field['handle']] = $field['label'];
                 }
 
-                // Get export data for this form
+                // Get export data for this entity
                 $exportData = $dataSource->exportToArray($entityId, [], $options);
 
                 // Map each row to the combined headers
                 foreach ($exportData['rows'] as $row) {
                     $combinedRow = array_fill(0, count($allHeaders), '');
-                    $combinedRow[0] = $formName; // Form name in first column
+                    $combinedRow[0] = $entityName;
 
                     // Map values to correct header positions
                     foreach ($exportData['headers'] as $index => $header) {
@@ -1203,7 +1204,7 @@ class ExportService extends Component
                 'id' => $export->id,
                 'format' => $export->format,
                 'recordCount' => $export->recordCount,
-                'formCount' => count($entityIds),
+                'entityCount' => count($entityIds),
             ]);
 
             return true;

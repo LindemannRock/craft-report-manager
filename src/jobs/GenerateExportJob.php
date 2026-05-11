@@ -34,7 +34,7 @@ class GenerateExportJob extends BaseJob implements RetryableJobInterface
     public int $exportId;
 
     /**
-     * @var bool Whether this is a combined export (multiple forms)
+     * @var bool Whether this is a combined export (multiple entities)
      */
     public bool $combined = false;
 

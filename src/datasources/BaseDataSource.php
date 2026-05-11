@@ -30,6 +30,42 @@ abstract class BaseDataSource implements DataSourceInterface
     /**
      * @inheritdoc
      */
+    public static function uiLabels(): array
+    {
+        return [
+            'entitySingular' => Craft::t('report-manager', 'Item'),
+            'entityPlural' => Craft::t('report-manager', 'Items'),
+            'recordSingular' => Craft::t('report-manager', 'Record'),
+            'recordPlural' => Craft::t('report-manager', 'Records'),
+            'entitySelectionLabel' => Craft::t('report-manager', 'Items to Export'),
+            'entitySelectionInstructions' => Craft::t('report-manager', 'Select one or more items to include in this report.'),
+            'quickExportEntitySelectionInstructions' => Craft::t('report-manager', 'Select one or more items to export. Each item will generate a separate export file.'),
+            'emptyEntitiesMessage' => Craft::t('report-manager', 'No items available.'),
+            'selectedEntitiesLabel' => Craft::t('report-manager', 'Selected Items'),
+            'combinedPrimaryColumnLabel' => Craft::t('report-manager', 'Item Name'),
+            'dateRangeInstructions' => Craft::t('report-manager', 'Filter records by date range.'),
+            'exportModeInstructions' => Craft::t('report-manager', 'How to handle multiple items.'),
+        ];
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public static function capabilities(): array
+    {
+        return [
+            'fields' => true,
+            'dateRanges' => true,
+            'analytics' => true,
+            'combinedExport' => true,
+            'siteFiltering' => true,
+            'scheduling' => true,
+        ];
+    }
+
+    /**
+     * @inheritdoc
+     */
     public static function iconUrl(): ?string
     {
         return null;
@@ -49,6 +85,30 @@ abstract class BaseDataSource implements DataSourceInterface
     public function getSettingsHtml(): ?string
     {
         return null;
+    }
+
+    /**
+     * Backward-compatible alias for older integrations.
+     *
+     * @param int $entityId The entity ID
+     * @param array $options Query options
+     * @return array
+     */
+    public function getSubmissions(int $entityId, array $options = []): array
+    {
+        return $this->getRecords($entityId, $options);
+    }
+
+    /**
+     * Backward-compatible alias for older integrations.
+     *
+     * @param int $entityId The entity ID
+     * @param array $options Query options
+     * @return int
+     */
+    public function getSubmissionCount(int $entityId, array $options = []): int
+    {
+        return $this->getRecordCount($entityId, $options);
     }
 
     /**

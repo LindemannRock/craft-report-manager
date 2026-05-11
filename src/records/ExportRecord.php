@@ -231,7 +231,7 @@ class ExportRecord extends ActiveRecord
     }
 
     /**
-     * Check if this is a combined export (multiple forms)
+     * Check if this is a combined export (multiple entities)
      *
      * @return bool
      */

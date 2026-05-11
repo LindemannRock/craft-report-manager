@@ -157,7 +157,7 @@ class ExportsController extends Controller
     }
 
     /**
-     * Quick export action (create exports for multiple forms)
+     * Quick export action (create exports for multiple entities)
      *
      * @return Response|null
      */

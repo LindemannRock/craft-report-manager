@@ -7,6 +7,7 @@
 {% set selectedSubnavItem = 'reports' %}
 {% set saveShortcutRedirect = cpUrl('report-manager/reports/{id}') %}
 {% set retainScrollOnSaveShortcut = true %}
+{% set dataSourceLabels = dataSourceLabels ?? {} %}
 {% set tabs = {
     fields: {
         label: 'Settings'|t('report-manager'),
@@ -123,27 +124,29 @@
             errors: report.getErrors('dataSource')
         }) }}
 
-        {# Multi-select forms as checkboxes #}
+        {# Multi-select data-source entities as checkboxes #}
         <div class="field{{ report.getErrors('entityIds') ? ' has-errors' : '' }}" id="forms-field">
             <div class="heading">
-                <label class="required">{{ 'Forms to Export'|t('report-manager') }}</label>
+                <label class="required" id="entity-selection-label">{{ dataSourceLabels.entitySelectionLabel ?? 'Items to Export'|t('report-manager') }}</label>
             </div>
             <div class="instructions">
-                <p>{{ 'Select one or more forms to include in this report.'|t('report-manager') }}</p>
+                <p id="entity-selection-instructions">{{ dataSourceLabels.entitySelectionInstructions ?? 'Select one or more items to include in this report.'|t('report-manager') }}</p>
             </div>
             <div class="input">
                 <div id="forms-container">
                     {% if entities|length > 0 %}
                         {% for entity in entities %}
+                            {% set recordCount = entity.recordCount ?? entity.submissionCount ?? 0 %}
+                            {% set recordLabel = entity.recordLabel ?? dataSourceLabels.recordPlural ?? 'records'|t('report-manager') %}
                             {{ forms.checkboxField({
-                                label: entity.name ~ ' - (' ~ entity.submissionCount|number ~ ' submissions)',
+                                label: entity.name ~ ' - (' ~ recordCount|number ~ ' ' ~ recordLabel ~ ')',
                                 name: 'entityIds[]',
                                 value: entity.id,
                                 checked: entity.id in selectedEntityIds
                             }) }}
                         {% endfor %}
                     {% else %}
-                        <p class="light">{{ 'No forms available.'|t('report-manager') }}</p>
+                        <p class="light">{{ dataSourceLabels.emptyEntitiesMessage ?? 'No items available.'|t('report-manager') }}</p>
                     {% endif %}
                 </div>
             </div>
@@ -293,7 +296,7 @@
                 <dd class="value">{{ report.id }}</dd>
             </div>
             <div class="data">
-                <dt class="heading">{{ 'Forms'|t('report-manager') }}</dt>
+                <dt class="heading">{{ dataSourceLabels.entityPlural ?? 'Items'|t('report-manager') }}</dt>
                 <dd class="value">{{ report.entityIdsArray|length }}</dd>
             </div>
             {% if report.lastGeneratedAt %}
@@ -356,7 +359,22 @@ $('#dateRange').on('change', function() {
 });
 
 
-// Load forms when data source changes
+const fallbackDataSourceLabels = {{ dataSourceLabels|json_encode|raw }};
+
+function getDataSourceLabel(labels, key, fallback) {
+    return labels && labels[key] ? labels[key] : fallback;
+}
+
+function appendEntityLabel($label, entity, labels) {
+    var recordCount = entity.recordCount ?? entity.submissionCount ?? 0;
+    var recordLabel = entity.recordLabel || getDataSourceLabel(labels, 'recordPlural', '{{ 'records'|t('report-manager')|e('js') }}');
+
+    $label.append(' ');
+    $label.append(document.createTextNode(entity.name + ' '));
+    $label.append($('<span class="light">').text('(' + recordCount + ' ' + recordLabel + ')'));
+}
+
+// Load entities when data source changes
 $('#dataSource').on('change', function() {
     var dataSource = $(this).val();
     if (!dataSource) return;
@@ -367,10 +385,14 @@ $('#dataSource').on('change', function() {
         dataType: 'json',
         success: function(response) {
             var $container = $('#forms-container');
+            var labels = response.labels || fallbackDataSourceLabels;
             $container.empty();
 
+            $('#entity-selection-label').text(getDataSourceLabel(labels, 'entitySelectionLabel', '{{ 'Items to Export'|t('report-manager')|e('js') }}'));
+            $('#entity-selection-instructions').text(getDataSourceLabel(labels, 'entitySelectionInstructions', '{{ 'Select one or more items to include in this report.'|t('report-manager')|e('js') }}'));
+
             if (!response.success || response.entities.length === 0) {
-                $container.html('<p class="light">{{ 'No forms available.'|t('report-manager') }}</p>');
+                $container.html($('<p class="light">').text(getDataSourceLabel(labels, 'emptyEntitiesMessage', '{{ 'No items available.'|t('report-manager')|e('js') }}')));
                 return;
             }
 
@@ -381,7 +403,7 @@ $('#dataSource').on('change', function() {
                 var $checkbox = $('<input type="checkbox" name="entityIds[]" value="' + entity.id + '">');
 
                 $label.append($checkbox);
-                $label.append(' ' + entity.name + ' <span class="light">(' + entity.submissionCount + ' submissions)</span>');
+                appendEntityLabel($label, entity, labels);
                 $input.append($label);
                 $wrapper.append($input);
                 $container.append($wrapper);

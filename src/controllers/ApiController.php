@@ -61,6 +61,8 @@ class ApiController extends Controller
 
         return $this->asJson([
             'success' => true,
+            'labels' => $dataSourceInstance::uiLabels(),
+            'capabilities' => $dataSourceInstance::capabilities(),
             'entities' => $entities,
         ]);
     }
@@ -124,7 +126,9 @@ class ApiController extends Controller
     }
 
     /**
-     * Get submission count for an entity
+     * Get record count for an entity.
+     *
+     * Kept on the old route name for current CP JavaScript compatibility.
      *
      * @return Response
      */
@@ -161,7 +165,7 @@ class ApiController extends Controller
             $options['dateEnd'] = $dateEnd;
         }
 
-        $count = $dataSourceInstance->getSubmissionCount($entityId, $options);
+        $count = $dataSourceInstance->getRecordCount($entityId, $options);
 
         return $this->asJson([
             'success' => true,

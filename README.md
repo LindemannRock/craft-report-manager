@@ -328,19 +328,23 @@ interface DataSourceInterface
     public static function handle(): string;
     public static function displayName(): string;
     public static function description(): string;
+    public static function uiLabels(): array;
+    public static function capabilities(): array;
     public static function iconUrl(): ?string;
     public static function isAvailable(): bool;
     public function getAvailableEntities(): array;
     public function getEntity(int $id): ?array;
     public function getEntityFields(int $entityId): array;
-    public function getSubmissions(int $entityId, array $options = []): array;
-    public function getSubmissionCount(int $entityId, array $options = []): int;
+    public function getRecords(int $entityId, array $options = []): array;
+    public function getRecordCount(int $entityId, array $options = []): int;
     public function getAnalytics(int $entityId, string $dateRange = 'last30days'): array;
     public function getTrendData(int $entityId, string $dateRange = 'last30days'): array;
     public function exportToArray(int $entityId, array $fieldHandles = [], array $options = []): array;
     public function getSettingsHtml(): ?string;
 }
 ```
+
+`uiLabels()` keeps the control panel wording source-specific. Formie uses forms/submissions, while future sources can use sections/entries, users, assets, or another domain language. `capabilities()` advertises whether a source supports fields, date ranges, analytics, combined exports, site filtering, and scheduling.
 
 Register data sources through `DataSourcesService::EVENT_REGISTER_DATA_SOURCES`:
 
