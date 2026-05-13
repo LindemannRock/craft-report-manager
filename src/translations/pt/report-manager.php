@@ -243,6 +243,15 @@ return [
     'Last Run' => 'Última execução',
     'Next Run' => 'Próxima execução',
     'Are you sure you want to delete this report?' => 'Tem certeza de que deseja excluir este relatório?',
+    'Delete report "{name}"? This cannot be undone.' => 'Excluir o relatório «{name}»? Esta ação não pode ser anulada.',
+    'Delete {count} report(s)? This cannot be undone.' => 'Excluir {count} relatórios? Esta ação não pode ser anulada.',
+    'Could not queue export.' => 'Não foi possível colocar a exportação em fila.',
+    'Could not enable reports.' => 'Não foi possível ativar os relatórios.',
+    'Could not disable reports.' => 'Não foi possível desativar os relatórios.',
+    'Could not delete reports.' => 'Não foi possível excluir os relatórios.',
+    'Enabled {count} report(s).' => '{count} relatórios ativados.',
+    'Disabled {count} report(s).' => '{count} relatórios desativados.',
+    'Deleted {count} report(s).' => '{count} relatórios excluídos.',
 
     // Reports: Edit
     'Edit Report' => 'Editar relatório',
@@ -285,6 +294,12 @@ return [
     'Combined' => 'Combinado',
     'Separate' => 'Separado',
     'Total Files' => 'Total de arquivos',
+    'File deleted.' => 'Arquivo excluído.',
+    'Could not delete file.' => 'Não foi possível excluir o arquivo.',
+    'Could not delete files.' => 'Não foi possível excluir os arquivos.',
+    'Delete "{name}"? This cannot be undone.' => 'Excluir «{name}»? Esta ação não pode ser anulada.',
+    'Delete {count} file(s)? This cannot be undone.' => 'Excluir {count} arquivos? Esta ação não pode ser anulada.',
+    'Deleted {count} file(s).' => '{count} arquivos excluídos.',
 
     // Exports: Index
     'Quick Export' => 'Exportação rápida',
@@ -296,6 +311,11 @@ return [
     'Ad-hoc' => 'Ad hoc',
     'Report' => 'Relatório',
     'Scheduled' => 'Agendado',
+    'Export deleted.' => 'Exportação excluída.',
+    'Delete export "{name}"? This cannot be undone.' => 'Excluir a exportação «{name}»? Esta ação não pode ser anulada.',
+    'Delete {count} export(s)? This cannot be undone.' => 'Excluir {count} exportações? Esta ação não pode ser anulada.',
+    'Could not delete exports.' => 'Não foi possível excluir as exportações.',
+    'Deleted {count} export(s).' => '{count} exportações excluídas.',
 
     // Exports: New
     'Generate Export' => 'Gerar exportação',

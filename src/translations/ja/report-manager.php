@@ -243,6 +243,15 @@ return [
     'Last Run' => '前回の実行',
     'Next Run' => '次回の実行',
     'Are you sure you want to delete this report?' => 'このレポートを削除してもよろしいですか？',
+    'Delete report "{name}"? This cannot be undone.' => 'レポート「 {name} 」を削除しますか？この操作は取り消せません。',
+    'Delete {count} report(s)? This cannot be undone.' => '{count} 件のレポートを削除しますか？この操作は取り消せません。',
+    'Could not queue export.' => 'エクスポートをキューに追加できませんでした。',
+    'Could not enable reports.' => 'レポートを有効にできませんでした。',
+    'Could not disable reports.' => 'レポートを無効にできませんでした。',
+    'Could not delete reports.' => 'レポートを削除できませんでした。',
+    'Enabled {count} report(s).' => '{count} 件のレポートを有効にしました。',
+    'Disabled {count} report(s).' => '{count} 件のレポートを無効にしました。',
+    'Deleted {count} report(s).' => '{count} 件のレポートを削除しました。',
 
     // Reports: Edit
     'Edit Report' => 'レポートを編集',
@@ -285,6 +294,12 @@ return [
     'Combined' => '結合',
     'Separate' => '個別',
     'Total Files' => '合計ファイル数',
+    'File deleted.' => 'ファイルを削除しました。',
+    'Could not delete file.' => 'ファイルを削除できませんでした。',
+    'Could not delete files.' => 'ファイルを削除できませんでした。',
+    'Delete "{name}"? This cannot be undone.' => '「 {name} 」を削除しますか？この操作は取り消せません。',
+    'Delete {count} file(s)? This cannot be undone.' => '{count} 件のファイルを削除しますか？この操作は取り消せません。',
+    'Deleted {count} file(s).' => '{count} 件のファイルを削除しました。',
 
     // Exports: Index
     'Quick Export' => 'クイックエクスポート',
@@ -296,6 +311,11 @@ return [
     'Ad-hoc' => 'アドホック',
     'Report' => 'レポート',
     'Scheduled' => 'スケジュール済み',
+    'Export deleted.' => 'エクスポートを削除しました。',
+    'Delete export "{name}"? This cannot be undone.' => 'エクスポート「 {name} 」を削除しますか？この操作は取り消せません。',
+    'Delete {count} export(s)? This cannot be undone.' => '{count} 件のエクスポートを削除しますか？この操作は取り消せません。',
+    'Could not delete exports.' => 'エクスポートを削除できませんでした。',
+    'Deleted {count} export(s).' => '{count} 件のエクスポートを削除しました。',
 
     // Exports: New
     'Generate Export' => 'エクスポートを生成',

@@ -243,6 +243,15 @@ return [
     'Last Run' => 'Laatste uitvoering',
     'Next Run' => 'Volgende uitvoering',
     'Are you sure you want to delete this report?' => 'Weet u zeker dat u dit rapport wilt verwijderen?',
+    'Delete report "{name}"? This cannot be undone.' => 'Rapport „{name}" verwijderen? Dit kan niet ongedaan worden gemaakt.',
+    'Delete {count} report(s)? This cannot be undone.' => '{count} rapporten verwijderen? Dit kan niet ongedaan worden gemaakt.',
+    'Could not queue export.' => 'Export kon niet in de wachtrij worden geplaatst.',
+    'Could not enable reports.' => 'Rapporten konden niet worden ingeschakeld.',
+    'Could not disable reports.' => 'Rapporten konden niet worden uitgeschakeld.',
+    'Could not delete reports.' => 'Rapporten konden niet worden verwijderd.',
+    'Enabled {count} report(s).' => '{count} rapporten ingeschakeld.',
+    'Disabled {count} report(s).' => '{count} rapporten uitgeschakeld.',
+    'Deleted {count} report(s).' => '{count} rapporten verwijderd.',
 
     // Reports: Edit
     'Edit Report' => 'Rapport bewerken',
@@ -285,6 +294,12 @@ return [
     'Combined' => 'Gecombineerd',
     'Separate' => 'Afzonderlijk',
     'Total Files' => 'Totaal bestanden',
+    'File deleted.' => 'Bestand verwijderd.',
+    'Could not delete file.' => 'Bestand kon niet worden verwijderd.',
+    'Could not delete files.' => 'Bestanden konden niet worden verwijderd.',
+    'Delete "{name}"? This cannot be undone.' => '„{name}" verwijderen? Dit kan niet ongedaan worden gemaakt.',
+    'Delete {count} file(s)? This cannot be undone.' => '{count} bestanden verwijderen? Dit kan niet ongedaan worden gemaakt.',
+    'Deleted {count} file(s).' => '{count} bestanden verwijderd.',
 
     // Exports: Index
     'Quick Export' => 'Snelle export',
@@ -296,6 +311,11 @@ return [
     'Ad-hoc' => 'Ad hoc',
     'Report' => 'Rapport',
     'Scheduled' => 'Gepland',
+    'Export deleted.' => 'Export verwijderd.',
+    'Delete export "{name}"? This cannot be undone.' => 'Export „{name}" verwijderen? Dit kan niet ongedaan worden gemaakt.',
+    'Delete {count} export(s)? This cannot be undone.' => '{count} exports verwijderen? Dit kan niet ongedaan worden gemaakt.',
+    'Could not delete exports.' => 'Exports konden niet worden verwijderd.',
+    'Deleted {count} export(s).' => '{count} exports verwijderd.',
 
     // Exports: New
     'Generate Export' => 'Export genereren',

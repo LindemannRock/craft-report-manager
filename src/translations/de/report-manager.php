@@ -243,6 +243,15 @@ return [
     'Last Run' => 'Letzte Ausführung',
     'Next Run' => 'Nächste Ausführung',
     'Are you sure you want to delete this report?' => 'Sind Sie sicher, dass Sie diesen Bericht löschen möchten?',
+    'Delete report "{name}"? This cannot be undone.' => 'Bericht „{name}" löschen? Diese Aktion kann nicht rückgängig gemacht werden.',
+    'Delete {count} report(s)? This cannot be undone.' => '{count} Berichte löschen? Diese Aktion kann nicht rückgängig gemacht werden.',
+    'Could not queue export.' => 'Export konnte nicht in die Warteschlange gestellt werden.',
+    'Could not enable reports.' => 'Berichte konnten nicht aktiviert werden.',
+    'Could not disable reports.' => 'Berichte konnten nicht deaktiviert werden.',
+    'Could not delete reports.' => 'Berichte konnten nicht gelöscht werden.',
+    'Enabled {count} report(s).' => '{count} Berichte aktiviert.',
+    'Disabled {count} report(s).' => '{count} Berichte deaktiviert.',
+    'Deleted {count} report(s).' => '{count} Berichte gelöscht.',
 
     // Reports: Edit
     'Edit Report' => 'Bericht bearbeiten',
@@ -285,6 +294,12 @@ return [
     'Combined' => 'Kombiniert',
     'Separate' => 'Separat',
     'Total Files' => 'Dateien gesamt',
+    'File deleted.' => 'Datei gelöscht.',
+    'Could not delete file.' => 'Datei konnte nicht gelöscht werden.',
+    'Could not delete files.' => 'Dateien konnten nicht gelöscht werden.',
+    'Delete "{name}"? This cannot be undone.' => '„{name}" löschen? Diese Aktion kann nicht rückgängig gemacht werden.',
+    'Delete {count} file(s)? This cannot be undone.' => '{count} Dateien löschen? Diese Aktion kann nicht rückgängig gemacht werden.',
+    'Deleted {count} file(s).' => '{count} Dateien gelöscht.',
 
     // Exports: Index
     'Quick Export' => 'Schnellexport',
@@ -296,6 +311,11 @@ return [
     'Ad-hoc' => 'Ad-hoc',
     'Report' => 'Bericht',
     'Scheduled' => 'Geplant',
+    'Export deleted.' => 'Export gelöscht.',
+    'Delete export "{name}"? This cannot be undone.' => 'Export „{name}" löschen? Diese Aktion kann nicht rückgängig gemacht werden.',
+    'Delete {count} export(s)? This cannot be undone.' => '{count} Exporte löschen? Diese Aktion kann nicht rückgängig gemacht werden.',
+    'Could not delete exports.' => 'Exporte konnten nicht gelöscht werden.',
+    'Deleted {count} export(s).' => '{count} Exporte gelöscht.',
 
     // Exports: New
     'Generate Export' => 'Export generieren',

@@ -243,6 +243,15 @@ return [
     'Last Run' => 'Senaste körning',
     'Next Run' => 'Nästa körning',
     'Are you sure you want to delete this report?' => 'Är du säker på att du vill ta bort den här rapporten?',
+    'Delete report "{name}"? This cannot be undone.' => 'Ta bort rapporten „{name}"? Det här går inte att ångra.',
+    'Delete {count} report(s)? This cannot be undone.' => 'Ta bort {count} rapporter? Det här går inte att ångra.',
+    'Could not queue export.' => 'Det gick inte att lägga exporten i kö.',
+    'Could not enable reports.' => 'Det gick inte att aktivera rapporterna.',
+    'Could not disable reports.' => 'Det gick inte att inaktivera rapporterna.',
+    'Could not delete reports.' => 'Det gick inte att ta bort rapporterna.',
+    'Enabled {count} report(s).' => '{count} rapporter har aktiverats.',
+    'Disabled {count} report(s).' => '{count} rapporter har inaktiverats.',
+    'Deleted {count} report(s).' => '{count} rapporter har tagits bort.',
 
     // Reports: Edit
     'Edit Report' => 'Redigera rapport',
@@ -285,6 +294,12 @@ return [
     'Combined' => 'Kombinerad',
     'Separate' => 'Separata',
     'Total Files' => 'Totalt antal filer',
+    'File deleted.' => 'Filen har tagits bort.',
+    'Could not delete file.' => 'Det gick inte att ta bort filen.',
+    'Could not delete files.' => 'Det gick inte att ta bort filerna.',
+    'Delete "{name}"? This cannot be undone.' => 'Ta bort „{name}"? Det här går inte att ångra.',
+    'Delete {count} file(s)? This cannot be undone.' => 'Ta bort {count} filer? Det här går inte att ångra.',
+    'Deleted {count} file(s).' => '{count} filer har tagits bort.',
 
     // Exports: Index
     'Quick Export' => 'Snabbexport',
@@ -296,6 +311,11 @@ return [
     'Ad-hoc' => 'Ad hoc',
     'Report' => 'Rapport',
     'Scheduled' => 'Schemalagd',
+    'Export deleted.' => 'Exporten har tagits bort.',
+    'Delete export "{name}"? This cannot be undone.' => 'Ta bort exporten „{name}"? Det här går inte att ångra.',
+    'Delete {count} export(s)? This cannot be undone.' => 'Ta bort {count} exporter? Det här går inte att ångra.',
+    'Could not delete exports.' => 'Det gick inte att ta bort exporterna.',
+    'Deleted {count} export(s).' => '{count} exporter har tagits bort.',
 
     // Exports: New
     'Generate Export' => 'Generera export',

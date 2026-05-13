@@ -243,6 +243,15 @@ return [
     'Last Run' => 'Siste kjøring',
     'Next Run' => 'Neste kjøring',
     'Are you sure you want to delete this report?' => 'Er du sikker på at du vil slette denne rapporten?',
+    'Delete report "{name}"? This cannot be undone.' => 'Slett rapport „{name}"? Dette kan ikke angres.',
+    'Delete {count} report(s)? This cannot be undone.' => 'Slett {count} rapporter? Dette kan ikke angres.',
+    'Could not queue export.' => 'Kunne ikke legge eksporten i kø.',
+    'Could not enable reports.' => 'Kunne ikke aktivere rapportene.',
+    'Could not disable reports.' => 'Kunne ikke deaktivere rapportene.',
+    'Could not delete reports.' => 'Kunne ikke slette rapportene.',
+    'Enabled {count} report(s).' => '{count} rapporter aktivert.',
+    'Disabled {count} report(s).' => '{count} rapporter deaktivert.',
+    'Deleted {count} report(s).' => '{count} rapporter slettet.',
 
     // Reports: Edit
     'Edit Report' => 'Rediger rapport',
@@ -285,6 +294,12 @@ return [
     'Combined' => 'Kombinert',
     'Separate' => 'Separate',
     'Total Files' => 'Totalt antall filer',
+    'File deleted.' => 'Fil slettet.',
+    'Could not delete file.' => 'Kunne ikke slette filen.',
+    'Could not delete files.' => 'Kunne ikke slette filene.',
+    'Delete "{name}"? This cannot be undone.' => 'Slett „{name}"? Dette kan ikke angres.',
+    'Delete {count} file(s)? This cannot be undone.' => 'Slett {count} filer? Dette kan ikke angres.',
+    'Deleted {count} file(s).' => '{count} filer slettet.',
 
     // Exports: Index
     'Quick Export' => 'Rask eksport',
@@ -296,6 +311,11 @@ return [
     'Ad-hoc' => 'Ad hoc',
     'Report' => 'Rapport',
     'Scheduled' => 'Planlagt',
+    'Export deleted.' => 'Eksport slettet.',
+    'Delete export "{name}"? This cannot be undone.' => 'Slett eksport „{name}"? Dette kan ikke angres.',
+    'Delete {count} export(s)? This cannot be undone.' => 'Slett {count} eksporter? Dette kan ikke angres.',
+    'Could not delete exports.' => 'Kunne ikke slette eksportene.',
+    'Deleted {count} export(s).' => '{count} eksporter slettet.',
 
     // Exports: New
     'Generate Export' => 'Generer eksport',

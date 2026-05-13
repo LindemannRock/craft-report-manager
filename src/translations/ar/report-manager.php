@@ -243,6 +243,15 @@ return [
     'Last Run' => 'آخر تشغيل',
     'Next Run' => 'التشغيل التالي',
     'Are you sure you want to delete this report?' => 'هل أنت متأكد من رغبتك في حذف هذا التقرير؟',
+    'Delete report "{name}"? This cannot be undone.' => 'حذف التقرير "{name}"؟ لا يمكن التراجع عن هذا الإجراء.',
+    'Delete {count} report(s)? This cannot be undone.' => 'حذف {count} تقارير؟ لا يمكن التراجع عن هذا الإجراء.',
+    'Could not queue export.' => 'تعذّر إضافة التصدير إلى قائمة الانتظار.',
+    'Could not enable reports.' => 'تعذّر تفعيل التقارير.',
+    'Could not disable reports.' => 'تعذّر تعطيل التقارير.',
+    'Could not delete reports.' => 'تعذّر حذف التقارير.',
+    'Enabled {count} report(s).' => 'تم تفعيل {count} تقارير.',
+    'Disabled {count} report(s).' => 'تم تعطيل {count} تقارير.',
+    'Deleted {count} report(s).' => 'تم حذف {count} تقارير.',
 
     // Reports: Edit
     'Edit Report' => 'تعديل التقرير',
@@ -285,6 +294,12 @@ return [
     'Combined' => 'مدمج',
     'Separate' => 'منفصل',
     'Total Files' => 'إجمالي الملفات',
+    'File deleted.' => 'تم حذف الملف.',
+    'Could not delete file.' => 'تعذّر حذف الملف.',
+    'Could not delete files.' => 'تعذّر حذف الملفات.',
+    'Delete "{name}"? This cannot be undone.' => 'حذف "{name}"؟ لا يمكن التراجع عن هذا الإجراء.',
+    'Delete {count} file(s)? This cannot be undone.' => 'حذف {count} ملفات؟ لا يمكن التراجع عن هذا الإجراء.',
+    'Deleted {count} file(s).' => 'تم حذف {count} ملفات.',
 
     // Exports: Index
     'Quick Export' => 'تصدير سريع',
@@ -296,6 +311,11 @@ return [
     'Ad-hoc' => 'مباشر',
     'Report' => 'تقرير',
     'Scheduled' => 'مجدول',
+    'Export deleted.' => 'تم حذف التصدير.',
+    'Delete export "{name}"? This cannot be undone.' => 'حذف التصدير "{name}"؟ لا يمكن التراجع عن هذا الإجراء.',
+    'Delete {count} export(s)? This cannot be undone.' => 'حذف {count} تصديرات؟ لا يمكن التراجع عن هذا الإجراء.',
+    'Could not delete exports.' => 'تعذّر حذف التصديرات.',
+    'Deleted {count} export(s).' => 'تم حذف {count} تصديرات.',
 
     // Exports: New
     'Generate Export' => 'إنشاء تصدير',
