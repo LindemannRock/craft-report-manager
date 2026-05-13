@@ -111,6 +111,7 @@ class ReportsService extends Component
             'dateRange',
             'exportFormat',
             'lastGeneratedAt',
+            'nextScheduledAt',
             'enabled',
             'dateCreated',
             'sortOrder',

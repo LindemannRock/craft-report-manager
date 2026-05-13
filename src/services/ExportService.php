@@ -249,10 +249,29 @@ class ExportService extends Component
     {
         $page = max(1, $params['page'] ?? 1);
         $limit = $params['limit'] ?? 20;
+        $sort = $params['sort'] ?? 'dateCreated';
+        $dir = $params['dir'] ?? 'desc';
+
+        // Defence-in-depth: allowlist the sort column. Controllers should
+        // already gate this, but a service that exposes ORDER BY through a
+        // string param validates again rather than trusting upstream.
+        $validSortFields = [
+            'filename',
+            'format',
+            'status',
+            'recordCount',
+            'fileSize',
+            'dateCreated',
+        ];
+
+        if (!in_array($sort, $validSortFields, true)) {
+            $sort = 'dateCreated';
+        }
+        $sortDirection = strtolower((string) $dir) === 'asc' ? SORT_ASC : SORT_DESC;
 
         $query = ExportRecord::find()
             ->where(['reportId' => $reportId])
-            ->orderBy(['dateCreated' => SORT_DESC]);
+            ->orderBy([$sort => $sortDirection]);
 
         $totalCount = (int) $query->count();
         $offset = ($page - 1) * $limit;

@@ -241,6 +241,15 @@ return [
     'Last Run' => 'Last Run',
     'Next Run' => 'Next Run',
     'Are you sure you want to delete this report?' => 'Are you sure you want to delete this report?',
+    'Delete report "{name}"? This cannot be undone.' => 'Delete report "{name}"? This cannot be undone.',
+    'Delete {count} report(s)? This cannot be undone.' => 'Delete {count} report(s)? This cannot be undone.',
+    'Could not queue export.' => 'Could not queue export.',
+    'Could not enable reports.' => 'Could not enable reports.',
+    'Could not disable reports.' => 'Could not disable reports.',
+    'Could not delete reports.' => 'Could not delete reports.',
+    'Enabled {count} report(s).' => 'Enabled {count} report(s).',
+    'Disabled {count} report(s).' => 'Disabled {count} report(s).',
+    'Deleted {count} report(s).' => 'Deleted {count} report(s).',
 
     // Reports: Edit
     'Edit Report' => 'Edit Report',
@@ -283,6 +292,12 @@ return [
     'Combined' => 'Combined',
     'Separate' => 'Separate',
     'Total Files' => 'Total Files',
+    'File deleted.' => 'File deleted.',
+    'Could not delete file.' => 'Could not delete file.',
+    'Could not delete files.' => 'Could not delete files.',
+    'Delete "{name}"? This cannot be undone.' => 'Delete "{name}"? This cannot be undone.',
+    'Delete {count} file(s)? This cannot be undone.' => 'Delete {count} file(s)? This cannot be undone.',
+    'Deleted {count} file(s).' => 'Deleted {count} file(s).',
 
     // Exports: Index
     'Quick Export' => 'Quick Export',
@@ -294,6 +309,11 @@ return [
     'Ad-hoc' => 'Ad-hoc',
     'Report' => 'Report',
     'Scheduled' => 'Scheduled',
+    'Export deleted.' => 'Export deleted.',
+    'Delete export "{name}"? This cannot be undone.' => 'Delete export "{name}"? This cannot be undone.',
+    'Delete {count} export(s)? This cannot be undone.' => 'Delete {count} export(s)? This cannot be undone.',
+    'Could not delete exports.' => 'Could not delete exports.',
+    'Deleted {count} export(s).' => 'Deleted {count} export(s).',
 
     // Exports: New
     'Generate Export' => 'Generate Export',

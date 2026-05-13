@@ -2,25 +2,16 @@
  # Reports Index - Using cp-table layout
  #
  # Lists all reports with filtering, sorting, bulk actions and pagination.
+ # Filters/sort/paginate are owned by ReportsController::actionIndex.
  #}
 
 {% extends 'lindemannrock-base/_layouts/cp-table' %}
 
 {# ============================================================================
-   GET QUERY PARAMETERS
-   ============================================================================ #}
-
-{% set search = craft.app.request.getParam('search', '') %}
-{% set statusFilter = craft.app.request.getParam('status', 'all') %}
-{% set formatFilter = craft.app.request.getParam('format', 'all') %}
-{% set sort = craft.app.request.getParam('sort', 'dateCreated') %}
-{% set dir = craft.app.request.getParam('dir', 'desc') %}
-
-{# ============================================================================
    BUILD FILTER OPTIONS
    ============================================================================ #}
 
-{# Build format options from enabled exports config #}
+{# Build format options from enabled exports config. #}
 {% set formatOptions = [{value: 'all', label: 'All Formats'|t('report-manager'), status: 'all'}] %}
 {% for format in lrExportFormatOptions() %}
     {% set formatOptions = formatOptions|merge([{value: format.value, label: format.label, colorKey: format.value}]) %}
@@ -29,8 +20,6 @@
 {# ============================================================================
    TABLE CONFIGURATION
    ============================================================================ #}
-
-{% set canManage = currentUser.can('reportManager:manageReports') %}
 
 {% set tableConfig = {
     plugin: {
@@ -101,11 +90,10 @@
         totalCount: totalCount,
         itemLabel: {singular: 'report'|t('report-manager'), plural: 'reports'|t('report-manager')},
     },
-    checkboxes: true,
-    newButton: canManage ? {
+    checkboxes: canEdit or canDelete,
+    newButton: canEdit ? {
         url: url('report-manager/reports/new'),
         label: 'New Report'|t('report-manager'),
-        permission: 'reportManager:manageReports',
     } : null,
 } %}
 
@@ -117,7 +105,7 @@
 {% block tableRow %}
     {# Name #}
     <td data-column="name">
-        {% if canManage %}
+        {% if canEdit %}
             <a href="{{ url('report-manager/reports/' ~ item.id) }}">{{ item.name }}</a>
         {% else %}
             {{ item.name }}
@@ -142,8 +130,10 @@
     {# Generated Files #}
     <td data-column="generatedFiles" class="lr-hideable-column">
         {% set exportCount = exportCounts[item.id] ?? 0 %}
-        {% if exportCount > 0 %}
+        {% if exportCount > 0 and canViewGenerated %}
             <a href="{{ url('report-manager/reports/' ~ item.id ~ '/generated') }}">{{ exportCount|number_format }}</a>
+        {% elseif exportCount > 0 %}
+            {{ exportCount|number_format }}
         {% else %}
             <span class="light">0</span>
         {% endif %}
@@ -194,39 +184,54 @@
    ============================================================================ #}
 
 {% block rowActions %}
-    <td class="thin" style="text-align: right;">
-        <button type="button" class="btn menubtn" data-icon="settings" title="{{ 'Actions'|t('report-manager') }}"></button>
-        <div class="menu">
-            <ul>
-                {% if canManage %}
-                    <li>
-                        <a href="{{ url('report-manager/reports/' ~ item.id) }}">
-                            {{ 'Edit'|t('report-manager') }}
-                        </a>
-                    </li>
-                {% endif %}
-                <li>
-                    <a href="{{ url('report-manager/reports/' ~ item.id ~ '/generated') }}">
-                        {{ 'View Generated'|t('report-manager') }}
-                    </a>
-                </li>
-                <li><hr class="padded"></li>
-                <li>
-                    <a class="report-action" data-action="generate" data-id="{{ item.id }}" data-name="{{ item.name }}">
-                        {{ 'Generate Now'|t('report-manager') }}
-                    </a>
-                </li>
-                {% if canManage %}
-                    <li><hr class="padded"></li>
-                    <li>
-                        <a class="report-action error" data-action="delete" data-id="{{ item.id }}" data-name="{{ item.name }}">
-                            {{ 'Delete'|t('report-manager') }}
-                        </a>
-                    </li>
-                {% endif %}
-            </ul>
-        </div>
-    </td>
+    {% set actionItems = [] %}
+
+    {% if canEdit %}
+        {% set actionItems = actionItems|merge([{
+            label: 'Edit'|t('report-manager'),
+            url: url('report-manager/reports/' ~ item.id),
+        }]) %}
+    {% endif %}
+
+    {% if canViewGenerated %}
+        {% set actionItems = actionItems|merge([{
+            label: 'View Generated'|t('report-manager'),
+            url: url('report-manager/reports/' ~ item.id ~ '/generated'),
+        }]) %}
+    {% endif %}
+
+    {% if canGenerate %}
+        {% set actionItems = actionItems|merge([
+            {type: 'divider'},
+            {
+                label: 'Generate Now'|t('report-manager'),
+                jsAction: 'generate',
+                data: {name: item.name},
+            },
+        ]) %}
+    {% endif %}
+
+    {% if canDelete %}
+        {% set actionItems = actionItems|merge([
+            {type: 'divider'},
+            {
+                label: 'Delete'|t('report-manager'),
+                class: 'error',
+                jsAction: 'delete',
+                data: {name: item.name},
+            },
+        ]) %}
+    {% endif %}
+
+    {% include 'lindemannrock-base/_components/row-actions' with {
+        item: item,
+        actions: {
+            type: 'menu',
+            icon: 'settings',
+            title: 'Actions'|t('report-manager'),
+            items: actionItems,
+        },
+    } only %}
 {% endblock %}
 
 
@@ -235,20 +240,24 @@
    ============================================================================ #}
 
 {% block bulkActions %}
-    <div>
-        <button type="button" class="btn menubtn secondary" id="bulk-status-btn" aria-label="Set status">
-            {{ 'Set status'|t('app') }}
-        </button>
-        <div class="menu">
-            <ul>
-                <li><a id="bulk-enable-action">{{ 'Enable'|t('report-manager') }}</a></li>
-                <li><a id="bulk-disable-action">{{ 'Disable'|t('report-manager') }}</a></li>
-            </ul>
+    {% if canEdit %}
+        <div>
+            <button type="button" class="btn menubtn secondary" id="lr-bulk-status-btn" aria-label="{{ 'Set status'|t('app') }}">
+                {{ 'Set status'|t('app') }}
+            </button>
+            <div class="menu">
+                <ul>
+                    <li><a id="lr-bulk-enable-action">{{ 'Enable'|t('report-manager') }}</a></li>
+                    <li><a id="lr-bulk-disable-action">{{ 'Disable'|t('report-manager') }}</a></li>
+                </ul>
+            </div>
         </div>
-    </div>
-    <button type="button" class="btn secondary" id="bulk-delete-btn">
-        <span id="delete-label">{{ 'Delete'|t('report-manager') }}</span>
-    </button>
+    {% endif %}
+    {% if canDelete %}
+        <button type="button" class="btn secondary" id="lr-bulk-delete-btn">
+            {{ 'Delete'|t('report-manager') }} (<span class="lr-bulk-count">0</span>)
+        </button>
+    {% endif %}
 {% endblock %}
 
 
@@ -259,113 +268,131 @@
 {% block scripts %}
     <script>
     (function() {
-        // Initialize bulk status menu
-        const bulkStatusBtn = document.getElementById('bulk-status-btn');
-        if (bulkStatusBtn && typeof Craft !== 'undefined' && Craft.MenuBtn) {
+        if (typeof Craft === 'undefined') return;
+
+        // Initialise the "Set status" menubtn — without `new Craft.MenuBtn(...)`
+        // clicking the button doesn't open its menu.
+        const bulkStatusBtn = document.getElementById('lr-bulk-status-btn');
+        if (bulkStatusBtn && Craft.MenuBtn) {
             new Craft.MenuBtn(bulkStatusBtn);
         }
 
-        // Update delete label with count
+        const T = {
+            reportDeleted: {{ 'Report deleted.'|t('report-manager')|json_encode|raw }},
+            deleteFailed: {{ 'Could not delete report.'|t('report-manager')|json_encode|raw }},
+            deleteConfirmTemplate: {{ 'Delete report "{name}"? This cannot be undone.'|t('report-manager')|json_encode|raw }},
+            generateQueued: {{ 'Export queued for generation.'|t('report-manager')|json_encode|raw }},
+            generateFailed: {{ 'Could not queue export.'|t('report-manager')|json_encode|raw }},
+            bulkEnabledTemplate: {{ 'Enabled {count} report(s).'|t('report-manager')|json_encode|raw }},
+            bulkEnableFailed: {{ 'Could not enable reports.'|t('report-manager')|json_encode|raw }},
+            bulkDisabledTemplate: {{ 'Disabled {count} report(s).'|t('report-manager')|json_encode|raw }},
+            bulkDisableFailed: {{ 'Could not disable reports.'|t('report-manager')|json_encode|raw }},
+            bulkDeletedTemplate: {{ 'Deleted {count} report(s).'|t('report-manager')|json_encode|raw }},
+            bulkDeleteFailed: {{ 'Could not delete reports.'|t('report-manager')|json_encode|raw }},
+            bulkDeleteConfirmTemplate: {{ 'Delete {count} report(s)? This cannot be undone.'|t('report-manager')|json_encode|raw }},
+        };
+
         document.addEventListener('lr:selectionChanged', function(e) {
-            const deleteLabel = document.getElementById('delete-label');
-            if (deleteLabel && e.detail.count > 0) {
-                deleteLabel.textContent = `{{ 'Delete'|t('report-manager') }} (${e.detail.count})`;
+            const ids = (e.detail && Array.isArray(e.detail.selectedIds))
+                ? e.detail.selectedIds
+                : [];
+            document.querySelectorAll('.lr-bulk-count').forEach(function(el) {
+                el.textContent = ids.length;
+            });
+        });
+
+        function selectedIds() {
+            return window.lrTableSelection ? window.lrTableSelection.getSelectedIds() : [];
+        }
+
+        // ---------------------------------------------------------------------
+        // Row actions: delegated, anchor-scoped, action-allowlisted.
+        // ---------------------------------------------------------------------
+        document.addEventListener('click', function(e) {
+            const trigger = e.target.closest('a[data-action]');
+            if (!trigger) return;
+
+            const action = trigger.dataset.action;
+            if (action !== 'generate' && action !== 'delete') return;
+
+            const reportId = parseInt(trigger.dataset.id || '0', 10);
+            if (!reportId) return;
+            e.preventDefault();
+
+            const name = trigger.dataset.name || '';
+
+            if (action === 'generate') {
+                Craft.sendActionRequest('POST', 'report-manager/reports/generate', {
+                    data: {reportId: reportId},
+                }).then(function(response) {
+                    if (response.data.success) {
+                        Craft.cp.displayNotice(T.generateQueued);
+                        setTimeout(function() {
+                            window.location.href = Craft.getCpUrl('report-manager/reports/' + reportId + '/generated');
+                        }, 500);
+                    } else if (response.data.error) {
+                        Craft.cp.displayError(response.data.error);
+                    }
+                }).catch(function() {
+                    Craft.cp.displayError(T.generateFailed);
+                });
+            } else if (action === 'delete') {
+                if (!confirm(T.deleteConfirmTemplate.replace('{name}', name))) return;
+                Craft.sendActionRequest('POST', 'report-manager/reports/delete', {
+                    data: {reportId: reportId},
+                }).then(function(response) {
+                    if (response.data.success) {
+                        Craft.cp.displayNotice(T.reportDeleted);
+                        setTimeout(function() { window.location.reload(); }, 500);
+                    } else if (response.data.error) {
+                        Craft.cp.displayError(response.data.error);
+                    }
+                }).catch(function() {
+                    Craft.cp.displayError(T.deleteFailed);
+                });
             }
         });
 
-        // Bulk enable
-        document.getElementById('bulk-enable-action')?.addEventListener('click', function(e) {
-            e.preventDefault();
-            const ids = window.lrTableSelection?.getSelectedIds() || [];
+        // ---------------------------------------------------------------------
+        // Bulk actions. Shared helper for the status-change endpoints.
+        // ---------------------------------------------------------------------
+        function runBulkStatus(endpoint, successTemplate, errorFallback) {
+            const ids = selectedIds();
             if (!ids.length) return;
-
-            Craft.sendActionRequest('POST', 'report-manager/reports/bulk-enable', {
-                data: { reportIds: ids }
+            Craft.sendActionRequest('POST', endpoint, {
+                data: {reportIds: ids},
             }).then(function(response) {
-                if (response.data.success) {
-                    Craft.cp.displayNotice(`Enabled ${response.data.count} reports`);
-                    setTimeout(() => window.location.reload(), 1000);
+                const count = response.data.count || 0;
+                if (count > 0) {
+                    Craft.cp.displayNotice(successTemplate.replace('{count}', count));
                 }
-            }).catch(function(error) {
-                Craft.cp.displayError('Failed to enable reports');
-            });
-        });
-
-        // Bulk disable
-        document.getElementById('bulk-disable-action')?.addEventListener('click', function(e) {
-            e.preventDefault();
-            const ids = window.lrTableSelection?.getSelectedIds() || [];
-            if (!ids.length) return;
-
-            Craft.sendActionRequest('POST', 'report-manager/reports/bulk-disable', {
-                data: { reportIds: ids }
-            }).then(function(response) {
-                if (response.data.success) {
-                    Craft.cp.displayNotice(`Disabled ${response.data.count} reports`);
-                    setTimeout(() => window.location.reload(), 1000);
+                if (response.data.error) {
+                    Craft.cp.displayError(response.data.error);
                 }
-            }).catch(function(error) {
-                Craft.cp.displayError('Failed to disable reports');
-            });
-        });
-
-        // Bulk delete
-        document.getElementById('bulk-delete-btn')?.addEventListener('click', function() {
-            const ids = window.lrTableSelection?.getSelectedIds() || [];
-            if (!ids.length) return;
-            if (!confirm(`Delete ${ids.length} ${ids.length > 1 ? 'reports' : 'report'}? This cannot be undone.`)) return;
-
-            Craft.sendActionRequest('POST', 'report-manager/reports/bulk-delete', {
-                data: { reportIds: ids }
-            }).then(function(response) {
-                if (response.data.success) {
-                    Craft.cp.displayNotice(`Deleted ${response.data.count} reports`);
-                    setTimeout(() => window.location.reload(), 1000);
+                if (count > 0) {
+                    setTimeout(function() { window.location.reload(); }, 1000);
                 }
-            }).catch(function(error) {
-                Craft.cp.displayError('Failed to delete reports');
+            }).catch(function() {
+                Craft.cp.displayError(errorFallback);
             });
-        });
-
-        // Individual report action menu clicks
-        document.querySelectorAll('.report-action').forEach(link => {
-            link.addEventListener('click', function(e) {
-                e.preventDefault();
-
-                const action = this.dataset.action;
-                const reportId = this.dataset.id;
-                const reportName = this.dataset.name;
-
-                if (action === 'generate') {
-                    submitReportAction('report-manager/reports/generate', reportId);
-                } else if (action === 'delete') {
-                    if (confirm('Delete report "' + reportName + '"? This cannot be undone.')) {
-                        submitReportAction('report-manager/reports/delete', reportId);
-                    }
-                }
-            });
-        });
-
-        function submitReportAction(action, reportId) {
-            const form = document.createElement('form');
-            form.method = 'POST';
-            form.action = Craft.getActionUrl(action);
-
-            const csrfInput = document.createElement('input');
-            csrfInput.type = 'hidden';
-            csrfInput.name = '{{ craft.app.config.general.csrfTokenName }}';
-            csrfInput.value = '{{ craft.app.request.csrfToken }}';
-            form.appendChild(csrfInput);
-
-            const reportIdInput = document.createElement('input');
-            reportIdInput.type = 'hidden';
-            reportIdInput.name = 'reportId';
-            reportIdInput.value = reportId;
-            form.appendChild(reportIdInput);
-
-            document.body.appendChild(form);
-            form.submit();
         }
+
+        document.getElementById('lr-bulk-enable-action')?.addEventListener('click', function(e) {
+            e.preventDefault();
+            runBulkStatus('report-manager/reports/bulk-enable', T.bulkEnabledTemplate, T.bulkEnableFailed);
+        });
+
+        document.getElementById('lr-bulk-disable-action')?.addEventListener('click', function(e) {
+            e.preventDefault();
+            runBulkStatus('report-manager/reports/bulk-disable', T.bulkDisabledTemplate, T.bulkDisableFailed);
+        });
+
+        document.getElementById('lr-bulk-delete-btn')?.addEventListener('click', function() {
+            const ids = selectedIds();
+            if (!ids.length) return;
+            if (!confirm(T.bulkDeleteConfirmTemplate.replace('{count}', ids.length))) return;
+            runBulkStatus('report-manager/reports/bulk-delete', T.bulkDeletedTemplate, T.bulkDeleteFailed);
+        });
     })();
     </script>
 {% endblock %}

@@ -72,16 +72,49 @@ class ReportsController extends Controller
         $settings = $plugin->getSettings();
         $request = Craft::$app->getRequest();
 
-        // Get filter/sort parameters
-        $search = $request->getParam('search', '');
-        $statusFilter = $request->getParam('status', 'all');
-        $formatFilter = $request->getParam('format', 'all');
-        $sort = $request->getParam('sort', 'dateCreated');
-        $dir = $request->getParam('dir', 'desc');
-        $page = max(1, (int) $request->getParam('page', 1));
-        $limit = $settings->itemsPerPage ?? 20;
+        // ---- Param parsing + allowlist validation -------------------------
+        $statusFilter = (string) $request->getParam('status', 'all');
+        $validStatuses = ['all', 'enabled', 'disabled'];
+        if (!in_array($statusFilter, $validStatuses, true)) {
+            $statusFilter = 'all';
+        }
 
-        // Get filtered and paginated reports
+        $formatFilter = (string) $request->getParam('format', 'all');
+        $validFormats = array_merge(
+            ['all'],
+            array_column(ExportHelper::getFormatOptions(), 'value')
+        );
+        if (!in_array($formatFilter, $validFormats, true)) {
+            $formatFilter = 'all';
+        }
+
+        $search = trim((string) $request->getParam('search', ''));
+        if (mb_strlen($search) > 64) {
+            $search = mb_substr($search, 0, 64);
+        }
+
+        $validSortFields = [
+            'name',
+            'handle',
+            'dataSource',
+            'dateRange',
+            'exportFormat',
+            'lastGeneratedAt',
+            'nextScheduledAt',
+            'enabled',
+            'dateCreated',
+            'sortOrder',
+        ];
+        $sort = (string) $request->getParam('sort', 'dateCreated');
+        if (!in_array($sort, $validSortFields, true)) {
+            $sort = 'dateCreated';
+        }
+        $dir = strtolower((string) $request->getParam('dir', 'desc')) === 'asc' ? 'asc' : 'desc';
+
+        $page = max(1, (int) $request->getParam('page', 1));
+        $limit = max(1, (int) $settings->itemsPerPage);
+
+        // Get filtered and paginated reports.
         $result = $plugin->reports->getFilteredReports([
             'search' => $search,
             'enabled' => $statusFilter === 'enabled' ? true : ($statusFilter === 'disabled' ? false : null),
@@ -99,16 +132,27 @@ class ReportsController extends Controller
         $exportCounts = $plugin->exports->getExportCountsForReports($reportIds);
         $dataSources = $plugin->dataSources->getAvailableDataSources();
 
+        $userComponent = Craft::$app->getUser();
+
         return $this->renderTemplate('report-manager/reports/index', [
             'settings' => $settings,
             'reports' => $result['reports'],
             'exportCounts' => $exportCounts,
             'dataSources' => $dataSources,
+            'statusFilter' => $statusFilter,
+            'formatFilter' => $formatFilter,
+            'search' => $search,
+            'sort' => $sort,
+            'dir' => $dir,
             'page' => $page,
             'limit' => $limit,
             'offset' => $result['offset'],
             'totalCount' => $result['totalCount'],
             'totalPages' => $result['totalPages'],
+            'canEdit' => $userComponent->checkPermission('reportManager:editReports'),
+            'canDelete' => $userComponent->checkPermission('reportManager:deleteReports'),
+            'canGenerate' => $userComponent->checkPermission('reportManager:createExports'),
+            'canViewGenerated' => $userComponent->checkPermission('reportManager:manageExports'),
         ]);
     }
 
@@ -503,27 +547,50 @@ class ReportsController extends Controller
             throw new NotFoundHttpException(Craft::t('report-manager', 'Report not found'));
         }
 
-        // Pagination
-        $page = max(1, (int) $request->getParam('page', 1));
-        $limit = $settings->itemsPerPage ?? 20;
+        // ---- Param parsing + allowlist validation -------------------------
+        $validSortFields = [
+            'filename',
+            'format',
+            'status',
+            'recordCount',
+            'fileSize',
+            'dateCreated',
+        ];
+        $sort = (string) $request->getParam('sort', 'dateCreated');
+        if (!in_array($sort, $validSortFields, true)) {
+            $sort = 'dateCreated';
+        }
+        $dir = strtolower((string) $request->getParam('dir', 'desc')) === 'asc' ? 'asc' : 'desc';
 
-        // Get exports for this report
+        $page = max(1, (int) $request->getParam('page', 1));
+        $limit = max(1, (int) $settings->itemsPerPage);
+
+        // Get exports for this report.
         $result = $plugin->exports->getExportsForReport($reportId, [
             'page' => $page,
             'limit' => $limit,
+            'sort' => $sort,
+            'dir' => $dir,
         ]);
         $exportFileExists = $plugin->exports->getFileAvailabilityMap($result['exports']);
+
+        $userComponent = Craft::$app->getUser();
 
         return $this->renderTemplate('report-manager/reports/generated', [
             'settings' => $settings,
             'report' => $report,
             'exports' => $result['exports'],
             'exportFileExists' => $exportFileExists,
+            'sort' => $sort,
+            'dir' => $dir,
             'page' => $page,
             'limit' => $limit,
             'offset' => $result['offset'],
             'totalCount' => $result['totalCount'],
             'totalPages' => $result['totalPages'],
+            'canCreate' => $userComponent->checkPermission('reportManager:createExports'),
+            'canDownload' => $userComponent->checkPermission('reportManager:downloadExports'),
+            'canDelete' => $userComponent->checkPermission('reportManager:deleteExports'),
         ]);
     }
 

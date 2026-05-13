@@ -2,6 +2,7 @@
  # Report Generated Files - Using cp-table layout
  #
  # Lists all generated export files for a specific report.
+ # Sort/paginate are owned by ReportsController::actionGenerated.
  #}
 
 {% extends 'lindemannrock-base/_layouts/cp-table' %}
@@ -10,9 +11,6 @@
    TABLE CONFIGURATION
    ============================================================================ #}
 
-{% set canDownload = currentUser.can('reportManager:downloadExports') %}
-{% set canDelete = currentUser.can('reportManager:deleteExports') %}
-{% set canCreate = currentUser.can('reportManager:createExports') %}
 {% set showActionsColumn = canDownload or canDelete %}
 
 {% set tableConfig = {
@@ -30,14 +28,18 @@
             { label: 'Generated Files'|t('report-manager') }
         ],
     },
+    sort: {
+        field: sort,
+        direction: dir,
+    },
     table: {
         columns: [
-            {key: 'filename', label: 'Filename'|t('report-manager')},
-            {key: 'format', label: 'Format'|t('report-manager')},
-            {key: 'status', label: 'Status'|t('report-manager')},
-            {key: 'recordCount', label: 'Records'|t('report-manager')},
-            {key: 'fileSize', label: 'Size'|t('report-manager')},
-            {key: 'dateCreated', label: 'Created'|t('report-manager')},
+            {key: 'filename', label: 'Filename'|t('report-manager'), sortable: true},
+            {key: 'format', label: 'Format'|t('report-manager'), sortable: true},
+            {key: 'status', label: 'Status'|t('report-manager'), sortable: true},
+            {key: 'recordCount', label: 'Records'|t('report-manager'), sortable: true},
+            {key: 'fileSize', label: 'Size'|t('report-manager'), sortable: true},
+            {key: 'dateCreated', label: 'Created'|t('report-manager'), sortable: true},
         ],
         items: exports,
         emptyMessage: 'No generated files yet.'|t('report-manager'),
@@ -119,35 +121,44 @@
 
 {% block rowActions %}
     {% if showActionsColumn %}
-        {% set displayName = item.entityName ?? item.filename %}
-        <td class="thin" style="text-align: right;">
-            <button type="button" class="btn menubtn" data-icon="settings" title="{{ 'Actions'|t('report-manager') }}"></button>
-            <div class="menu">
-                <ul>
-                    <li>
-                        <a href="{{ url('report-manager/exports/' ~ item.id) }}">
-                            {{ 'Details'|t('report-manager') }}
-                        </a>
-                    </li>
-                    {% set fileAvailable = exportFileExists[item.id] ?? false %}
-                    {% if item.isCompleted() and canDownload and fileAvailable %}
-                        <li>
-                            <a href="{{ url('report-manager/exports/download/' ~ item.id) }}">
-                                {{ 'Download'|t('report-manager') }}
-                            </a>
-                        </li>
-                    {% endif %}
-                    {% if canDelete %}
-                        {% if item.isCompleted() and canDownload %}<li><hr class="padded"></li>{% endif %}
-                        <li>
-                            <a class="export-action error" data-action="delete" data-id="{{ item.id }}" data-name="{{ displayName }}">
-                                {{ 'Delete'|t('report-manager') }}
-                            </a>
-                        </li>
-                    {% endif %}
-                </ul>
-            </div>
-        </td>
+        {% set fileAvailable = exportFileExists[item.id] ?? false %}
+        {% set displayName = item.entityName ?: item.filename %}
+
+        {% set actionItems = [
+            {
+                label: 'Details'|t('report-manager'),
+                url: url('report-manager/exports/' ~ item.id),
+            },
+        ] %}
+
+        {% if item.isCompleted() and canDownload and fileAvailable %}
+            {% set actionItems = actionItems|merge([{
+                label: 'Download'|t('report-manager'),
+                url: url('report-manager/exports/download/' ~ item.id),
+            }]) %}
+        {% endif %}
+
+        {% if canDelete %}
+            {% set actionItems = actionItems|merge([
+                {type: 'divider'},
+                {
+                    label: 'Delete'|t('report-manager'),
+                    class: 'error',
+                    jsAction: 'delete',
+                    data: {name: displayName},
+                },
+            ]) %}
+        {% endif %}
+
+        {% include 'lindemannrock-base/_components/row-actions' with {
+            item: item,
+            actions: {
+                type: 'menu',
+                icon: 'settings',
+                title: 'Actions'|t('report-manager'),
+                items: actionItems,
+            },
+        } only %}
     {% endif %}
 {% endblock %}
 
@@ -158,8 +169,8 @@
 
 {% block bulkActions %}
     {% if canDelete %}
-        <button type="button" class="btn secondary" id="bulk-delete-btn">
-            <span id="delete-label">{{ 'Delete'|t('report-manager') }}</span>
+        <button type="button" class="btn secondary" id="lr-bulk-delete-btn">
+            {{ 'Delete'|t('report-manager') }} (<span class="lr-bulk-count">0</span>)
         </button>
     {% endif %}
 {% endblock %}
@@ -218,55 +229,77 @@
 {% block scripts %}
     <script>
     (function() {
-        // Update delete label with count
+        if (typeof Craft === 'undefined') return;
+
+        const T = {
+            fileDeleted: {{ 'File deleted.'|t('report-manager')|json_encode|raw }},
+            deleteFailed: {{ 'Could not delete file.'|t('report-manager')|json_encode|raw }},
+            deleteConfirmTemplate: {{ 'Delete "{name}"? This cannot be undone.'|t('report-manager')|json_encode|raw }},
+            bulkDeletedTemplate: {{ 'Deleted {count} file(s).'|t('report-manager')|json_encode|raw }},
+            bulkDeleteFailed: {{ 'Could not delete files.'|t('report-manager')|json_encode|raw }},
+            bulkDeleteConfirmTemplate: {{ 'Delete {count} file(s)? This cannot be undone.'|t('report-manager')|json_encode|raw }},
+        };
+
         document.addEventListener('lr:selectionChanged', function(e) {
-            const deleteLabel = document.getElementById('delete-label');
-            if (deleteLabel && e.detail.count > 0) {
-                deleteLabel.textContent = `{{ 'Delete'|t('report-manager') }} (${e.detail.count})`;
-            }
-        });
-
-        // Bulk delete
-        document.getElementById('bulk-delete-btn')?.addEventListener('click', function() {
-            const ids = window.lrTableSelection?.getSelectedIds() || [];
-            if (!ids.length) return;
-            if (!confirm(`Delete ${ids.length} ${ids.length > 1 ? 'files' : 'file'}? This cannot be undone.`)) return;
-
-            Craft.sendActionRequest('POST', 'report-manager/exports/bulk-delete', {
-                data: { exportIds: ids }
-            }).then(function(response) {
-                if (response.data.success) {
-                    Craft.cp.displayNotice(`Deleted ${response.data.deleted} files`);
-                    setTimeout(() => window.location.reload(), 1000);
-                }
-            }).catch(function(error) {
-                Craft.cp.displayError('Failed to delete files');
+            const ids = (e.detail && Array.isArray(e.detail.selectedIds))
+                ? e.detail.selectedIds
+                : [];
+            document.querySelectorAll('.lr-bulk-count').forEach(function(el) {
+                el.textContent = ids.length;
             });
         });
 
-        // Individual export action menu clicks
-        document.querySelectorAll('.export-action').forEach(link => {
-            link.addEventListener('click', function(e) {
-                e.preventDefault();
+        function selectedIds() {
+            return window.lrTableSelection ? window.lrTableSelection.getSelectedIds() : [];
+        }
 
-                const action = this.dataset.action;
-                const exportId = this.dataset.id;
-                const exportName = this.dataset.name;
+        // Row actions: delegated, anchor-scoped, action-allowlisted.
+        document.addEventListener('click', function(e) {
+            const trigger = e.target.closest('a[data-action]');
+            if (!trigger) return;
 
-                if (action === 'delete') {
-                    if (confirm('Delete "' + exportName + '"? This cannot be undone.')) {
-                        Craft.sendActionRequest('POST', 'report-manager/exports/delete', {
-                            data: { id: exportId }
-                        }).then(function(response) {
-                            if (response.data.success) {
-                                Craft.cp.displayNotice('File deleted');
-                                setTimeout(() => window.location.reload(), 1000);
-                            }
-                        }).catch(function(error) {
-                            Craft.cp.displayError('Failed to delete file');
-                        });
-                    }
+            const action = trigger.dataset.action;
+            if (action !== 'delete') return;
+
+            const exportId = parseInt(trigger.dataset.id || '0', 10);
+            if (!exportId) return;
+            e.preventDefault();
+
+            const name = trigger.dataset.name || '';
+            if (!confirm(T.deleteConfirmTemplate.replace('{name}', name))) return;
+
+            Craft.sendActionRequest('POST', 'report-manager/exports/delete', {
+                data: {id: exportId},
+            }).then(function(response) {
+                if (response.data.success) {
+                    Craft.cp.displayNotice(T.fileDeleted);
+                    setTimeout(function() { window.location.reload(); }, 500);
+                } else if (response.data.error) {
+                    Craft.cp.displayError(response.data.error);
                 }
+            }).catch(function() {
+                Craft.cp.displayError(T.deleteFailed);
+            });
+        });
+
+        // Bulk delete.
+        document.getElementById('lr-bulk-delete-btn')?.addEventListener('click', function() {
+            const ids = selectedIds();
+            if (!ids.length) return;
+            if (!confirm(T.bulkDeleteConfirmTemplate.replace('{count}', ids.length))) return;
+
+            Craft.sendActionRequest('POST', 'report-manager/exports/bulk-delete', {
+                data: {exportIds: ids},
+            }).then(function(response) {
+                if (response.data.success) {
+                    const deleted = response.data.deleted || 0;
+                    Craft.cp.displayNotice(T.bulkDeletedTemplate.replace('{count}', deleted));
+                    setTimeout(function() { window.location.reload(); }, 1000);
+                } else if (response.data.error) {
+                    Craft.cp.displayError(response.data.error);
+                }
+            }).catch(function() {
+                Craft.cp.displayError(T.bulkDeleteFailed);
             });
         });
     })();

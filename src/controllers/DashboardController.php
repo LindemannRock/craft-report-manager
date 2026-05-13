@@ -11,6 +11,7 @@ namespace lindemannrock\reportmanager\controllers;
 use Craft;
 use craft\web\Controller;
 use lindemannrock\base\helpers\CpNavHelper;
+use lindemannrock\base\helpers\ExportHelper;
 use lindemannrock\reportmanager\records\ExportRecord;
 use lindemannrock\reportmanager\ReportManager;
 use yii\web\Response;
@@ -64,36 +65,58 @@ class DashboardController extends Controller
         $settings = $plugin->getSettings();
         $request = Craft::$app->getRequest();
 
-        // Get query parameters
-        $statusFilter = $request->getParam('status', 'all');
-        $typeFilter = $request->getParam('type', 'all');
-        $formatFilter = $request->getParam('format', 'all');
-        $search = trim((string) $request->getParam('search', ''));
-        $sort = $request->getParam('sort', 'dateCreated');
-        $dir = $request->getParam('dir', 'desc');
-        $page = max(1, (int) $request->getParam('page', 1));
-        $limit = $settings->itemsPerPage;
-        $offset = ($page - 1) * $limit;
+        // ---- Param parsing + allowlist validation -------------------------
+        $statusFilter = (string) $request->getParam('status', 'all');
+        $validStatuses = ['all', 'pending', 'processing', 'completed', 'failed'];
+        if (!in_array($statusFilter, $validStatuses, true)) {
+            $statusFilter = 'all';
+        }
 
-        // Build query
+        $typeFilter = (string) $request->getParam('type', 'all');
+        $validTypes = ['all', 'manual', 'scheduled', 'api'];
+        if (!in_array($typeFilter, $validTypes, true)) {
+            $typeFilter = 'all';
+        }
+
+        $formatFilter = (string) $request->getParam('format', 'all');
+        $validFormats = array_merge(
+            ['all'],
+            array_column(ExportHelper::getFormatOptions(), 'value')
+        );
+        if (!in_array($formatFilter, $validFormats, true)) {
+            $formatFilter = 'all';
+        }
+
+        $search = trim((string) $request->getParam('search', ''));
+        if (mb_strlen($search) > 64) {
+            $search = mb_substr($search, 0, 64);
+        }
+
+        $validSortFields = ['entityName', 'format', 'status', 'recordCount', 'fileSize', 'triggeredBy', 'dateCreated'];
+        $sort = (string) $request->getParam('sort', 'dateCreated');
+        if (!in_array($sort, $validSortFields, true)) {
+            $sort = 'dateCreated';
+        }
+        $dir = strtolower((string) $request->getParam('dir', 'desc')) === 'asc' ? 'asc' : 'desc';
+
+        $page = max(1, (int) $request->getParam('page', 1));
+        $limit = max(1, (int) $settings->itemsPerPage);
+
+        // ---- Build query --------------------------------------------------
         $query = ExportRecord::find();
 
-        // Apply status filter
         if ($statusFilter !== 'all') {
             $query->andWhere(['status' => $statusFilter]);
         }
 
-        // Apply type filter (triggeredBy)
         if ($typeFilter !== 'all') {
             $query->andWhere(['triggeredBy' => $typeFilter]);
         }
 
-        // Apply format filter
         if ($formatFilter !== 'all') {
             $query->andWhere(['format' => $formatFilter]);
         }
 
-        // Apply search filter
         if ($search !== '') {
             $query->andWhere([
                 'or',
@@ -102,35 +125,39 @@ class DashboardController extends Controller
             ]);
         }
 
-        // Apply sorting
-        $allowedSortFields = ['entityName', 'format', 'status', 'recordCount', 'fileSize', 'triggeredBy', 'dateCreated'];
-        if (in_array($sort, $allowedSortFields, true)) {
-            $query->orderBy([$sort => $dir === 'asc' ? SORT_ASC : SORT_DESC]);
-        } else {
-            $query->orderBy(['dateCreated' => SORT_DESC]);
-        }
+        $query->orderBy([$sort => $dir === 'asc' ? SORT_ASC : SORT_DESC]);
 
-        // Get total count for pagination
-        $totalCount = (clone $query)->count();
+        // totalCount is computed after filtering, before slice.
+        $totalCount = (int) (clone $query)->count();
         $totalPages = max(1, (int) ceil($totalCount / $limit));
+        $offset = ($page - 1) * $limit;
 
-        // Apply pagination
         $query->offset($offset)->limit($limit);
 
-        // Get exports
         /** @var ExportRecord[] $exports */
         $exports = $query->all();
         $exportFileExists = $plugin->exports->getFileAvailabilityMap($exports);
+
+        $userComponent = Craft::$app->getUser();
 
         return $this->renderTemplate('report-manager/dashboard/index', [
             'settings' => $settings,
             'exports' => $exports,
             'exportFileExists' => $exportFileExists,
+            'statusFilter' => $statusFilter,
+            'typeFilter' => $typeFilter,
+            'formatFilter' => $formatFilter,
+            'search' => $search,
+            'sort' => $sort,
+            'dir' => $dir,
             'page' => $page,
             'totalPages' => $totalPages,
             'offset' => $offset,
             'limit' => $limit,
             'totalCount' => $totalCount,
+            'canDownload' => $userComponent->checkPermission('reportManager:downloadExports'),
+            'canDelete' => $userComponent->checkPermission('reportManager:deleteExports'),
+            'canManageReports' => $userComponent->checkPermission('reportManager:manageReports'),
         ]);
     }
 }
