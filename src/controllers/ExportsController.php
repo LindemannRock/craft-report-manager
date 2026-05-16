@@ -9,8 +9,8 @@
 namespace lindemannrock\reportmanager\controllers;
 
 use Craft;
+use craft\helpers\DateTimeHelper;
 use craft\web\Controller;
-use DateTime;
 use lindemannrock\base\helpers\ExportHelper;
 use lindemannrock\reportmanager\jobs\GenerateExportJob;
 use lindemannrock\reportmanager\records\ExportRecord;
@@ -246,11 +246,11 @@ class ExportsController extends Controller
         $dateEnd = null;
 
         if (!empty($customDateStart['date'])) {
-            $dateStart = new DateTime($customDateStart['date']);
+            $dateStart = DateTimeHelper::toDateTime($customDateStart['date']) ?: null;
         }
 
         if (!empty($customDateEnd['date'])) {
-            $dateEnd = new DateTime($customDateEnd['date']);
+            $dateEnd = DateTimeHelper::toDateTime($customDateEnd['date']) ?: null;
         }
 
         // Check if we should process immediately or queue
@@ -449,7 +449,7 @@ class ExportsController extends Controller
         if (!$export) {
             return $this->asJson([
                 'success' => false,
-                'error' => 'Export not found',
+                'error' => Craft::t('report-manager', 'Export not found'),
             ]);
         }
 
@@ -482,7 +482,7 @@ class ExportsController extends Controller
         if (!is_array($exportIds) || empty($exportIds)) {
             return $this->asJson([
                 'success' => false,
-                'error' => 'No exports selected',
+                'error' => Craft::t('report-manager', 'No exports selected.'),
             ]);
         }
 
