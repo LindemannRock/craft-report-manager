@@ -131,7 +131,7 @@
         {% set fileAvailable = exportFileExists[item.id] ?? false %}
         {% set isMissingFile = item.isCompleted and not fileAvailable %}
         {% include 'lindemannrock-base/_components/badge' with {
-            label: isMissingFile ? 'Missing file'|t('report-manager') : item.status|capitalize,
+            label: isMissingFile ? 'Missing file'|t('report-manager') : item.statusLabel,
             value: isMissingFile ? 'missing' : item.status,
             colorSet: 'exportStatus',
         } only %}

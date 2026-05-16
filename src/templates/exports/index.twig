@@ -149,11 +149,7 @@
 {% block rowActions %}
     {% if showActionsColumn %}
         {% set fileAvailable = exportFileExists[item.id] ?? false %}
-        {% if item.isCombinedExport() %}
-            {% set displayName = 'Combined Export'|t('report-manager') ~ ' (' ~ item.getEntityIdsArray()|length ~ ' forms)' %}
-        {% else %}
-            {% set displayName = item.entityName ?? ('Export #' ~ item.id) %}
-        {% endif %}
+        {% set displayName = item.entityName ?? ('Export #' ~ item.id) %}
 
         {% set actionItems = [
             {
