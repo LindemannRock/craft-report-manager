@@ -336,10 +336,13 @@ class Settings extends Model
         $rawPath = $this->exportPath;
         $path = Craft::getAlias($rawPath);
 
-        // If path is null or empty, use default
+        // If alias resolution failed or returned empty, log and fall back to default
         if (empty($path)) {
-            $defaultPath = '@storage/report-manager/exports';
-            $path = Craft::getAlias($defaultPath);
+            $this->logWarning('Configured exportPath could not be resolved; falling back to default.', [
+                'configuredPath' => $rawPath,
+                'fallback' => '@storage/report-manager/exports',
+            ]);
+            $path = Craft::getAlias('@storage/report-manager/exports');
         }
 
         // Additional safety checks
