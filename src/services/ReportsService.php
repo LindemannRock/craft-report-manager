@@ -595,14 +595,18 @@ class ReportsService extends Component
     private function generateUniqueHandle(string $handle): string
     {
         $baseHandle = $handle;
-        $counter = 1;
 
-        while (ReportRecord::findOne(['handle' => $handle]) !== null) {
-            $handle = $baseHandle . '-' . $counter;
-            $counter++;
+        for ($counter = 0; $counter < 100; $counter++) {
+            if (ReportRecord::findOne(['handle' => $handle]) === null) {
+                return $handle;
+            }
+            $handle = $baseHandle . '-' . ($counter + 1);
         }
 
-        return $handle;
+        throw new \RuntimeException(sprintf(
+            "Could not generate unique handle for '%s' after 100 attempts",
+            $baseHandle
+        ));
     }
 
     /**
