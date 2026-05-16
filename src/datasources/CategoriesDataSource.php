@@ -10,6 +10,7 @@ namespace lindemannrock\reportmanager\datasources;
 
 use Craft;
 use craft\base\FieldInterface;
+use craft\db\Query;
 use craft\elements\Category;
 use craft\helpers\Db;
 use DateTime;
@@ -83,16 +84,28 @@ class CategoriesDataSource extends BaseDataSource
      */
     public function getAvailableEntities(): array
     {
+        $rows = (new Query())
+            ->from(['c' => '{{%categories}}'])
+            ->innerJoin(['el' => '{{%elements}}'], '[[el.id]] = [[c.id]]')
+            ->where([
+                'el.draftId' => null,
+                'el.revisionId' => null,
+                'el.dateDeleted' => null,
+            ])
+            ->select(['groupId' => 'c.groupId', 'cnt' => 'COUNT(*)'])
+            ->groupBy('c.groupId')
+            ->all();
+
+        $counts = array_column($rows, 'cnt', 'groupId');
+
         $entities = [];
 
         foreach (Craft::$app->getCategories()->getAllGroups() as $group) {
-            $recordCount = $this->getRecordCount((int) $group->id);
-
             $entities[] = [
                 'id' => (int) $group->id,
                 'name' => (string) $group->name,
                 'handle' => (string) $group->handle,
-                'recordCount' => $recordCount,
+                'recordCount' => (int) ($counts[$group->id] ?? 0),
                 'recordLabel' => Craft::t('report-manager', 'categories'),
             ];
         }
