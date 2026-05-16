@@ -95,8 +95,6 @@ return [
     'Cleaned up {count} export(s)' => '{count} export(er) rensades',
     'Cleaning up old exports' => 'Rensar gamla exporter',
     'Export cleanup disabled' => 'Rensning av exporter är inaktiverad',
-    'Processed {count} reports' => '{count} rapport(er) bearbetades',
-    'Processing report: {name}' => 'Bearbetar rapport: {name}',
     'Queued {count} export(s)' => '{count} export(er) köades',
     'Queueing report exports' => 'Köar rapportexporter',
     'Report #{id}' => 'Rapport #{id}',
@@ -106,7 +104,6 @@ return [
     '{pluginName}: Cleaning up old exports' => '{pluginName}: Rensar gamla exporter',
     '{pluginName}: Generating export #{id}' => '{pluginName}: Genererar export #{id}',
     '{pluginName}: Generating export - {name}' => '{pluginName}: Genererar export – {name}',
-    '{pluginName}: Processing scheduled reports' => '{pluginName}: Bearbetar schemalagda rapporter',
     '{pluginName}: Scheduled report - {name}' => '{pluginName}: Schemalagd rapport – {name}',
 
     // Controller messages
@@ -141,8 +138,6 @@ return [
     'Export path cannot contain directory traversal sequences (..)' => 'Exportsökvägen får inte innehålla katalogtraverseringssekvenser (..)',
     'Export path must start with @root or @storage (secure locations only)' => 'Exportsökvägen måste börja med @root eller @storage (endast säkra platser)',
     'Invalid export path: {error}' => 'Ogiltig exportsökväg: {error}',
-    'Please select at least one form to export.' => 'Välj minst ett formulär att exportera.',
-    'Please select at least one form.' => 'Välj minst ett formulär.',
     'Please select at least one item.' => 'Välj minst ett objekt.',
 
     // Settings: General

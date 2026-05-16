@@ -95,8 +95,6 @@ return [
     'Cleaned up {count} export(s)' => '{count} 件のエクスポートを整理しました',
     'Cleaning up old exports' => '古いエクスポートを整理しています',
     'Export cleanup disabled' => 'エクスポートのクリーンアップが無効です',
-    'Processed {count} reports' => '{count} 件のレポートを処理しました',
-    'Processing report: {name}' => 'レポートを処理しています: {name}',
     'Queued {count} export(s)' => '{count} 件のエクスポートをキューに追加しました',
     'Queueing report exports' => 'レポートのエクスポートをキューに追加しています',
     'Report #{id}' => 'レポート #{id}',
@@ -106,7 +104,6 @@ return [
     '{pluginName}: Cleaning up old exports' => '{pluginName}: 古いエクスポートを整理しています',
     '{pluginName}: Generating export #{id}' => '{pluginName}: エクスポート #{id} を生成しています',
     '{pluginName}: Generating export - {name}' => '{pluginName}: エクスポートを生成しています – {name}',
-    '{pluginName}: Processing scheduled reports' => '{pluginName}: スケジュールされたレポートを処理しています',
     '{pluginName}: Scheduled report - {name}' => '{pluginName}: スケジュールされたレポート – {name}',
 
     // Controller messages
@@ -141,8 +138,6 @@ return [
     'Export path cannot contain directory traversal sequences (..)' => 'エクスポートパスにディレクトリトラバーサルシーケンス（..）を含めることはできません',
     'Export path must start with @root or @storage (secure locations only)' => 'エクスポートパスは @root または @storage から始まる必要があります（安全な場所のみ）',
     'Invalid export path: {error}' => '無効なエクスポートパスです: {error}',
-    'Please select at least one form to export.' => 'エクスポートするフォームを少なくとも 1 つ選択してください。',
-    'Please select at least one form.' => 'フォームを少なくとも 1 つ選択してください。',
     'Please select at least one item.' => '少なくとも 1 つの項目を選択してください。',
 
     // Settings: General

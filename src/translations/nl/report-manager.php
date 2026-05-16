@@ -95,8 +95,6 @@ return [
     'Cleaned up {count} export(s)' => '{count} export(s) opgeruimd',
     'Cleaning up old exports' => 'Oude exports opruimen',
     'Export cleanup disabled' => 'Opruimen van exports uitgeschakeld',
-    'Processed {count} reports' => '{count} rapporten verwerkt',
-    'Processing report: {name}' => 'Rapport verwerken: {name}',
     'Queued {count} export(s)' => '{count} export(s) in de wachtrij geplaatst',
     'Queueing report exports' => 'Rapportexports in de wachtrij plaatsen',
     'Report #{id}' => 'Rapport #{id}',
@@ -106,7 +104,6 @@ return [
     '{pluginName}: Cleaning up old exports' => '{pluginName}: Oude exports opruimen',
     '{pluginName}: Generating export #{id}' => '{pluginName}: Export #{id} genereren',
     '{pluginName}: Generating export - {name}' => '{pluginName}: Export genereren – {name}',
-    '{pluginName}: Processing scheduled reports' => '{pluginName}: Geplande rapporten verwerken',
     '{pluginName}: Scheduled report - {name}' => '{pluginName}: Gepland rapport – {name}',
 
     // Controller messages
@@ -141,8 +138,6 @@ return [
     'Export path cannot contain directory traversal sequences (..)' => 'Het exportpad mag geen maptransversale reeksen bevatten (..)',
     'Export path must start with @root or @storage (secure locations only)' => 'Het exportpad moet beginnen met @root of @storage (alleen beveiligde locaties)',
     'Invalid export path: {error}' => 'Ongeldig exportpad: {error}',
-    'Please select at least one form to export.' => 'Selecteer ten minste één formulier om te exporteren.',
-    'Please select at least one form.' => 'Selecteer ten minste één formulier.',
     'Please select at least one item.' => 'Selecteer ten minste één item.',
 
     // Settings: General

@@ -95,8 +95,6 @@ return [
     'Cleaned up {count} export(s)' => '{count} eksport(er) ryddet opp',
     'Cleaning up old exports' => 'Rydder opp i gamle eksporter',
     'Export cleanup disabled' => 'Opprydding av eksporter er deaktivert',
-    'Processed {count} reports' => '{count} rapport(er) behandlet',
-    'Processing report: {name}' => 'Behandler rapport: {name}',
     'Queued {count} export(s)' => '{count} eksport(er) lagt i kø',
     'Queueing report exports' => 'Legger rapporteksporter i kø',
     'Report #{id}' => 'Rapport #{id}',
@@ -106,7 +104,6 @@ return [
     '{pluginName}: Cleaning up old exports' => '{pluginName}: Rydder opp i gamle eksporter',
     '{pluginName}: Generating export #{id}' => '{pluginName}: Genererer eksport #{id}',
     '{pluginName}: Generating export - {name}' => '{pluginName}: Genererer eksport – {name}',
-    '{pluginName}: Processing scheduled reports' => '{pluginName}: Behandler planlagte rapporter',
     '{pluginName}: Scheduled report - {name}' => '{pluginName}: Planlagt rapport – {name}',
 
     // Controller messages
@@ -141,8 +138,6 @@ return [
     'Export path cannot contain directory traversal sequences (..)' => 'Eksportstien kan ikke inneholde mappegjennomgangssekvenser (..)',
     'Export path must start with @root or @storage (secure locations only)' => 'Eksportstien må starte med @root eller @storage (kun sikre steder)',
     'Invalid export path: {error}' => 'Ugyldig eksportsti: {error}',
-    'Please select at least one form to export.' => 'Velg minst ett skjema å eksportere.',
-    'Please select at least one form.' => 'Velg minst ett skjema.',
     'Please select at least one item.' => 'Velg minst ett element.',
 
     // Settings: General

@@ -95,8 +95,6 @@ return [
     'Cleaned up {count} export(s)' => 'تم تنظيف {count} تصدير/تصديرات',
     'Cleaning up old exports' => 'تنظيف التصديرات القديمة',
     'Export cleanup disabled' => 'تنظيف التصديرات معطّل',
-    'Processed {count} reports' => 'تمت معالجة {count} تقرير/تقارير',
-    'Processing report: {name}' => 'جارٍ معالجة التقرير: {name}',
     'Queued {count} export(s)' => 'تمت إضافة {count} تصدير/تصديرات إلى قائمة الانتظار',
     'Queueing report exports' => 'إضافة تصديرات التقارير إلى قائمة الانتظار',
     'Report #{id}' => 'التقرير #{id}',
@@ -106,7 +104,6 @@ return [
     '{pluginName}: Cleaning up old exports' => '{pluginName}: تنظيف التصديرات القديمة',
     '{pluginName}: Generating export #{id}' => '{pluginName}: إنشاء التصدير #{id}',
     '{pluginName}: Generating export - {name}' => '{pluginName}: إنشاء التصدير – {name}',
-    '{pluginName}: Processing scheduled reports' => '{pluginName}: معالجة التقارير المجدولة',
     '{pluginName}: Scheduled report - {name}' => '{pluginName}: التقرير المجدول – {name}',
 
     // Controller messages
@@ -141,8 +138,6 @@ return [
     'Export path cannot contain directory traversal sequences (..)' => 'لا يمكن أن يحتوي مسار التصدير على تسلسلات اجتياز المجلدات (..)',
     'Export path must start with @root or @storage (secure locations only)' => 'يجب أن يبدأ مسار التصدير بـ @root أو @storage (المواقع الآمنة فقط)',
     'Invalid export path: {error}' => 'مسار التصدير غير صالح: {error}',
-    'Please select at least one form to export.' => 'يرجى اختيار نموذج واحد على الأقل للتصدير.',
-    'Please select at least one form.' => 'يرجى اختيار نموذج واحد على الأقل.',
     'Please select at least one item.' => 'يرجى تحديد عنصر واحد على الأقل.',
 
     // Settings: General

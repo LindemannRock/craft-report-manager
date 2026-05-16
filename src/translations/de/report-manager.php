@@ -95,8 +95,6 @@ return [
     'Cleaned up {count} export(s)' => '{count} Export(e) bereinigt',
     'Cleaning up old exports' => 'Alte Exporte bereinigen',
     'Export cleanup disabled' => 'Export-Bereinigung deaktiviert',
-    'Processed {count} reports' => '{count} Berichte verarbeitet',
-    'Processing report: {name}' => 'Bericht wird verarbeitet: {name}',
     'Queued {count} export(s)' => '{count} Export(e) in die Warteschlange gestellt',
     'Queueing report exports' => 'Berichtsexporte in die Warteschlange stellen',
     'Report #{id}' => 'Bericht #{id}',
@@ -106,7 +104,6 @@ return [
     '{pluginName}: Cleaning up old exports' => '{pluginName}: Alte Exporte bereinigen',
     '{pluginName}: Generating export #{id}' => '{pluginName}: Export #{id} wird generiert',
     '{pluginName}: Generating export - {name}' => '{pluginName}: Export wird generiert – {name}',
-    '{pluginName}: Processing scheduled reports' => '{pluginName}: Geplante Berichte werden verarbeitet',
     '{pluginName}: Scheduled report - {name}' => '{pluginName}: Geplanter Bericht – {name}',
 
     // Controller messages
@@ -141,8 +138,6 @@ return [
     'Export path cannot contain directory traversal sequences (..)' => 'Der Exportpfad darf keine Verzeichnis-Traversal-Sequenzen enthalten (..)',
     'Export path must start with @root or @storage (secure locations only)' => 'Der Exportpfad muss mit @root oder @storage beginnen (nur sichere Speicherorte)',
     'Invalid export path: {error}' => 'Ungültiger Exportpfad: {error}',
-    'Please select at least one form to export.' => 'Bitte wählen Sie mindestens ein Formular zum Exportieren aus.',
-    'Please select at least one form.' => 'Bitte wählen Sie mindestens ein Formular aus.',
     'Please select at least one item.' => 'Bitte wählen Sie mindestens ein Element aus.',
 
     // Settings: General

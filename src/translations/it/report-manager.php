@@ -95,8 +95,6 @@ return [
     'Cleaned up {count} export(s)' => '{count} esportazione/i rimossa/e',
     'Cleaning up old exports' => 'Rimozione delle vecchie esportazioni',
     'Export cleanup disabled' => 'Pulizia esportazioni disabilitata',
-    'Processed {count} reports' => '{count} report elaborati',
-    'Processing report: {name}' => 'Elaborazione report: {name}',
     'Queued {count} export(s)' => '{count} esportazione/i in coda',
     'Queueing report exports' => 'Inserimento delle esportazioni dei report in coda',
     'Report #{id}' => 'Report #{id}',
@@ -106,7 +104,6 @@ return [
     '{pluginName}: Cleaning up old exports' => '{pluginName}: Rimozione delle vecchie esportazioni',
     '{pluginName}: Generating export #{id}' => '{pluginName}: Generazione esportazione #{id}',
     '{pluginName}: Generating export - {name}' => '{pluginName}: Generazione esportazione – {name}',
-    '{pluginName}: Processing scheduled reports' => '{pluginName}: Elaborazione dei report pianificati',
     '{pluginName}: Scheduled report - {name}' => '{pluginName}: Report pianificato – {name}',
 
     // Controller messages
@@ -141,8 +138,6 @@ return [
     'Export path cannot contain directory traversal sequences (..)' => 'Il percorso di esportazione non può contenere sequenze di attraversamento directory (..)',
     'Export path must start with @root or @storage (secure locations only)' => 'Il percorso di esportazione deve iniziare con @root o @storage (solo posizioni sicure)',
     'Invalid export path: {error}' => 'Percorso di esportazione non valido: {error}',
-    'Please select at least one form to export.' => 'Selezionare almeno un modulo da esportare.',
-    'Please select at least one form.' => 'Selezionare almeno un modulo.',
     'Please select at least one item.' => 'Selezionare almeno un elemento.',
 
     // Settings: General

@@ -93,8 +93,6 @@ return [
     'Cleaned up {count} export(s)' => 'Cleaned up {count} export(s)',
     'Cleaning up old exports' => 'Cleaning up old exports',
     'Export cleanup disabled' => 'Export cleanup disabled',
-    'Processed {count} reports' => 'Processed {count} reports',
-    'Processing report: {name}' => 'Processing report: {name}',
     'Queued {count} export(s)' => 'Queued {count} export(s)',
     'Queueing report exports' => 'Queueing report exports',
     'Report #{id}' => 'Report #{id}',
@@ -104,7 +102,6 @@ return [
     '{pluginName}: Cleaning up old exports' => '{pluginName}: Cleaning up old exports',
     '{pluginName}: Generating export #{id}' => '{pluginName}: Generating export #{id}',
     '{pluginName}: Generating export - {name}' => '{pluginName}: Generating export - {name}',
-    '{pluginName}: Processing scheduled reports' => '{pluginName}: Processing scheduled reports',
     '{pluginName}: Scheduled report - {name}' => '{pluginName}: Scheduled report - {name}',
 
     // Controller messages
@@ -126,6 +123,8 @@ return [
     'Export not found' => 'Export not found',
     'Export queued for generation.' => 'Export queued for generation.',
     'Invalid date provided.' => 'Invalid date provided.',
+    'No exports selected.' => 'No exports selected.',
+    'No reports selected.' => 'No reports selected.',
     'Report deleted.' => 'Report deleted.',
     'Report not found' => 'Report not found',
     'Report saved.' => 'Report saved.',
@@ -140,8 +139,6 @@ return [
     'Export path cannot contain directory traversal sequences (..)' => 'Export path cannot contain directory traversal sequences (..)',
     'Export path must start with @root or @storage (secure locations only)' => 'Export path must start with @root or @storage (secure locations only)',
     'Invalid export path: {error}' => 'Invalid export path: {error}',
-    'Please select at least one form to export.' => 'Please select at least one form to export.',
-    'Please select at least one form.' => 'Please select at least one form.',
     'Please select at least one item.' => 'Please select at least one item.',
 
     // Settings: General
