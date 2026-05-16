@@ -14,6 +14,7 @@ use craft\base\FsInterface;
 use craft\helpers\Db;
 use craft\helpers\FileHelper;
 use DateTime;
+use lindemannrock\base\helpers\ExportHelper;
 use lindemannrock\logginglibrary\traits\LoggingTrait;
 use lindemannrock\reportmanager\export\QueuedExportContext;
 use lindemannrock\reportmanager\export\QueuedExportResult;
@@ -671,25 +672,17 @@ class ExportService extends Component
     {
         $settings = ReportManager::getInstance()->getSettings();
 
-        // Build CSV content in memory
-        $handle = fopen('php://temp', 'r+');
+        $content = ExportHelper::csvContent(
+            $data['rows'],
+            $data['headers'],
+            [],
+            $settings->csvDelimiter,
+            $settings->csvEnclosure,
+        );
 
-        // Add BOM for Excel compatibility
         if ($settings->csvIncludeBom) {
-            fwrite($handle, "\xEF\xBB\xBF");
+            $content = "\xEF\xBB\xBF" . $content;
         }
-
-        // Write headers
-        fputcsv($handle, $data['headers'], $settings->csvDelimiter, $settings->csvEnclosure);
-
-        // Write rows
-        foreach ($data['rows'] as $row) {
-            fputcsv($handle, $row, $settings->csvDelimiter, $settings->csvEnclosure);
-        }
-
-        rewind($handle);
-        $content = stream_get_contents($handle);
-        fclose($handle);
 
         return $this->_writeExportFile($export, $content);
     }
@@ -729,68 +722,12 @@ class ExportService extends Component
      */
     private function generateXlsxFile(ExportRecord $export, array $data): array
     {
-        $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
-        $sheet = $spreadsheet->getActiveSheet();
-
-        // Set sheet title (max 31 characters)
-        $sheetTitle = $export->entityName ?? 'Export';
-        $sheetTitle = mb_substr($sheetTitle, 0, 31);
-        // Remove invalid characters for sheet name
-        $sheetTitle = preg_replace('/[\\\\\/\*\?\[\]\:]/', '_', $sheetTitle);
-        $sheet->setTitle($sheetTitle);
-
-        // Write headers (row 1)
-        $colIndex = 1;
-        foreach ($data['headers'] as $header) {
-            $sheet->setCellValue([$colIndex, 1], $header);
-            $colIndex++;
-        }
-
-        // Style headers - bold and background color
-        $headerRange = 'A1:' . \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex(count($data['headers'])) . '1';
-        $sheet->getStyle($headerRange)->applyFromArray([
-            'font' => [
-                'bold' => true,
-            ],
-            'fill' => [
-                'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
-                'startColor' => [
-                    'rgb' => 'E5E7EB',
-                ],
-            ],
-        ]);
-
-        // Write data rows (starting at row 2)
-        $rowIndex = 2;
-        foreach ($data['rows'] as $row) {
-            $colIndex = 1;
-            foreach ($row as $value) {
-                $sheet->setCellValue([$colIndex, $rowIndex], $value);
-                $colIndex++;
-            }
-            $rowIndex++;
-        }
-
-        // Auto-size columns
-        foreach (range(1, count($data['headers'])) as $colIdx) {
-            $sheet->getColumnDimensionByColumn($colIdx)->setAutoSize(true);
-        }
-
-        // Freeze header row
-        $sheet->freezePane('A2');
-
-        // Write to temporary file
-        $tempFile = tempnam(sys_get_temp_dir(), 'xlsx_');
-        $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
-        $writer->save($tempFile);
-
-        // Get content from temp file
-        $content = file_get_contents($tempFile);
-        unlink($tempFile);
-
-        // Clean up spreadsheet memory
-        $spreadsheet->disconnectWorksheets();
-        unset($spreadsheet);
+        $content = ExportHelper::excelContent(
+            $data['rows'],
+            $data['headers'],
+            [],
+            ['sheetTitle' => $export->entityName ?? 'Export'],
+        );
 
         return $this->_writeExportFile($export, $content);
     }
