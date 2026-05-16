@@ -579,6 +579,7 @@ class ReportsController extends Controller
         return $this->renderTemplate('report-manager/reports/generated', [
             'settings' => $settings,
             'report' => $report,
+            'dataSourceLabels' => $plugin->dataSources->getDataSourceLabels($report->dataSource),
             'exports' => $result['exports'],
             'exportFileExists' => $exportFileExists,
             'sort' => $sort,
