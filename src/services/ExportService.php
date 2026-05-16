@@ -1454,23 +1454,32 @@ class ExportService extends Component
      */
     public function getExportStats(): array
     {
-        $totalExports = ExportRecord::find()->count();
-        $completedExports = ExportRecord::find()->where(['status' => ExportRecord::STATUS_COMPLETED])->count();
-        $failedExports = ExportRecord::find()->where(['status' => ExportRecord::STATUS_FAILED])->count();
-        $pendingExports = ExportRecord::find()->where(['status' => ExportRecord::STATUS_PENDING])->count();
-        $processingExports = ExportRecord::find()->where(['status' => ExportRecord::STATUS_PROCESSING])->count();
+        $row = (new \craft\db\Query())
+            ->from(ExportRecord::tableName())
+            ->select([
+                'total' => 'COUNT(*)',
+                'completed' => 'SUM(CASE WHEN [[status]] = :completed THEN 1 ELSE 0 END)',
+                'failed' => 'SUM(CASE WHEN [[status]] = :failed THEN 1 ELSE 0 END)',
+                'pending' => 'SUM(CASE WHEN [[status]] = :pending THEN 1 ELSE 0 END)',
+                'processing' => 'SUM(CASE WHEN [[status]] = :processing THEN 1 ELSE 0 END)',
+                'totalFileSize' => 'SUM(CASE WHEN [[status]] = :completed THEN [[fileSize]] ELSE 0 END)',
+            ])
+            ->params([
+                ':completed' => ExportRecord::STATUS_COMPLETED,
+                ':failed' => ExportRecord::STATUS_FAILED,
+                ':pending' => ExportRecord::STATUS_PENDING,
+                ':processing' => ExportRecord::STATUS_PROCESSING,
+            ])
+            ->one() ?: [];
 
-        // Calculate total file size
-        $totalFileSize = ExportRecord::find()
-            ->where(['status' => ExportRecord::STATUS_COMPLETED])
-            ->sum('fileSize') ?? 0;
+        $totalFileSize = (int) ($row['totalFileSize'] ?? 0);
 
         return [
-            'total' => $totalExports,
-            'completed' => $completedExports,
-            'failed' => $failedExports,
-            'pending' => $pendingExports,
-            'processing' => $processingExports,
+            'total' => (int) ($row['total'] ?? 0),
+            'completed' => (int) ($row['completed'] ?? 0),
+            'failed' => (int) ($row['failed'] ?? 0),
+            'pending' => (int) ($row['pending'] ?? 0),
+            'processing' => (int) ($row['processing'] ?? 0),
             'totalFileSize' => $totalFileSize,
             'formattedFileSize' => $this->formatFileSize($totalFileSize),
         ];
