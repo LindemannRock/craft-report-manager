@@ -8,6 +8,7 @@
 
 namespace lindemannrock\reportmanager\records;
 
+use Craft;
 use craft\db\ActiveRecord;
 use craft\helpers\Json;
 
@@ -347,10 +348,10 @@ class ExportRecord extends ActiveRecord
     public function getStatusLabel(): string
     {
         return match ($this->status) {
-            self::STATUS_PENDING => 'Pending',
-            self::STATUS_PROCESSING => 'Processing',
-            self::STATUS_COMPLETED => 'Completed',
-            self::STATUS_FAILED => 'Failed',
+            self::STATUS_PENDING => Craft::t('report-manager', 'Pending'),
+            self::STATUS_PROCESSING => Craft::t('report-manager', 'Processing'),
+            self::STATUS_COMPLETED => Craft::t('report-manager', 'Completed'),
+            self::STATUS_FAILED => Craft::t('report-manager', 'Failed'),
             default => ucfirst($this->status),
         };
     }
@@ -379,9 +380,9 @@ class ExportRecord extends ActiveRecord
     public function getTriggerLabel(): string
     {
         return match ($this->triggeredBy) {
-            self::TRIGGER_MANUAL => 'Manual',
-            self::TRIGGER_SCHEDULED => 'Scheduled',
-            self::TRIGGER_API => 'API',
+            self::TRIGGER_MANUAL => Craft::t('report-manager', 'Manual'),
+            self::TRIGGER_SCHEDULED => Craft::t('report-manager', 'Scheduled'),
+            self::TRIGGER_API => Craft::t('report-manager', 'API'),
             default => ucfirst($this->triggeredBy),
         };
     }
