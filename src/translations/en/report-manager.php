@@ -290,6 +290,7 @@ return [
     'No generated files yet.' => 'No generated files yet.',
     'Combined Export' => 'Combined Export',
     'Combined' => 'Combined',
+    'Combined ({count} sources)' => 'Combined ({count} sources)',
     'Separate' => 'Separate',
     'Total Files' => 'Total Files',
     'File deleted.' => 'File deleted.',

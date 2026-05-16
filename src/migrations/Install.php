@@ -161,6 +161,7 @@ class Install extends Migration
             'dataSource' => $this->string(64)->notNull(),
             'entityId' => $this->integer()->notNull(),
             'entityName' => $this->string(255)->null(),
+            'combinedEntityIds' => $this->text()->null()->comment('JSON array of entity IDs for combined exports'),
             // Generic queued export provider details
             'providerHandle' => $this->string(128)->null()->comment('Queued export provider handle'),
             'payload' => $this->text()->null()->comment('JSON queued export payload'),

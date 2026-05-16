@@ -988,6 +988,7 @@ class ExportService extends Component
         $export = new ExportRecord();
         $export->dataSource = $dataSource;
         $export->setEntityIdsArray($entityIds);
+        $export->entityName = Craft::t('report-manager', 'Combined ({count} sources)', ['count' => count($entityIds)]);
         $export->format = $format;
         $export->status = ExportRecord::STATUS_PENDING;
         $export->progress = 0;

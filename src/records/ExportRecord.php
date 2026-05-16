@@ -21,6 +21,7 @@ use craft\helpers\Json;
  * @property string $dataSource
  * @property int $entityId
  * @property string|null $entityName
+ * @property string|null $combinedEntityIds JSON array of entity IDs for combined exports
  * @property string|null $providerHandle
  * @property string|null $payload JSON provider payload
  * @property string|null $metadata JSON provider metadata
@@ -237,7 +238,7 @@ class ExportRecord extends ActiveRecord
      */
     public function isCombinedExport(): bool
     {
-        return !$this->isProviderExport() && $this->entityId === 0 && !empty($this->entityName);
+        return !$this->isProviderExport() && !empty($this->combinedEntityIds);
     }
 
     /**
@@ -251,12 +252,11 @@ class ExportRecord extends ActiveRecord
             return $this->entityIdsArray;
         }
 
-        if (!$this->isCombinedExport() || empty($this->entityName)) {
+        if (!$this->isCombinedExport()) {
             return $this->entityId > 0 ? [$this->entityId] : [];
         }
 
-        // Entity IDs are stored as JSON in entityName for combined exports
-        $decoded = json_decode($this->entityName, true);
+        $decoded = json_decode($this->combinedEntityIds, true);
 
         $this->entityIdsArray = is_array($decoded) ? array_map('intval', $decoded) : [];
 
@@ -271,7 +271,7 @@ class ExportRecord extends ActiveRecord
     public function setEntityIdsArray(array $entityIds): void
     {
         $this->entityId = 0;
-        $this->entityName = json_encode(array_map('intval', $entityIds));
+        $this->combinedEntityIds = json_encode(array_map('intval', $entityIds));
         $this->entityIdsArray = array_map('intval', $entityIds);
     }
 
