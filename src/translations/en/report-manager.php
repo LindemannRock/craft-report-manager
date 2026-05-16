@@ -285,6 +285,7 @@ return [
     'Generated Files' => 'Generated Files',
     'Files' => 'Files',
     'Latest Generated Files' => 'Latest Generated Files',
+    'Showing the latest {shown} of {total} generated files.' => 'Showing the latest {shown} of {total} generated files.',
     'View Full List' => 'View Full List',
     'No generated files yet.' => 'No generated files yet.',
     'Combined Export' => 'Combined Export',
