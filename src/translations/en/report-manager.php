@@ -125,6 +125,7 @@ return [
     'Export is not ready for download' => 'Export is not ready for download',
     'Export not found' => 'Export not found',
     'Export queued for generation.' => 'Export queued for generation.',
+    'Invalid date provided.' => 'Invalid date provided.',
     'Report deleted.' => 'Report deleted.',
     'Report not found' => 'Report not found',
     'Report saved.' => 'Report saved.',
