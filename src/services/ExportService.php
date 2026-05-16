@@ -889,7 +889,15 @@ class ExportService extends Component
         $rowIndex = $headerCount > 0 ? 2 : 1;
         foreach ($rows as $row) {
             foreach (array_values($row) as $columnIndex => $value) {
-                $sheet->setCellValue([$columnIndex + 1, $rowIndex], $value);
+                if (ExportHelper::isDangerousValue($value)) {
+                    $sheet->setCellValueExplicit(
+                        [$columnIndex + 1, $rowIndex],
+                        $value,
+                        \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING,
+                    );
+                } else {
+                    $sheet->setCellValue([$columnIndex + 1, $rowIndex], $value);
+                }
             }
             $rowIndex++;
         }
