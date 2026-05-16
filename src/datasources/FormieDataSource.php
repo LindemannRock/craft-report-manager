@@ -9,6 +9,7 @@
 namespace lindemannrock\reportmanager\datasources;
 
 use Craft;
+use craft\db\Query;
 use craft\helpers\Db;
 use DateTime;
 use lindemannrock\base\helpers\DateRangeHelper;
@@ -98,6 +99,23 @@ class FormieDataSource extends BaseDataSource
         }
 
         $forms = \verbb\formie\elements\Form::find()->all();
+
+        $rows = (new Query())
+            ->from(['s' => '{{%formie_submissions}}'])
+            ->innerJoin(['el' => '{{%elements}}'], '[[el.id]] = [[s.id]]')
+            ->where([
+                'el.draftId' => null,
+                'el.revisionId' => null,
+                'el.dateDeleted' => null,
+                's.isIncomplete' => false,
+                's.isSpam' => false,
+            ])
+            ->select(['formId' => 's.formId', 'cnt' => 'COUNT(*)'])
+            ->groupBy('s.formId')
+            ->all();
+
+        $counts = array_column($rows, 'cnt', 'formId');
+
         $entities = [];
 
         foreach ($forms as $form) {
@@ -105,11 +123,7 @@ class FormieDataSource extends BaseDataSource
                 continue;
             }
 
-            $submissionCount = \verbb\formie\elements\Submission::find()
-                ->formId($form->id)
-                ->isIncomplete(false)
-                ->isSpam(false)
-                ->count();
+            $submissionCount = (int) ($counts[$form->id] ?? 0);
 
             $entities[] = [
                 'id' => $form->id,
