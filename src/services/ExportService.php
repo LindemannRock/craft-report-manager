@@ -11,6 +11,7 @@ namespace lindemannrock\reportmanager\services;
 use Craft;
 use craft\base\Component;
 use craft\base\FsInterface;
+use craft\helpers\DateTimeHelper;
 use craft\helpers\Db;
 use craft\helpers\FileHelper;
 use DateTime;
@@ -378,10 +379,14 @@ class ExportService extends Component
         // Date range
         $export->dateRangeUsed = $options['dateRange'] ?? null;
         $export->dateStartUsed = isset($options['dateStart'])
-            ? ($options['dateStart'] instanceof DateTime ? $options['dateStart'] : new DateTime($options['dateStart']))
+            ? ($options['dateStart'] instanceof DateTime
+                ? $options['dateStart']
+                : (DateTimeHelper::toDateTime($options['dateStart']) ?: null))
             : null;
         $export->dateEndUsed = isset($options['dateEnd'])
-            ? ($options['dateEnd'] instanceof DateTime ? $options['dateEnd'] : new DateTime($options['dateEnd']))
+            ? ($options['dateEnd'] instanceof DateTime
+                ? $options['dateEnd']
+                : (DateTimeHelper::toDateTime($options['dateEnd']) ?: null))
             : null;
 
         // Field handles
@@ -1012,10 +1017,14 @@ class ExportService extends Component
         // Date range
         $export->dateRangeUsed = $options['dateRange'] ?? null;
         $export->dateStartUsed = isset($options['dateStart'])
-            ? ($options['dateStart'] instanceof DateTime ? $options['dateStart'] : new DateTime($options['dateStart']))
+            ? ($options['dateStart'] instanceof DateTime
+                ? $options['dateStart']
+                : (DateTimeHelper::toDateTime($options['dateStart']) ?: null))
             : null;
         $export->dateEndUsed = isset($options['dateEnd'])
-            ? ($options['dateEnd'] instanceof DateTime ? $options['dateEnd'] : new DateTime($options['dateEnd']))
+            ? ($options['dateEnd'] instanceof DateTime
+                ? $options['dateEnd']
+                : (DateTimeHelper::toDateTime($options['dateEnd']) ?: null))
             : null;
 
         // Site IDs filter
