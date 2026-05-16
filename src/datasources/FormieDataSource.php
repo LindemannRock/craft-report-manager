@@ -10,6 +10,7 @@ namespace lindemannrock\reportmanager\datasources;
 
 use Craft;
 use craft\db\Query;
+use craft\helpers\DateTimeHelper;
 use craft\helpers\Db;
 use DateTime;
 use lindemannrock\base\helpers\DateRangeHelper;
@@ -252,14 +253,14 @@ class FormieDataSource extends BaseDataSource
         if (!empty($options['dateStart'])) {
             $dateStart = $options['dateStart'] instanceof DateTime
                 ? $options['dateStart']
-                : new DateTime($options['dateStart']);
+                : (DateTimeHelper::toDateTime($options['dateStart']) ?: null);
             $query->andWhere(['>=', 'dateCreated', Db::prepareDateForDb($dateStart)]);
         }
 
         if (!empty($options['dateEnd'])) {
             $dateEnd = $options['dateEnd'] instanceof DateTime
                 ? $options['dateEnd']
-                : new DateTime($options['dateEnd']);
+                : (DateTimeHelper::toDateTime($options['dateEnd']) ?: null);
             $query->andWhere(['<=', 'dateCreated', Db::prepareDateForDb($dateEnd)]);
         }
 
@@ -319,14 +320,14 @@ class FormieDataSource extends BaseDataSource
         if (!empty($options['dateStart'])) {
             $dateStart = $options['dateStart'] instanceof DateTime
                 ? $options['dateStart']
-                : new DateTime($options['dateStart']);
+                : (DateTimeHelper::toDateTime($options['dateStart']) ?: null);
             $query->andWhere(['>=', 'dateCreated', Db::prepareDateForDb($dateStart)]);
         }
 
         if (!empty($options['dateEnd'])) {
             $dateEnd = $options['dateEnd'] instanceof DateTime
                 ? $options['dateEnd']
-                : new DateTime($options['dateEnd']);
+                : (DateTimeHelper::toDateTime($options['dateEnd']) ?: null);
             $query->andWhere(['<=', 'dateCreated', Db::prepareDateForDb($dateEnd)]);
         }
 
