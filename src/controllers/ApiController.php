@@ -9,6 +9,7 @@
 namespace lindemannrock\reportmanager\controllers;
 
 use Craft;
+use craft\helpers\DateTimeHelper;
 use craft\web\Controller;
 use lindemannrock\reportmanager\ReportManager;
 use yii\web\Response;
@@ -157,12 +158,18 @@ class ApiController extends Controller
             $options['dateRange'] = $dateRange;
         }
 
-        if ($dateStart) {
-            $options['dateStart'] = $dateStart;
-        }
-
-        if ($dateEnd) {
-            $options['dateEnd'] = $dateEnd;
+        foreach (['dateStart' => $dateStart, 'dateEnd' => $dateEnd] as $key => $value) {
+            if ($value === null || $value === '') {
+                continue;
+            }
+            $parsed = DateTimeHelper::toDateTime($value);
+            if ($parsed === false) {
+                return $this->asJson([
+                    'success' => false,
+                    'error' => Craft::t('report-manager', 'Invalid date provided.'),
+                ]);
+            }
+            $options[$key] = $parsed;
         }
 
         $count = $dataSourceInstance->getRecordCount($entityId, $options);
