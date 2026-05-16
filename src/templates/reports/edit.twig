@@ -411,7 +411,7 @@ $('#generate-now-btn').on('click', function(e) {
     }).then(function(response) {
         window.location.href = Craft.getCpUrl('report-manager/reports/{{ report.id }}/generated');
     }).catch(function(error) {
-        Craft.cp.displayError('{{ 'Could not generate export.'|t('report-manager') }}');
+        Craft.cp.displayError({{ 'Could not generate export.'|t('report-manager')|json_encode|raw }});
     });
 });
 {% endif %}
