@@ -145,8 +145,8 @@
 
     {% if export.isFailed and export.errorMessage %}
         <div class="pane" style="margin-top: 24px;">
-            <h2 style="color: red;">{{ 'Error'|t('report-manager') }}</h2>
-            <pre style="background: #fef2f2; padding: 16px; border-radius: 4px; color: #991b1b;">{{ export.errorMessage }}</pre>
+            <h2 class="error">{{ 'Error'|t('report-manager') }}</h2>
+            <pre class="error" style="background: var(--medium-bg-color); padding: 16px; border-radius: 4px;">{{ export.errorMessage }}</pre>
         </div>
     {% endif %}
 
@@ -164,8 +164,8 @@
     {% if export.isPending or export.isProcessing %}
         <div class="pane" style="margin-top: 24px;">
             <h2>{{ 'Progress'|t('report-manager') }}</h2>
-            <div class="progress-bar" style="background: #e5e7eb; height: 20px; border-radius: 4px; overflow: hidden;">
-                <div id="progress-fill" style="background: #3b82f6; height: 100%; width: {{ export.progress }}%; transition: width 0.3s;"></div>
+            <div class="progress-bar" style="background: var(--medium-bg-color); height: 20px; border-radius: 4px; overflow: hidden;">
+                <div id="progress-fill" style="background: var(--accent-color); height: 100%; width: {{ export.progress }}%; transition: width 0.3s;"></div>
             </div>
             <p id="progress-message" class="light" style="margin-top: 8px;{{ progressMessage ? '' : ' display: none;' }}">{{ progressMessage }}</p>
             <p class="light" style="margin-top: 8px;">{{ 'Export is being processed. This page will refresh automatically.'|t('report-manager') }}</p>
