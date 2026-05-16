@@ -152,6 +152,7 @@ class ExportService extends Component
         $search = $params['search'] ?? '';
         $status = $params['status'] ?? null;
         $format = $params['format'] ?? null;
+        $triggeredBy = $params['triggeredBy'] ?? null;
         $sort = $params['sort'] ?? 'dateCreated';
         $dir = $params['dir'] ?? 'desc';
         $page = max(1, $params['page'] ?? 1);
@@ -167,6 +168,10 @@ class ExportService extends Component
 
         if (!empty($format)) {
             $query->andWhere(['format' => $format]);
+        }
+
+        if (!empty($triggeredBy)) {
+            $query->andWhere(['triggeredBy' => $triggeredBy]);
         }
 
         if (!empty($search)) {

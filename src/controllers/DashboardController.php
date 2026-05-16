@@ -12,7 +12,6 @@ use Craft;
 use craft\web\Controller;
 use lindemannrock\base\helpers\CpNavHelper;
 use lindemannrock\base\helpers\ExportHelper;
-use lindemannrock\reportmanager\records\ExportRecord;
 use lindemannrock\reportmanager\ReportManager;
 use yii\web\Response;
 
@@ -92,50 +91,28 @@ class DashboardController extends Controller
             $search = mb_substr($search, 0, 64);
         }
 
-        $validSortFields = ['entityName', 'format', 'status', 'recordCount', 'fileSize', 'triggeredBy', 'dateCreated'];
         $sort = (string) $request->getParam('sort', 'dateCreated');
-        if (!in_array($sort, $validSortFields, true)) {
-            $sort = 'dateCreated';
-        }
         $dir = strtolower((string) $request->getParam('dir', 'desc')) === 'asc' ? 'asc' : 'desc';
 
         $page = max(1, (int) $request->getParam('page', 1));
         $limit = max(1, (int) $settings->itemsPerPage);
 
-        // ---- Build query --------------------------------------------------
-        $query = ExportRecord::find();
+        // ---- Fetch filtered + paginated exports ---------------------------
+        $result = $plugin->exports->getFilteredExports([
+            'search' => $search,
+            'status' => $statusFilter !== 'all' ? $statusFilter : null,
+            'format' => $formatFilter !== 'all' ? $formatFilter : null,
+            'triggeredBy' => $typeFilter !== 'all' ? $typeFilter : null,
+            'sort' => $sort,
+            'dir' => $dir,
+            'page' => $page,
+            'limit' => $limit,
+        ]);
 
-        if ($statusFilter !== 'all') {
-            $query->andWhere(['status' => $statusFilter]);
-        }
-
-        if ($typeFilter !== 'all') {
-            $query->andWhere(['triggeredBy' => $typeFilter]);
-        }
-
-        if ($formatFilter !== 'all') {
-            $query->andWhere(['format' => $formatFilter]);
-        }
-
-        if ($search !== '') {
-            $query->andWhere([
-                'or',
-                ['like', 'entityName', $search],
-                ['like', 'filename', $search],
-            ]);
-        }
-
-        $query->orderBy([$sort => $dir === 'asc' ? SORT_ASC : SORT_DESC]);
-
-        // totalCount is computed after filtering, before slice.
-        $totalCount = (int) (clone $query)->count();
-        $totalPages = max(1, (int) ceil($totalCount / $limit));
-        $offset = ($page - 1) * $limit;
-
-        $query->offset($offset)->limit($limit);
-
-        /** @var ExportRecord[] $exports */
-        $exports = $query->all();
+        $exports = $result['exports'];
+        $totalCount = $result['totalCount'];
+        $totalPages = $result['totalPages'];
+        $offset = $result['offset'];
         $exportFileExists = $plugin->exports->getFileAvailabilityMap($exports);
 
         $userComponent = Craft::$app->getUser();
