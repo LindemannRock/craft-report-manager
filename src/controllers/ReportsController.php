@@ -9,8 +9,8 @@
 namespace lindemannrock\reportmanager\controllers;
 
 use Craft;
+use craft\helpers\DateTimeHelper;
 use craft\web\Controller;
-use DateTime;
 use lindemannrock\base\helpers\ExportHelper;
 use lindemannrock\reportmanager\jobs\GenerateExportJob;
 use lindemannrock\reportmanager\records\ReportRecord;
@@ -313,10 +313,10 @@ class ReportsController extends Controller
         $customDateEnd = $request->getBodyParam('customDateEnd');
 
         $report->customDateStart = !empty($customDateStart['date'])
-            ? new DateTime($customDateStart['date'])
+            ? (DateTimeHelper::toDateTime($customDateStart['date']) ?: null)
             : null;
         $report->customDateEnd = !empty($customDateEnd['date'])
-            ? new DateTime($customDateEnd['date'])
+            ? (DateTimeHelper::toDateTime($customDateEnd['date']) ?: null)
             : null;
 
         // Handle field handles
@@ -609,7 +609,7 @@ class ReportsController extends Controller
         if (!is_array($reportIds) || empty($reportIds)) {
             return $this->asJson([
                 'success' => false,
-                'error' => 'No reports selected',
+                'error' => Craft::t('report-manager', 'No reports selected.'),
             ]);
         }
 
@@ -649,7 +649,7 @@ class ReportsController extends Controller
         if (!is_array($reportIds) || empty($reportIds)) {
             return $this->asJson([
                 'success' => false,
-                'error' => 'No reports selected',
+                'error' => Craft::t('report-manager', 'No reports selected.'),
             ]);
         }
 
@@ -689,7 +689,7 @@ class ReportsController extends Controller
         if (!is_array($reportIds) || empty($reportIds)) {
             return $this->asJson([
                 'success' => false,
-                'error' => 'No reports selected',
+                'error' => Craft::t('report-manager', 'No reports selected.'),
             ]);
         }
 
