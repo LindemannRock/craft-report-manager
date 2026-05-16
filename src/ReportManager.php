@@ -58,7 +58,7 @@ class ReportManager extends Plugin
     /**
      * @inheritdoc
      */
-    public string $schemaVersion = '5.3.0';
+    public string $schemaVersion = '1.0.0';
 
     /**
      * @inheritdoc
