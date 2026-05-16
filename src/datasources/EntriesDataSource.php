@@ -10,6 +10,7 @@ namespace lindemannrock\reportmanager\datasources;
 
 use Craft;
 use craft\base\FieldInterface;
+use craft\db\Query;
 use craft\elements\Entry;
 use craft\helpers\Db;
 use DateTime;
@@ -83,16 +84,28 @@ class EntriesDataSource extends BaseDataSource
      */
     public function getAvailableEntities(): array
     {
+        $rows = (new Query())
+            ->from(['e' => '{{%entries}}'])
+            ->innerJoin(['el' => '{{%elements}}'], '[[el.id]] = [[e.id]]')
+            ->where([
+                'el.draftId' => null,
+                'el.revisionId' => null,
+                'el.dateDeleted' => null,
+            ])
+            ->select(['sectionId' => 'e.sectionId', 'cnt' => 'COUNT(*)'])
+            ->groupBy('e.sectionId')
+            ->all();
+
+        $counts = array_column($rows, 'cnt', 'sectionId');
+
         $entities = [];
 
         foreach (Craft::$app->getEntries()->getAllSections() as $section) {
-            $recordCount = $this->getRecordCount((int) $section->id);
-
             $entities[] = [
                 'id' => (int) $section->id,
                 'name' => (string) $section->name,
                 'handle' => (string) $section->handle,
-                'recordCount' => $recordCount,
+                'recordCount' => (int) ($counts[$section->id] ?? 0),
                 'recordLabel' => Craft::t('report-manager', 'entries'),
             ];
         }
