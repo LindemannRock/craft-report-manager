@@ -65,7 +65,7 @@ class GenerateExportJob extends BaseJob implements RetryableJobInterface
         }
 
         // Generate the export
-        $this->setProgress($queue, 0.1, 'Starting export generation...');
+        $this->setProgress($queue, 0.1, Craft::t('report-manager', 'Starting export generation...'));
 
         $exportService = ReportManager::getInstance()->exports;
 
@@ -79,7 +79,7 @@ class GenerateExportJob extends BaseJob implements RetryableJobInterface
         }
 
         if ($success) {
-            $this->setProgress($queue, 1, 'Export completed');
+            $this->setProgress($queue, 1, Craft::t('report-manager', 'Export completed'));
         }
     }
 
