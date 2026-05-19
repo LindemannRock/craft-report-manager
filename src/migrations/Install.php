@@ -74,12 +74,21 @@ class Install extends Migration
             'csvIncludeBom' => $this->boolean()->notNull()->defaultValue(true),
             // Analytics settings
             'enableAnalytics' => $this->boolean()->notNull()->defaultValue(true),
-            'defaultDateRange' => $this->string(32)->notNull()->defaultValue('last30days'),
             'dashboardRefreshInterval' => $this->integer()->notNull()->defaultValue(0),
             // Interface settings
-            'itemsPerPage' => $this->integer()->notNull()->defaultValue(50),
+            'itemsPerPage' => $this->integer()->notNull()->defaultValue(100),
             // Logging library
             'logLevel' => $this->string(20)->notNull()->defaultValue('error'),
+            // Base plugin overrides (cascade)
+            'timeFormat' => $this->string(2)->null(),
+            'monthFormat' => $this->string(20)->null(),
+            'dateOrder' => $this->string(3)->null(),
+            'dateSeparator' => $this->string(1)->null(),
+            'showSeconds' => $this->boolean()->null(),
+            'defaultDateRange' => $this->string(15)->null(),
+            'exportsCsv' => $this->boolean()->null(),
+            'exportsJson' => $this->boolean()->null(),
+            'exportsExcel' => $this->boolean()->null(),
             // Standard columns
             'dateCreated' => $this->dateTime()->notNull(),
             'dateUpdated' => $this->dateTime()->notNull(),
@@ -88,6 +97,15 @@ class Install extends Migration
 
         // Insert default settings row (always id=1)
         $this->insert('{{%reportmanager_settings}}', [
+            'timeFormat' => null,
+            'monthFormat' => null,
+            'dateOrder' => null,
+            'dateSeparator' => null,
+            'showSeconds' => null,
+            'defaultDateRange' => null,
+            'exportsCsv' => null,
+            'exportsJson' => null,
+            'exportsExcel' => null,
             'dateCreated' => Db::prepareDateForDb(new \DateTime()),
             'dateUpdated' => Db::prepareDateForDb(new \DateTime()),
             'uid' => StringHelper::UUID(),
