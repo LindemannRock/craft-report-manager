@@ -139,9 +139,9 @@ return [
         /**
          * Number of items to display per page in lists
          * Range: 10-500
-         * Default: 50
+         * Default: 100
          */
-        // 'itemsPerPage' => 50,
+        // 'itemsPerPage' => 100,
 
 
         // ========================================
