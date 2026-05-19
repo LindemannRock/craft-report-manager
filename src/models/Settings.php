@@ -12,6 +12,12 @@ use Craft;
 use craft\base\Model;
 use lindemannrock\base\helpers\DateRangeHelper;
 use lindemannrock\base\helpers\ExportHelper;
+use lindemannrock\base\traits\DateFormatSettingsTrait;
+use lindemannrock\base\traits\DateRangeSettingsTrait;
+use lindemannrock\base\traits\ExportFormatSettingsTrait;
+use lindemannrock\base\traits\ItemsPerPageSettingsTrait;
+use lindemannrock\base\traits\LogLevelSettingsTrait;
+use lindemannrock\base\traits\PluginNameSettingsTrait;
 use lindemannrock\base\traits\SettingsConfigTrait;
 use lindemannrock\base\traits\SettingsDisplayNameTrait;
 use lindemannrock\base\traits\SettingsPersistenceTrait;
@@ -31,6 +37,12 @@ class Settings extends Model
     use SettingsDisplayNameTrait;
     use SettingsPersistenceTrait;
     use SettingsConfigTrait;
+    use DateFormatSettingsTrait;
+    use DateRangeSettingsTrait;
+    use ExportFormatSettingsTrait;
+    use ItemsPerPageSettingsTrait;
+    use LogLevelSettingsTrait;
+    use PluginNameSettingsTrait;
 
     // =========================================================================
     // PLUGIN SETTINGS
@@ -116,32 +128,9 @@ class Settings extends Model
     public bool $enableAnalytics = true;
 
     /**
-     * @var string Default date range for new reports and exports
-     */
-    public string $defaultDateRange = 'last30days';
-
-    /**
      * @var int Legacy dashboard refresh interval, retained for existing settings rows
      */
     public int $dashboardRefreshInterval = 0;
-
-    // =========================================================================
-    // INTERFACE SETTINGS
-    // =========================================================================
-
-    /**
-     * @var int Items per page in list views
-     */
-    public int $itemsPerPage = 50;
-
-    // =========================================================================
-    // LOGGING LIBRARY SETTINGS
-    // =========================================================================
-
-    /**
-     * @var string Log level for the logging library
-     */
-    public string $logLevel = 'error';
 
     /**
      * @inheritdoc
@@ -190,6 +179,10 @@ class Settings extends Model
             'autoCleanupExports',
             'csvIncludeBom',
             'enableAnalytics',
+            'showSeconds',
+            'exportsCsv',
+            'exportsJson',
+            'exportsExcel',
         ];
     }
 
@@ -223,9 +216,7 @@ class Settings extends Model
      */
     public function rules(): array
     {
-        return [
-            ['pluginName', 'string'],
-            ['pluginName', 'default', 'value' => 'Report Manager'],
+        return array_merge([
             [
                 [
                     'enableScheduledReports',
@@ -263,14 +254,8 @@ class Settings extends Model
             ['csvDelimiter', 'default', 'value' => ','],
             ['csvEnclosure', 'string', 'length' => 1],
             ['csvEnclosure', 'default', 'value' => '"'],
-            ['defaultDateRange', 'in', 'range' => array_keys(DateRangeHelper::getOptions('assoc'))],
-            ['defaultDateRange', 'default', 'value' => 'last30days'],
             ['dashboardRefreshInterval', 'integer', 'min' => 0, 'max' => 3600],
             ['dashboardRefreshInterval', 'default', 'value' => 0],
-            ['itemsPerPage', 'integer', 'min' => 10, 'max' => 500],
-            ['itemsPerPage', 'default', 'value' => 50],
-            [['logLevel'], 'in', 'range' => ['debug', 'info', 'warning', 'error']],
-            [['logLevel'], 'validateLogLevel'],
             [['exportVolumeUid'], 'string'],
             [
                 ['exportPath'],
@@ -280,41 +265,22 @@ class Settings extends Model
                 'preventWebroot' => true,
                 'requireAlias' => true,
             ],
-        ];
+        ], $this->pluginNameSettingsRules(), $this->logLevelSettingsRules(), $this->itemsPerPageSettingsRules(), $this->dateFormatSettingsRules(), $this->dateRangeSettingsRules(), $this->exportFormatSettingsRules());
     }
 
     /**
-     * Validate log level - debug requires devMode
+     * @inheritdoc
      */
-    public function validateLogLevel(string $attribute): void
+    public function attributeLabels(): array
     {
-        $logLevel = $this->$attribute;
-
-        if (Craft::$app->getConfig()->getGeneral()->devMode && !Craft::$app->getRequest()->getIsConsoleRequest()) {
-            Craft::$app->getSession()->remove('reportmanager_debug_config_warning');
-        }
-
-        if ($logLevel === 'debug' && !Craft::$app->getConfig()->getGeneral()->devMode) {
-            $this->$attribute = 'info';
-
-            if ($this->isOverriddenByConfig('logLevel')) {
-                if (!Craft::$app->getRequest()->getIsConsoleRequest()) {
-                    if (Craft::$app->getSession()->get('reportmanager_debug_config_warning') === null) {
-                        $this->logWarning('Log level "debug" from config file changed to "info" because devMode is disabled', [
-                            'configFile' => 'config/report-manager.php',
-                        ]);
-                        Craft::$app->getSession()->set('reportmanager_debug_config_warning', true);
-                    }
-                } else {
-                    $this->logWarning('Log level "debug" from config file changed to "info" because devMode is disabled', [
-                        'configFile' => 'config/report-manager.php',
-                    ]);
-                }
-            } else {
-                $this->logWarning('Log level automatically changed from "debug" to "info" because devMode is disabled');
-                $this->saveToDatabase();
-            }
-        }
+        return array_merge(
+            $this->pluginNameSettingsLabel(),
+            $this->logLevelSettingsLabel(),
+            $this->itemsPerPageSettingsLabel(),
+            $this->dateFormatSettingsLabels(),
+            $this->dateRangeSettingsLabel(),
+            $this->exportFormatSettingsLabels(),
+        );
     }
 
     /**
