@@ -149,8 +149,7 @@ return [
     // Settings: General
     'General' => 'عام',
     'General Settings' => 'الإعدادات العامة',
-    'Plugin Name' => 'اسم الإضافة',
-    'The name of the plugin as it appears in the Control Panel menu' => 'اسم الإضافة كما يظهر في قائمة لوحة التحكم',
+
 
     // Settings: Scheduling
     'Scheduling' => 'الجدولة',
@@ -195,7 +194,6 @@ return [
     'Export Defaults' => 'الإعدادات الافتراضية للتصدير',
     'Default Export Format' => 'تنسيق التصدير الافتراضي',
     'The default format for new exports.' => 'التنسيق الافتراضي للتصديرات الجديدة.',
-    'Default Date Range' => 'نطاق التاريخ الافتراضي',
     'The default date range selected for new reports and exports.' => 'نطاق التاريخ الافتراضي المحدد للتقارير والتصديرات الجديدة.',
     'Maximum Export Batch Size' => 'الحد الأقصى لحجم دفعة التصدير',
     'Maximum number of records to export in a single batch.' => 'الحد الأقصى لعدد السجلات المراد تصديرها في دفعة واحدة.',
@@ -225,17 +223,9 @@ return [
     // Settings: Interface
     'Interface' => 'الواجهة',
     'Interface Settings' => 'إعدادات الواجهة',
-    'Items Per Page' => 'العناصر في الصفحة',
-    'Number of items to display per page in lists' => 'عدد العناصر المراد عرضها في كل صفحة من القوائم',
 
     // Settings: Logging
     'Logging Settings' => 'إعدادات التسجيل',
-    'Log Level' => 'مستوى التسجيل',
-    'Choose what types of messages to log. Debug level requires devMode to be enabled.' => 'اختر أنواع الرسائل المراد تسجيلها. يتطلب مستوى Debug تفعيل devMode.',
-    'Debug (Detailed debugging)' => 'Debug (تصحيح تفصيلي)',
-    'Info (General information)' => 'معلومات (معلومات عامة)',
-    'Warning (Errors and warnings)' => 'تحذير (الأخطاء والتحذيرات)',
-    'Error (Critical errors only)' => 'خطأ (الأخطاء الحرجة فقط)',
 
     // Reports: Index
     'New Report' => 'تقرير جديد',
@@ -404,15 +394,11 @@ return [
     'This is being overridden by the <code>csvDelimiter</code> setting in <code>config/report-manager.php</code>.' => 'يتم تجاوز هذا الإعداد بواسطة إعداد <code>csvDelimiter</code> في <code>config/report-manager.php</code>.',
     'This is being overridden by the <code>csvEnclosure</code> setting in <code>config/report-manager.php</code>.' => 'يتم تجاوز هذا الإعداد بواسطة إعداد <code>csvEnclosure</code> في <code>config/report-manager.php</code>.',
     'This is being overridden by the <code>csvIncludeBom</code> setting in <code>config/report-manager.php</code>.' => 'يتم تجاوز هذا الإعداد بواسطة إعداد <code>csvIncludeBom</code> في <code>config/report-manager.php</code>.',
-    'This is being overridden by the <code>defaultDateRange</code> setting in <code>config/report-manager.php</code>.' => 'يتم تجاوز هذا الإعداد بواسطة إعداد <code>defaultDateRange</code> في <code>config/report-manager.php</code>.',
     'This is being overridden by the <code>defaultExportFormat</code> setting in <code>config/report-manager.php</code>.' => 'يتم تجاوز هذا الإعداد بواسطة إعداد <code>defaultExportFormat</code> في <code>config/report-manager.php</code>.',
     'This is being overridden by the <code>defaultSchedule</code> setting in <code>config/report-manager.php</code>.' => 'يتم تجاوز هذا الإعداد بواسطة إعداد <code>defaultSchedule</code> في <code>config/report-manager.php</code>.',
     'This is being overridden by the <code>enableScheduledReports</code> setting in <code>config/report-manager.php</code>.' => 'يتم تجاوز هذا الإعداد بواسطة إعداد <code>enableScheduledReports</code> في <code>config/report-manager.php</code>.',
     'This is being overridden by the <code>exportPath</code> setting in <code>config/report-manager.php</code>.' => 'يتم تجاوز هذا الإعداد بواسطة إعداد <code>exportPath</code> في <code>config/report-manager.php</code>.',
     'This is being overridden by the <code>exportRetention</code> setting in <code>config/report-manager.php</code>.' => 'يتم تجاوز هذا الإعداد بواسطة إعداد <code>exportRetention</code> في <code>config/report-manager.php</code>.',
     'This is being overridden by the <code>exportVolumeUid</code> setting in <code>config/report-manager.php</code>.' => 'يتم تجاوز هذا الإعداد بواسطة إعداد <code>exportVolumeUid</code> في <code>config/report-manager.php</code>.',
-    'This is being overridden by the <code>itemsPerPage</code> setting in <code>config/report-manager.php</code>.' => 'يتم تجاوز هذا الإعداد بواسطة إعداد <code>itemsPerPage</code> في <code>config/report-manager.php</code>.',
-    'This is being overridden by the <code>logLevel</code> setting in <code>config/report-manager.php</code>.' => 'يتم تجاوز هذا الإعداد بواسطة إعداد <code>logLevel</code> في <code>config/report-manager.php</code>.',
     'This is being overridden by the <code>maxExportBatchSize</code> setting in <code>config/report-manager.php</code>.' => 'يتم تجاوز هذا الإعداد بواسطة إعداد <code>maxExportBatchSize</code> في <code>config/report-manager.php</code>.',
-    'This is being overridden by the <code>pluginName</code> setting in <code>config/report-manager.php</code>.' => 'يتم تجاوز هذا الإعداد بواسطة إعداد <code>pluginName</code> في <code>config/report-manager.php</code>.',
 ];

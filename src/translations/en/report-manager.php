@@ -147,8 +147,6 @@ return [
     // Settings: General
     'General' => 'General',
     'General Settings' => 'General Settings',
-    'Plugin Name' => 'Plugin Name',
-    'The name of the plugin as it appears in the Control Panel menu' => 'The name of the plugin as it appears in the Control Panel menu',
 
     // Settings: Scheduling
     'Scheduling' => 'Scheduling',
@@ -193,7 +191,6 @@ return [
     'Export Defaults' => 'Export Defaults',
     'Default Export Format' => 'Default Export Format',
     'The default format for new exports.' => 'The default format for new exports.',
-    'Default Date Range' => 'Default Date Range',
     'The default date range selected for new reports and exports.' => 'The default date range selected for new reports and exports.',
     'Maximum Export Batch Size' => 'Maximum Export Batch Size',
     'Maximum number of records to export in a single batch.' => 'Maximum number of records to export in a single batch.',
@@ -223,17 +220,9 @@ return [
     // Settings: Interface
     'Interface' => 'Interface',
     'Interface Settings' => 'Interface Settings',
-    'Items Per Page' => 'Items Per Page',
-    'Number of items to display per page in lists' => 'Number of items to display per page in lists',
 
     // Settings: Logging
     'Logging Settings' => 'Logging Settings',
-    'Log Level' => 'Log Level',
-    'Choose what types of messages to log. Debug level requires devMode to be enabled.' => 'Choose what types of messages to log. Debug level requires devMode to be enabled.',
-    'Debug (Detailed debugging)' => 'Debug (Detailed debugging)',
-    'Info (General information)' => 'Info (General information)',
-    'Warning (Errors and warnings)' => 'Warning (Errors and warnings)',
-    'Error (Critical errors only)' => 'Error (Critical errors only)',
 
     // Reports: Index
     'New Report' => 'New Report',
@@ -402,15 +391,11 @@ return [
     'This is being overridden by the <code>csvDelimiter</code> setting in <code>config/report-manager.php</code>.' => 'This is being overridden by the <code>csvDelimiter</code> setting in <code>config/report-manager.php</code>.',
     'This is being overridden by the <code>csvEnclosure</code> setting in <code>config/report-manager.php</code>.' => 'This is being overridden by the <code>csvEnclosure</code> setting in <code>config/report-manager.php</code>.',
     'This is being overridden by the <code>csvIncludeBom</code> setting in <code>config/report-manager.php</code>.' => 'This is being overridden by the <code>csvIncludeBom</code> setting in <code>config/report-manager.php</code>.',
-    'This is being overridden by the <code>defaultDateRange</code> setting in <code>config/report-manager.php</code>.' => 'This is being overridden by the <code>defaultDateRange</code> setting in <code>config/report-manager.php</code>.',
     'This is being overridden by the <code>defaultExportFormat</code> setting in <code>config/report-manager.php</code>.' => 'This is being overridden by the <code>defaultExportFormat</code> setting in <code>config/report-manager.php</code>.',
     'This is being overridden by the <code>defaultSchedule</code> setting in <code>config/report-manager.php</code>.' => 'This is being overridden by the <code>defaultSchedule</code> setting in <code>config/report-manager.php</code>.',
     'This is being overridden by the <code>enableScheduledReports</code> setting in <code>config/report-manager.php</code>.' => 'This is being overridden by the <code>enableScheduledReports</code> setting in <code>config/report-manager.php</code>.',
     'This is being overridden by the <code>exportPath</code> setting in <code>config/report-manager.php</code>.' => 'This is being overridden by the <code>exportPath</code> setting in <code>config/report-manager.php</code>.',
     'This is being overridden by the <code>exportRetention</code> setting in <code>config/report-manager.php</code>.' => 'This is being overridden by the <code>exportRetention</code> setting in <code>config/report-manager.php</code>.',
     'This is being overridden by the <code>exportVolumeUid</code> setting in <code>config/report-manager.php</code>.' => 'This is being overridden by the <code>exportVolumeUid</code> setting in <code>config/report-manager.php</code>.',
-    'This is being overridden by the <code>itemsPerPage</code> setting in <code>config/report-manager.php</code>.' => 'This is being overridden by the <code>itemsPerPage</code> setting in <code>config/report-manager.php</code>.',
-    'This is being overridden by the <code>logLevel</code> setting in <code>config/report-manager.php</code>.' => 'This is being overridden by the <code>logLevel</code> setting in <code>config/report-manager.php</code>.',
     'This is being overridden by the <code>maxExportBatchSize</code> setting in <code>config/report-manager.php</code>.' => 'This is being overridden by the <code>maxExportBatchSize</code> setting in <code>config/report-manager.php</code>.',
-    'This is being overridden by the <code>pluginName</code> setting in <code>config/report-manager.php</code>.' => 'This is being overridden by the <code>pluginName</code> setting in <code>config/report-manager.php</code>.',
 ];

@@ -149,8 +149,7 @@ return [
     // Settings: General
     'General' => 'Algemeen',
     'General Settings' => 'Algemene instellingen',
-    'Plugin Name' => 'Pluginnaam',
-    'The name of the plugin as it appears in the Control Panel menu' => 'De naam van de plugin zoals deze verschijnt in het menu van het configuratiescherm',
+
 
     // Settings: Scheduling
     'Scheduling' => 'Planning',
@@ -195,7 +194,6 @@ return [
     'Export Defaults' => 'Standaardwaarden voor export',
     'Default Export Format' => 'Standaard exportformaat',
     'The default format for new exports.' => 'Het standaardformaat voor nieuwe exports.',
-    'Default Date Range' => 'Standaard datumbereik',
     'The default date range selected for new reports and exports.' => 'Het standaard datumbereik dat wordt geselecteerd voor nieuwe rapporten en exports.',
     'Maximum Export Batch Size' => 'Maximale exportbatchgrootte',
     'Maximum number of records to export in a single batch.' => 'Maximaal aantal records dat in één batch kan worden geëxporteerd.',
@@ -225,17 +223,9 @@ return [
     // Settings: Interface
     'Interface' => 'Interface',
     'Interface Settings' => 'Interface-instellingen',
-    'Items Per Page' => 'Items per pagina',
-    'Number of items to display per page in lists' => 'Aantal items dat per pagina in lijsten wordt weergegeven',
 
     // Settings: Logging
     'Logging Settings' => 'Logboekinstellingen',
-    'Log Level' => 'Logboekniveau',
-    'Choose what types of messages to log. Debug level requires devMode to be enabled.' => 'Kies welke typen berichten worden gelogd. Het Debug-niveau vereist dat devMode is ingeschakeld.',
-    'Debug (Detailed debugging)' => 'Debug (gedetailleerde foutopsporing)',
-    'Info (General information)' => 'Info (algemene informatie)',
-    'Warning (Errors and warnings)' => 'Waarschuwing (fouten en waarschuwingen)',
-    'Error (Critical errors only)' => 'Fout (alleen kritieke fouten)',
 
     // Reports: Index
     'New Report' => 'Nieuw rapport',
@@ -404,15 +394,11 @@ return [
     'This is being overridden by the <code>csvDelimiter</code> setting in <code>config/report-manager.php</code>.' => 'Deze instelling wordt overschreven door de instelling <code>csvDelimiter</code> in <code>config/report-manager.php</code>.',
     'This is being overridden by the <code>csvEnclosure</code> setting in <code>config/report-manager.php</code>.' => 'Deze instelling wordt overschreven door de instelling <code>csvEnclosure</code> in <code>config/report-manager.php</code>.',
     'This is being overridden by the <code>csvIncludeBom</code> setting in <code>config/report-manager.php</code>.' => 'Deze instelling wordt overschreven door de instelling <code>csvIncludeBom</code> in <code>config/report-manager.php</code>.',
-    'This is being overridden by the <code>defaultDateRange</code> setting in <code>config/report-manager.php</code>.' => 'Deze instelling wordt overschreven door de instelling <code>defaultDateRange</code> in <code>config/report-manager.php</code>.',
     'This is being overridden by the <code>defaultExportFormat</code> setting in <code>config/report-manager.php</code>.' => 'Deze instelling wordt overschreven door de instelling <code>defaultExportFormat</code> in <code>config/report-manager.php</code>.',
     'This is being overridden by the <code>defaultSchedule</code> setting in <code>config/report-manager.php</code>.' => 'Deze instelling wordt overschreven door de instelling <code>defaultSchedule</code> in <code>config/report-manager.php</code>.',
     'This is being overridden by the <code>enableScheduledReports</code> setting in <code>config/report-manager.php</code>.' => 'Deze instelling wordt overschreven door de instelling <code>enableScheduledReports</code> in <code>config/report-manager.php</code>.',
     'This is being overridden by the <code>exportPath</code> setting in <code>config/report-manager.php</code>.' => 'Deze instelling wordt overschreven door de instelling <code>exportPath</code> in <code>config/report-manager.php</code>.',
     'This is being overridden by the <code>exportRetention</code> setting in <code>config/report-manager.php</code>.' => 'Deze instelling wordt overschreven door de instelling <code>exportRetention</code> in <code>config/report-manager.php</code>.',
     'This is being overridden by the <code>exportVolumeUid</code> setting in <code>config/report-manager.php</code>.' => 'Deze instelling wordt overschreven door de instelling <code>exportVolumeUid</code> in <code>config/report-manager.php</code>.',
-    'This is being overridden by the <code>itemsPerPage</code> setting in <code>config/report-manager.php</code>.' => 'Deze instelling wordt overschreven door de instelling <code>itemsPerPage</code> in <code>config/report-manager.php</code>.',
-    'This is being overridden by the <code>logLevel</code> setting in <code>config/report-manager.php</code>.' => 'Deze instelling wordt overschreven door de instelling <code>logLevel</code> in <code>config/report-manager.php</code>.',
     'This is being overridden by the <code>maxExportBatchSize</code> setting in <code>config/report-manager.php</code>.' => 'Deze instelling wordt overschreven door de instelling <code>maxExportBatchSize</code> in <code>config/report-manager.php</code>.',
-    'This is being overridden by the <code>pluginName</code> setting in <code>config/report-manager.php</code>.' => 'Deze instelling wordt overschreven door de instelling <code>pluginName</code> in <code>config/report-manager.php</code>.',
 ];

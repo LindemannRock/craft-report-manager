@@ -149,8 +149,7 @@ return [
     // Settings: General
     'General' => 'Generelt',
     'General Settings' => 'Generelle innstillinger',
-    'Plugin Name' => 'Plugin-navn',
-    'The name of the plugin as it appears in the Control Panel menu' => 'Pluginets navn slik det vises i kontrollpanelets meny',
+
 
     // Settings: Scheduling
     'Scheduling' => 'Planlegging',
@@ -195,7 +194,6 @@ return [
     'Export Defaults' => 'Standard eksportinnstillinger',
     'Default Export Format' => 'Standard eksportformat',
     'The default format for new exports.' => 'Standard formatet for nye eksporter.',
-    'Default Date Range' => 'Standard datoperiode',
     'The default date range selected for new reports and exports.' => 'Standard datoperioden som velges for nye rapporter og eksporter.',
     'Maximum Export Batch Size' => 'Maksimal eksportbatchstørrelse',
     'Maximum number of records to export in a single batch.' => 'Maksimalt antall poster å eksportere i én batch.',
@@ -225,17 +223,9 @@ return [
     // Settings: Interface
     'Interface' => 'Grensesnitt',
     'Interface Settings' => 'Grensesnittinnstillinger',
-    'Items Per Page' => 'Elementer per side',
-    'Number of items to display per page in lists' => 'Antall elementer som vises per side i lister',
 
     // Settings: Logging
     'Logging Settings' => 'Logginnstillinger',
-    'Log Level' => 'Loggnivå',
-    'Choose what types of messages to log. Debug level requires devMode to be enabled.' => 'Velg hvilke typer meldinger som skal logges. Debug-nivå krever at devMode er aktivert.',
-    'Debug (Detailed debugging)' => 'Debug (detaljert feilsøking)',
-    'Info (General information)' => 'Info (generell informasjon)',
-    'Warning (Errors and warnings)' => 'Advarsel (feil og advarsler)',
-    'Error (Critical errors only)' => 'Feil (kun kritiske feil)',
 
     // Reports: Index
     'New Report' => 'Ny rapport',
@@ -404,15 +394,11 @@ return [
     'This is being overridden by the <code>csvDelimiter</code> setting in <code>config/report-manager.php</code>.' => 'Denne innstillingen overstyres av <code>csvDelimiter</code>-innstillingen i <code>config/report-manager.php</code>.',
     'This is being overridden by the <code>csvEnclosure</code> setting in <code>config/report-manager.php</code>.' => 'Denne innstillingen overstyres av <code>csvEnclosure</code>-innstillingen i <code>config/report-manager.php</code>.',
     'This is being overridden by the <code>csvIncludeBom</code> setting in <code>config/report-manager.php</code>.' => 'Denne innstillingen overstyres av <code>csvIncludeBom</code>-innstillingen i <code>config/report-manager.php</code>.',
-    'This is being overridden by the <code>defaultDateRange</code> setting in <code>config/report-manager.php</code>.' => 'Denne innstillingen overstyres av <code>defaultDateRange</code>-innstillingen i <code>config/report-manager.php</code>.',
     'This is being overridden by the <code>defaultExportFormat</code> setting in <code>config/report-manager.php</code>.' => 'Denne innstillingen overstyres av <code>defaultExportFormat</code>-innstillingen i <code>config/report-manager.php</code>.',
     'This is being overridden by the <code>defaultSchedule</code> setting in <code>config/report-manager.php</code>.' => 'Denne innstillingen overstyres av <code>defaultSchedule</code>-innstillingen i <code>config/report-manager.php</code>.',
     'This is being overridden by the <code>enableScheduledReports</code> setting in <code>config/report-manager.php</code>.' => 'Denne innstillingen overstyres av <code>enableScheduledReports</code>-innstillingen i <code>config/report-manager.php</code>.',
     'This is being overridden by the <code>exportPath</code> setting in <code>config/report-manager.php</code>.' => 'Denne innstillingen overstyres av <code>exportPath</code>-innstillingen i <code>config/report-manager.php</code>.',
     'This is being overridden by the <code>exportRetention</code> setting in <code>config/report-manager.php</code>.' => 'Denne innstillingen overstyres av <code>exportRetention</code>-innstillingen i <code>config/report-manager.php</code>.',
     'This is being overridden by the <code>exportVolumeUid</code> setting in <code>config/report-manager.php</code>.' => 'Denne innstillingen overstyres av <code>exportVolumeUid</code>-innstillingen i <code>config/report-manager.php</code>.',
-    'This is being overridden by the <code>itemsPerPage</code> setting in <code>config/report-manager.php</code>.' => 'Denne innstillingen overstyres av <code>itemsPerPage</code>-innstillingen i <code>config/report-manager.php</code>.',
-    'This is being overridden by the <code>logLevel</code> setting in <code>config/report-manager.php</code>.' => 'Denne innstillingen overstyres av <code>logLevel</code>-innstillingen i <code>config/report-manager.php</code>.',
     'This is being overridden by the <code>maxExportBatchSize</code> setting in <code>config/report-manager.php</code>.' => 'Denne innstillingen overstyres av <code>maxExportBatchSize</code>-innstillingen i <code>config/report-manager.php</code>.',
-    'This is being overridden by the <code>pluginName</code> setting in <code>config/report-manager.php</code>.' => 'Denne innstillingen overstyres av <code>pluginName</code>-innstillingen i <code>config/report-manager.php</code>.',
 ];

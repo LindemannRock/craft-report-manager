@@ -149,8 +149,7 @@ return [
     // Settings: General
     'General' => '一般',
     'General Settings' => '一般設定',
-    'Plugin Name' => 'プラグイン名',
-    'The name of the plugin as it appears in the Control Panel menu' => 'コントロールパネルのメニューに表示されるプラグインの名前',
+
 
     // Settings: Scheduling
     'Scheduling' => 'スケジュール',
@@ -195,7 +194,6 @@ return [
     'Export Defaults' => 'エクスポートのデフォルト',
     'Default Export Format' => 'デフォルトのエクスポートフォーマット',
     'The default format for new exports.' => '新しいエクスポートのデフォルトフォーマット。',
-    'Default Date Range' => 'デフォルトの日付範囲',
     'The default date range selected for new reports and exports.' => '新しいレポートとエクスポートに選択されるデフォルトの日付範囲。',
     'Maximum Export Batch Size' => 'エクスポートの最大バッチサイズ',
     'Maximum number of records to export in a single batch.' => '1 つのバッチでエクスポートする最大レコード数。',
@@ -225,17 +223,9 @@ return [
     // Settings: Interface
     'Interface' => 'インターフェース',
     'Interface Settings' => 'インターフェース設定',
-    'Items Per Page' => '1 ページあたりの件数',
-    'Number of items to display per page in lists' => 'リストで 1 ページに表示する件数',
 
     // Settings: Logging
     'Logging Settings' => 'ログ設定',
-    'Log Level' => 'ログレベル',
-    'Choose what types of messages to log. Debug level requires devMode to be enabled.' => '記録するメッセージの種類を選択してください。Debug レベルには devMode の有効化が必要です。',
-    'Debug (Detailed debugging)' => 'Debug（詳細なデバッグ）',
-    'Info (General information)' => '情報（一般情報）',
-    'Warning (Errors and warnings)' => '警告（エラーと警告）',
-    'Error (Critical errors only)' => 'エラー（重大なエラーのみ）',
 
     // Reports: Index
     'New Report' => '新しいレポート',
@@ -404,15 +394,11 @@ return [
     'This is being overridden by the <code>csvDelimiter</code> setting in <code>config/report-manager.php</code>.' => '<code>config/report-manager.php</code> の <code>csvDelimiter</code> 設定によって上書きされています。',
     'This is being overridden by the <code>csvEnclosure</code> setting in <code>config/report-manager.php</code>.' => '<code>config/report-manager.php</code> の <code>csvEnclosure</code> 設定によって上書きされています。',
     'This is being overridden by the <code>csvIncludeBom</code> setting in <code>config/report-manager.php</code>.' => '<code>config/report-manager.php</code> の <code>csvIncludeBom</code> 設定によって上書きされています。',
-    'This is being overridden by the <code>defaultDateRange</code> setting in <code>config/report-manager.php</code>.' => '<code>config/report-manager.php</code> の <code>defaultDateRange</code> 設定によって上書きされています。',
     'This is being overridden by the <code>defaultExportFormat</code> setting in <code>config/report-manager.php</code>.' => '<code>config/report-manager.php</code> の <code>defaultExportFormat</code> 設定によって上書きされています。',
     'This is being overridden by the <code>defaultSchedule</code> setting in <code>config/report-manager.php</code>.' => '<code>config/report-manager.php</code> の <code>defaultSchedule</code> 設定によって上書きされています。',
     'This is being overridden by the <code>enableScheduledReports</code> setting in <code>config/report-manager.php</code>.' => '<code>config/report-manager.php</code> の <code>enableScheduledReports</code> 設定によって上書きされています。',
     'This is being overridden by the <code>exportPath</code> setting in <code>config/report-manager.php</code>.' => '<code>config/report-manager.php</code> の <code>exportPath</code> 設定によって上書きされています。',
     'This is being overridden by the <code>exportRetention</code> setting in <code>config/report-manager.php</code>.' => '<code>config/report-manager.php</code> の <code>exportRetention</code> 設定によって上書きされています。',
     'This is being overridden by the <code>exportVolumeUid</code> setting in <code>config/report-manager.php</code>.' => '<code>config/report-manager.php</code> の <code>exportVolumeUid</code> 設定によって上書きされています。',
-    'This is being overridden by the <code>itemsPerPage</code> setting in <code>config/report-manager.php</code>.' => '<code>config/report-manager.php</code> の <code>itemsPerPage</code> 設定によって上書きされています。',
-    'This is being overridden by the <code>logLevel</code> setting in <code>config/report-manager.php</code>.' => '<code>config/report-manager.php</code> の <code>logLevel</code> 設定によって上書きされています。',
     'This is being overridden by the <code>maxExportBatchSize</code> setting in <code>config/report-manager.php</code>.' => '<code>config/report-manager.php</code> の <code>maxExportBatchSize</code> 設定によって上書きされています。',
-    'This is being overridden by the <code>pluginName</code> setting in <code>config/report-manager.php</code>.' => '<code>config/report-manager.php</code> の <code>pluginName</code> 設定によって上書きされています。',
 ];
