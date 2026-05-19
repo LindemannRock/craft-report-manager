@@ -48,14 +48,6 @@ return [
         // 'defaultExportFormat' => 'csv',
 
         /**
-         * Default date range for new reports and exports
-         * Options: 'today', 'yesterday', 'last7days', 'last30days', 'last90days',
-         *          'thisMonth', 'lastMonth', 'thisYear', 'lastYear', 'all'
-         * Default: 'last30days'
-         */
-        // 'defaultDateRange' => 'last30days',
-
-        /**
          * Maximum records to export in a single batch
          * Range: 100-100000
          * Default: 10000
@@ -161,6 +153,14 @@ return [
         // 'dateOrder' => 'dmy',      // 'dmy', 'mdy', 'ymd'
         // 'dateSeparator' => '/',    // '/', '-', '.'
         // 'showSeconds' => false,    // Show seconds in time display
+
+        /**
+         * Default date range for analytics and dashboard pages
+         * Options: 'today', 'yesterday', 'last7days', 'last30days', 'last90days',
+         *          'thisMonth', 'lastMonth', 'thisYear', 'lastYear', 'all'
+         * Default: 'last30days' (from base plugin)
+         */
+        // 'defaultDateRange' => 'last7days',
 
         /**
          * Export format overrides
