@@ -149,6 +149,14 @@ class SettingsController extends Controller
                 } elseif (in_array($key, $nullableStringFields, true)) {
                     $settings->$key = $value !== '' && $value !== null ? $value : null;
                 } else {
+                    // Multi-state selects (e.g. "Use global default" = '') need '' → null
+                    // so nullable properties hold null, not a coerced false / 0.
+                    if ($value === '') {
+                        $type = (new \ReflectionProperty($settings, $key))->getType();
+                        if ($type instanceof \ReflectionNamedType && $type->allowsNull()) {
+                            $value = null;
+                        }
+                    }
                     $settings->$key = $value;
                 }
             }
@@ -231,6 +239,15 @@ class SettingsController extends Controller
             ],
             'interface' => [
                 'itemsPerPage',
+                'timeFormat',
+                'monthFormat',
+                'dateOrder',
+                'dateSeparator',
+                'showSeconds',
+                'defaultDateRange',
+                'exportsCsv',
+                'exportsJson',
+                'exportsExcel',
             ],
             'scheduling' => [
                 'enableScheduledReports',
@@ -240,7 +257,6 @@ class SettingsController extends Controller
                 'exportVolumeUid',
                 'exportPath',
                 'defaultExportFormat',
-                'defaultDateRange',
                 'maxExportBatchSize',
                 'csvDelimiter',
                 'csvEnclosure',
