@@ -41,19 +41,6 @@
                 "This is being overridden by the <code>defaultExportFormat</code> setting in <code>config/report-manager.php</code>."|t('report-manager')|raw : null,
         }) }}
 
-        {{ forms.selectField({
-            label: 'Default Date Range'|t('report-manager'),
-            instructions: 'The default date range selected for new reports and exports.'|t('report-manager'),
-            id: 'defaultDateRange',
-            name: 'settings[defaultDateRange]',
-            value: settings.defaultDateRange,
-            options: settings.getDateRangeOptions(),
-            disabled: settings.isOverriddenByConfig('defaultDateRange'),
-            warning: settings.isOverriddenByConfig('defaultDateRange') ?
-                "This is being overridden by the <code>defaultDateRange</code> setting in <code>config/report-manager.php</code>."|t('report-manager')|raw : null,
-            errors: settings.getErrors('defaultDateRange')
-        }) }}
-
         {{ forms.textField({
             label: 'Maximum Export Batch Size'|t('report-manager'),
             instructions: 'Maximum number of records to export in a single batch.'|t('report-manager'),
