@@ -273,7 +273,19 @@ class Settings extends Model
      */
     public function attributeLabels(): array
     {
-        return array_merge(
+        return array_merge([
+            'enableScheduledReports' => Craft::t('report-manager', 'Enable Scheduled Reports'),
+            'defaultSchedule' => Craft::t('report-manager', 'Default Schedule'),
+            'maxExportBatchSize' => Craft::t('report-manager', 'Maximum Export Batch Size'),
+            'exportRetention' => Craft::t('report-manager', 'Export Retention (Days)'),
+            'autoCleanupExports' => Craft::t('report-manager', 'Auto Cleanup Exports'),
+            'exportVolumeUid' => Craft::t('report-manager', 'Export Storage Volume'),
+            'exportPath' => Craft::t('report-manager', 'Custom Export Path'),
+            'defaultExportFormat' => Craft::t('report-manager', 'Default Export Format'),
+            'csvDelimiter' => Craft::t('report-manager', 'CSV Delimiter'),
+            'csvEnclosure' => Craft::t('report-manager', 'CSV Enclosure'),
+            'csvIncludeBom' => Craft::t('report-manager', 'Include BOM'),
+        ],
             $this->pluginNameSettingsLabel(),
             $this->logLevelSettingsLabel(),
             $this->itemsPerPageSettingsLabel(),
