@@ -119,7 +119,7 @@ return [
     'Could not reorder reports.' => 'No se pudieron reordenar los informes.',
     'Could not save report.' => 'No se pudo guardar el informe.',
     'Could not save settings.' => 'No se pudo guardar la configuración.',
-    'Data source not found' => 'Fuente de datos no encontrada',
+    'Data source not found' => 'Origen de datos no encontrado',
     'Export file not found' => 'Archivo de exportación no encontrado',
     'Export format "{format}" is not enabled.' => 'El formato de exportación "{format}" no está activado.',
     'Export format "{format}" is not enabled. Please update the report settings.' => 'El formato de exportación "{format}" no está activado. Actualice la configuración del informe.',
@@ -250,8 +250,8 @@ return [
     'A unique identifier for this report.' => 'Un identificador único para este informe.',
     'A descriptive name for this report.' => 'Un nombre descriptivo para este informe.',
     'Optional description for this report.' => 'Descripción opcional para este informe.',
-    'Data Source' => 'Fuente de datos',
-    'Select the data source for this report.' => 'Seleccione la fuente de datos para este informe.',
+    'Data Source' => 'Origen de datos',
+    'Select the data source for this report.' => 'Seleccione la origen de datos para este informe.',
     'Entity' => 'Entidad',
     'Select one or more forms to include in this report.' => 'Seleccione uno o más formularios para incluir en este informe.',
     'Items to Export' => 'Elementos a exportar',
@@ -312,7 +312,7 @@ return [
 
     // Exports: New
     'Generate Export' => 'Generar exportación',
-    'Select the data source to export from.' => 'Seleccione la fuente de datos de la que exportar.',
+    'Select the data source to export from.' => 'Seleccione la origen de datos de la que exportar.',
     'Forms to Export' => 'Formularios a exportar',
     'Select one or more forms to export. Each form will generate a separate export file.' => 'Seleccione uno o más formularios para exportar. Cada formulario generará un archivo de exportación separado.',
     'Select one or more items to export. Each item will generate a separate export file.' => 'Seleccione uno o más elementos para exportar. Cada elemento generará un archivo de exportación separado.',

@@ -221,7 +221,7 @@ return [
 
     // Settings: Interface
     'Interface' => 'Oberfläche',
-    'Interface Settings' => 'Oberflächeneinstellungen',
+    'Interface Settings' => 'Oberflächen-Einstellungen',
 
     // Settings: Logging
     'Logging Settings' => 'Protokollierungseinstellungen',

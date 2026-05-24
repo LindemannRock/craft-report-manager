@@ -234,8 +234,8 @@ return [
     'Last Run' => 'Siste kjøring',
     'Next Run' => 'Neste kjøring',
     'Are you sure you want to delete this report?' => 'Er du sikker på at du vil slette denne rapporten?',
-    'Delete report "{name}"? This cannot be undone.' => 'Slett rapport „{name}"? Dette kan ikke angres.',
-    'Delete {count} report(s)? This cannot be undone.' => 'Slett {count} rapporter? Dette kan ikke angres.',
+    'Delete report "{name}"? This cannot be undone.' => 'Slett rapport „{name}"? Denne handlingen kan ikke angres.',
+    'Delete {count} report(s)? This cannot be undone.' => 'Slett {count} rapporter? Denne handlingen kan ikke angres.',
     'Could not queue export.' => 'Kunne ikke legge eksporten i kø.',
     'Could not enable reports.' => 'Kunne ikke aktivere rapportene.',
     'Could not disable reports.' => 'Kunne ikke deaktivere rapportene.',
@@ -290,8 +290,8 @@ return [
     'File deleted.' => 'Fil slettet.',
     'Could not delete file.' => 'Kunne ikke slette filen.',
     'Could not delete files.' => 'Kunne ikke slette filene.',
-    'Delete "{name}"? This cannot be undone.' => 'Slett „{name}"? Dette kan ikke angres.',
-    'Delete {count} file(s)? This cannot be undone.' => 'Slett {count} filer? Dette kan ikke angres.',
+    'Delete "{name}"? This cannot be undone.' => 'Slett „{name}"? Denne handlingen kan ikke angres.',
+    'Delete {count} file(s)? This cannot be undone.' => 'Slett {count} filer? Denne handlingen kan ikke angres.',
     'Deleted {count} file(s).' => '{count} filer slettet.',
 
     // Exports: Index
@@ -305,8 +305,8 @@ return [
     'Report' => 'Rapport',
     'Scheduled' => 'Planlagt',
     'Export deleted.' => 'Eksport slettet.',
-    'Delete export "{name}"? This cannot be undone.' => 'Slett eksport „{name}"? Dette kan ikke angres.',
-    'Delete {count} export(s)? This cannot be undone.' => 'Slett {count} eksporter? Dette kan ikke angres.',
+    'Delete export "{name}"? This cannot be undone.' => 'Slett eksport „{name}"? Denne handlingen kan ikke angres.',
+    'Delete {count} export(s)? This cannot be undone.' => 'Slett {count} eksporter? Denne handlingen kan ikke angres.',
     'Could not delete exports.' => 'Kunne ikke slette eksportene.',
     'Deleted {count} export(s).' => '{count} eksporter slettet.',
 
