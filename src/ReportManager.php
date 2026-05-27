@@ -18,7 +18,9 @@ use craft\web\twig\variables\Cp;
 use craft\web\UrlManager;
 use lindemannrock\base\helpers\ColorHelper;
 use lindemannrock\base\helpers\CpNavHelper;
+use lindemannrock\base\helpers\DateFormatHelper;
 use lindemannrock\base\helpers\PluginHelper;
+use lindemannrock\base\helpers\ScheduleHelper;
 use lindemannrock\logginglibrary\LoggingLibrary;
 use lindemannrock\logginglibrary\traits\LoggingTrait;
 use lindemannrock\reportmanager\jobs\CleanupExportsJob;
@@ -436,9 +438,10 @@ class ReportManager extends Plugin
     /**
      * Ensure generated export cleanup is queued.
      *
-     * @param int $delay Delay in seconds
+     * @param \DateTime|null $nextRun Target run time. Null schedules the initial bootstrap row.
+     * @param bool $checkExisting Whether to guard against an existing queued cleanup row.
      */
-    public function scheduleExportCleanupJob(int $delay = 300): void
+    public function scheduleExportCleanupJob(?\DateTime $nextRun = null, bool $checkExisting = true): void
     {
         $settings = $this->getSettings();
 
@@ -446,17 +449,31 @@ class ReportManager extends Plugin
             return;
         }
 
-        $existingJob = (new \craft\db\Query())
-            ->from('{{%queue}}')
-            ->where(['like', 'job', 'reportmanager'])
-            ->andWhere(['like', 'job', 'CleanupExportsJob'])
-            ->exists();
+        if ($checkExisting) {
+            $existingJob = (new \craft\db\Query())
+                ->from('{{%queue}}')
+                ->where(['like', 'job', 'reportmanager'])
+                ->andWhere(['like', 'job', 'CleanupExportsJob'])
+                ->exists();
 
-        if ($existingJob) {
+            if ($existingJob) {
+                return;
+            }
+        }
+
+        $nextRun ??= (clone DateFormatHelper::now())->modify('+300 seconds');
+        $delay = max(0, $nextRun->getTimestamp() - DateFormatHelper::now()->getTimestamp());
+
+        if ($delay <= 0) {
             return;
         }
 
-        $nextRunTime = date('M j, g:ia', time() + $delay);
+        $nextRunTime = DateFormatHelper::formatCompactDatetimeFromSettings(
+            $nextRun,
+            $settings,
+            false,
+            false,
+        );
 
         Craft::$app->getQueue()->delay($delay)->push(new CleanupExportsJob([
             'reschedule' => true,
@@ -467,6 +484,16 @@ class ReportManager extends Plugin
             'delay_seconds' => $delay,
             'next_run' => $nextRunTime,
         ]);
+    }
+
+    /**
+     * Queue the next generated export cleanup run.
+     *
+     * @since 5.4.0
+     */
+    public function scheduleNextExportCleanupJob(): void
+    {
+        $this->scheduleExportCleanupJob(ScheduleHelper::calculateNext('daily'), false);
     }
 
     /**
