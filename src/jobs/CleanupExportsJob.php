@@ -71,7 +71,7 @@ class CleanupExportsJob extends BaseJob implements RetryableJobInterface
             'count' => $deletedCount,
         ]));
 
-        $plugin->scheduleExportCleanupJob(24 * 60 * 60);
+        $plugin->scheduleNextExportCleanupJob();
     }
 
     /**
