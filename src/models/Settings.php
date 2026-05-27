@@ -12,6 +12,7 @@ use Craft;
 use craft\base\Model;
 use lindemannrock\base\helpers\DateRangeHelper;
 use lindemannrock\base\helpers\ExportHelper;
+use lindemannrock\base\helpers\ScheduleHelper;
 use lindemannrock\base\traits\DateFormatSettingsTrait;
 use lindemannrock\base\traits\DateRangeSettingsTrait;
 use lindemannrock\base\traits\ExportFormatSettingsTrait;
@@ -43,6 +44,20 @@ class Settings extends Model
     use ItemsPerPageSettingsTrait;
     use LogLevelSettingsTrait;
     use PluginNameSettingsTrait;
+
+    private const SCHEDULE_OPTIONS = [
+        'disabled',
+        'every6hours',
+        'every12hours',
+        'daily',
+        'daily2am',
+        'weekly',
+        'monthly',
+        'every2months',
+        'quarterly',
+        'every6months',
+        'yearly',
+    ];
 
     // =========================================================================
     // PLUGIN SETTINGS
@@ -229,19 +244,7 @@ class Settings extends Model
             [
                 'defaultSchedule',
                 'in',
-                'range' => [
-                    'disabled',
-                    'every6hours',
-                    'every12hours',
-                    'daily',
-                    'daily2am',
-                    'weekly',
-                    'monthly',
-                    'every2months',
-                    'quarterly',
-                    'every6months',
-                    'yearly',
-                ],
+                'range' => ScheduleHelper::getValidValues(self::SCHEDULE_OPTIONS),
             ],
             ['defaultSchedule', 'default', 'value' => 'daily2am'],
             ['maxExportBatchSize', 'integer', 'min' => 100, 'max' => 100000],
@@ -348,19 +351,7 @@ class Settings extends Model
      */
     public function getScheduleOptions(): array
     {
-        return [
-            ['value' => 'disabled', 'label' => Craft::t('report-manager', 'Disabled')],
-            ['value' => 'every6hours', 'label' => Craft::t('report-manager', 'Every 6 Hours')],
-            ['value' => 'every12hours', 'label' => Craft::t('report-manager', 'Every 12 Hours')],
-            ['value' => 'daily', 'label' => Craft::t('report-manager', 'Daily')],
-            ['value' => 'daily2am', 'label' => Craft::t('report-manager', 'Daily at 2:00 AM')],
-            ['value' => 'weekly', 'label' => Craft::t('report-manager', 'Weekly')],
-            ['value' => 'monthly', 'label' => Craft::t('report-manager', 'Monthly')],
-            ['value' => 'every2months', 'label' => Craft::t('report-manager', 'Every 2 Months')],
-            ['value' => 'quarterly', 'label' => Craft::t('report-manager', 'Quarterly')],
-            ['value' => 'every6months', 'label' => Craft::t('report-manager', 'Every 6 Months')],
-            ['value' => 'yearly', 'label' => Craft::t('report-manager', 'Yearly')],
-        ];
+        return ScheduleHelper::getOptions(self::SCHEDULE_OPTIONS);
     }
 
     /**
