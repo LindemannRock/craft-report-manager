@@ -563,6 +563,17 @@ Skip the SQL if the columns and index already exist. Apply your Craft table pref
 2. Ensure queue worker is running
 3. Check if job exists in queue (Utilities → Queue Manager)
 
+### Scheduled Export Cleanup Missing
+
+Report Manager schedules a recurring queue job for generated export cleanup when automatic cleanup is enabled.
+
+If the cleanup job is missing:
+
+1. Confirm the queue worker is running.
+2. Visit any CP page to let Report Manager bootstrap the cleanup job.
+3. Check that **Auto Cleanup Exports** is enabled.
+4. Check that `exportRetention` is greater than `0`.
+
 ### XLSX Export Issues
 
 1. Ensure PhpSpreadsheet is installed:
