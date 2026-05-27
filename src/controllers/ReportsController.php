@@ -149,10 +149,11 @@ class ReportsController extends Controller
             'offset' => $result['offset'],
             'totalCount' => $result['totalCount'],
             'totalPages' => $result['totalPages'],
+            'canCreateReports' => $userComponent->checkPermission('reportManager:createReports'),
             'canEdit' => $userComponent->checkPermission('reportManager:editReports'),
             'canDelete' => $userComponent->checkPermission('reportManager:deleteReports'),
             'canGenerate' => $userComponent->checkPermission('reportManager:createExports'),
-            'canViewGenerated' => $userComponent->checkPermission('reportManager:manageExports'),
+            'canAccessGeneratedExports' => $userComponent->checkPermission('reportManager:manageExports'),
         ]);
     }
 
@@ -204,11 +205,11 @@ class ReportsController extends Controller
         $dataSourceLabels = $plugin->dataSources->getDataSourceLabels($currentDataSource);
         $dataSourceCapabilities = $plugin->dataSources->getDataSourceCapabilities($currentDataSource);
 
-        $canViewGeneratedFiles = !$isNew && Craft::$app->getUser()->checkPermission('reportManager:manageExports');
+        $canAccessGeneratedFiles = !$isNew && Craft::$app->getUser()->checkPermission('reportManager:manageExports');
         $generatedExports = [];
         $generatedExportsTotalCount = 0;
 
-        if ($canViewGeneratedFiles && $report->id !== null) {
+        if ($canAccessGeneratedFiles && $report->id !== null) {
             $generatedExportsResult = $plugin->exports->getExportsForReport($report->id, [
                 'page' => 1,
                 'limit' => 10,
@@ -236,7 +237,7 @@ class ReportsController extends Controller
             'entities' => $entities,
             'dataSourceLabels' => $dataSourceLabels,
             'dataSourceCapabilities' => $dataSourceCapabilities,
-            'canViewGeneratedFiles' => $canViewGeneratedFiles,
+            'canAccessGeneratedFiles' => $canAccessGeneratedFiles,
             'generatedExports' => $generatedExports,
             'generatedExportFileExists' => $generatedExportFileExists,
             'generatedExportsTotalCount' => $generatedExportsTotalCount,
