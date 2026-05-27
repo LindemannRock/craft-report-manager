@@ -15,6 +15,7 @@ use craft\helpers\StringHelper;
 use DateTime;
 use DateTimeZone;
 use lindemannrock\base\helpers\DateFormatHelper;
+use lindemannrock\base\helpers\ScheduleHelper;
 use lindemannrock\logginglibrary\traits\LoggingTrait;
 use lindemannrock\reportmanager\jobs\GenerateExportJob;
 use lindemannrock\reportmanager\jobs\ProcessScheduledReportJob;
@@ -352,9 +353,15 @@ class ReportsService extends Component
             return false;
         }
 
-        $delay = max(0, $nextScheduledAt->getTimestamp() - time());
-        $displayDate = DateFormatHelper::toCraftTimezone(clone $nextScheduledAt);
-        $runAtTime = $displayDate?->format('M j, g:ia') ?? $nextScheduledAt->format('M j, g:ia');
+        $delay = max(0, $nextScheduledAt->getTimestamp() - DateFormatHelper::now()->getTimestamp());
+        $includeYear = $nextScheduledAt->format('Y') !== DateFormatHelper::now()->format('Y');
+        $runAtTime = DateFormatHelper::formatCompactDatetimeFromSettings(
+            $nextScheduledAt,
+            ReportManager::getInstance()->getSettings(),
+            false,
+            false,
+            $includeYear,
+        );
 
         Craft::$app->getQueue()->delay($delay)->push(new ProcessScheduledReportJob([
             'reportId' => (int) $report->id,
@@ -625,118 +632,9 @@ class ReportsService extends Component
      */
     private function calculateNextScheduledTime(string $schedule): DateTime
     {
-        $now = new DateTime();
-
-        return match ($schedule) {
-            'every6hours' => $this->getNextFixedHour($now, [0, 6, 12, 18]),
-            'every12hours' => $this->getNextFixedHour($now, [0, 12]),
-            'daily' => $this->getNextFixedHour($now, [0]),
-            'daily2am' => $this->getNextFixedHour($now, [2]),
-            'weekly' => $this->getNextWeekday($now, $this->getWeekStartIsoDay()),
-            'monthly' => $this->addMonthsClamped($now, 1),
-            'every2months' => $this->addMonthsClamped($now, 2),
-            'quarterly' => $this->addMonthsClamped($now, 3),
-            'every6months' => $this->addMonthsClamped($now, 6),
-            'yearly' => $this->addMonthsClamped($now, 12),
-            default => $this->getNextFixedHour($now, [0]),
-        };
-    }
-
-    /**
-     * Add months while keeping end-of-month schedules valid.
-     *
-     * @param DateTime $from Starting point
-     * @param int $months Months to add
-     * @return DateTime
-     */
-    private function addMonthsClamped(DateTime $from, int $months): DateTime
-    {
-        $target = clone $from;
-        $day = (int) $target->format('j');
-        $time = $target->format('H:i:s');
-
-        $target->modify('first day of this month');
-        $target->modify("+{$months} months");
-
-        $lastDay = (int) $target->format('t');
-        $target->setDate(
-            (int) $target->format('Y'),
-            (int) $target->format('n'),
-            min($day, $lastDay)
-        );
-
-        [$hour, $minute, $second] = array_map('intval', explode(':', $time));
-        $target->setTime($hour, $minute, $second);
-
-        return $target;
-    }
-
-    /**
-     * Get next occurrence of a fixed hour
-     *
-     * @param DateTime $from Starting point
-     * @param int[] $hours Valid hours (0-23)
-     * @return DateTime
-     */
-    private function getNextFixedHour(DateTime $from, array $hours): DateTime
-    {
-        $next = (clone $from)->setTime((int) $from->format('H'), 0, 0);
-        $currentHour = (int) $from->format('G');
-
-        // Find the next valid hour today
-        foreach ($hours as $hour) {
-            if ($hour > $currentHour || ($hour === $currentHour && (int) $from->format('i') === 0 && (int) $from->format('s') === 0)) {
-                // If we're exactly at this hour, skip to next slot
-                if ($hour === $currentHour) {
-                    continue;
-                }
-                return (clone $from)->setTime($hour, 0, 0);
-            }
-        }
-
-        // No valid hour today, use first hour tomorrow
-        return (clone $from)->modify('+1 day')->setTime($hours[0], 0, 0);
-    }
-
-    /**
-     * Get the configured Craft week start day as an ISO weekday.
-     *
-     * Craft stores week start as 0=Sunday, 1=Monday, ..., 6=Saturday.
-     * PHP's ISO weekday format uses 1=Monday, ..., 7=Sunday.
-     *
-     * @return int Day of week (1=Monday, 7=Sunday)
-     */
-    private function getWeekStartIsoDay(): int
-    {
-        $craftWeekday = (int) Craft::$app->getConfig()->getGeneral()->defaultWeekStartDay;
-        $craftWeekday = max(0, min(6, $craftWeekday));
-
-        return $craftWeekday === 0 ? 7 : $craftWeekday;
-    }
-
-    /**
-     * Get next occurrence of an ISO weekday
-     *
-     * @param DateTime $from Starting point
-     * @param int $weekday Day of week (1=Monday, 7=Sunday)
-     * @return DateTime
-     */
-    private function getNextWeekday(DateTime $from, int $weekday): DateTime
-    {
-        $next = (clone $from)->setTime(0, 0, 0);
-        $currentWeekday = (int) $from->format('N');
-
-        if ($currentWeekday === $weekday && $from->format('H:i:s') === '00:00:00') {
-            // Exactly at this weekday midnight, skip to next week
-            $next->modify('+1 week');
-        } elseif ($currentWeekday >= $weekday) {
-            // Already past this weekday, go to next week
-            $daysUntil = 7 - $currentWeekday + $weekday;
-            $next->modify("+{$daysUntil} days");
-        } else {
-            // This weekday is coming up
-            $daysUntil = $weekday - $currentWeekday;
-            $next->modify("+{$daysUntil} days");
+        $next = ScheduleHelper::calculateNext($schedule) ?? ScheduleHelper::calculateNext('daily');
+        if ($next === null) {
+            throw new \RuntimeException('Unable to calculate the next scheduled report run.');
         }
 
         return $next;
