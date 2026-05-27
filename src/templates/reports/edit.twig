@@ -15,7 +15,7 @@
     },
 } %}
 
-{% if not isNew and canViewGeneratedFiles %}
+{% if not isNew and canAccessGeneratedFiles %}
     {% set tabs = tabs|merge({
         generatedFiles: {
             label: 'Generated Files'|t('report-manager'),
@@ -160,7 +160,7 @@
 
     </div>
 
-    {% if not isNew and canViewGeneratedFiles %}
+    {% if not isNew and canAccessGeneratedFiles %}
         <div id="generated-files" class="hidden">
             {% include 'report-manager/reports/_partials/generated-files' with {
                 report: report,

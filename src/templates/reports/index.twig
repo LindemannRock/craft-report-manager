@@ -91,7 +91,7 @@
         itemLabel: {singular: 'report'|t('report-manager'), plural: 'reports'|t('report-manager')},
     },
     checkboxes: canEdit or canDelete,
-    newButton: canEdit ? {
+    newButton: canCreateReports ? {
         url: url('report-manager/reports/new'),
         label: 'New Report'|t('report-manager'),
     } : null,
@@ -130,7 +130,7 @@
     {# Generated Files #}
     <td data-column="generatedFiles" class="lr-hideable-column">
         {% set exportCount = exportCounts[item.id] ?? 0 %}
-        {% if exportCount > 0 and canViewGenerated %}
+        {% if exportCount > 0 and canAccessGeneratedExports %}
             <a href="{{ url('report-manager/reports/' ~ item.id ~ '/generated') }}">{{ exportCount|number_format }}</a>
         {% elseif exportCount > 0 %}
             {{ exportCount|number_format }}
@@ -193,7 +193,7 @@
         }]) %}
     {% endif %}
 
-    {% if canViewGenerated %}
+    {% if canAccessGeneratedExports %}
         {% set actionItems = actionItems|merge([{
             label: 'View Generated'|t('report-manager'),
             url: url('report-manager/reports/' ~ item.id ~ '/generated'),
