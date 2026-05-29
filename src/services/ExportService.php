@@ -718,7 +718,7 @@ class ExportService extends Component
             $jsonData[] = $jsonRow;
         }
 
-        $content = json_encode($jsonData, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+        $content = ExportHelper::jsonContent($jsonData);
 
         return $this->_writeExportFile($export, $content);
     }
@@ -820,28 +820,20 @@ class ExportService extends Component
             throw new \Exception("File manifest export results require zip format, {$export->format} requested");
         }
 
-        if (!class_exists(\ZipArchive::class)) {
-            throw new \Exception('The PHP Zip extension is required for queued file manifest exports');
-        }
-
         $files = $result->getFiles();
         if (empty($files)) {
             throw new \Exception('File manifest export result did not include any files');
         }
 
-        $tempFile = tempnam(sys_get_temp_dir(), 'zip_');
-        $zip = new \ZipArchive();
-        $opened = $zip->open($tempFile, \ZipArchive::CREATE | \ZipArchive::OVERWRITE);
-
-        if ($opened !== true) {
-            throw new \Exception('Could not create temporary ZIP export file');
-        }
-
-        foreach ($files as $index => $file) {
+        $zipFiles = [];
+        foreach ($files as $file) {
             $filename = $this->sanitizeZipFilename($file['filename']);
 
             if (array_key_exists('contents', $file)) {
-                $zip->addFromString($filename, (string) $file['contents']);
+                $zipFiles[] = [
+                    'name' => $filename,
+                    'content' => (string) $file['contents'],
+                ];
                 continue;
             }
 
@@ -850,13 +842,18 @@ class ExportService extends Component
                 throw new \Exception("Queued export file '{$filename}' is missing readable contents or path");
             }
 
-            $zip->addFile($path, $filename);
+            $content = file_get_contents($path);
+            if ($content === false) {
+                throw new \Exception("Queued export file '{$filename}' could not be read");
+            }
+
+            $zipFiles[] = [
+                'name' => $filename,
+                'content' => $content,
+            ];
         }
 
-        $zip->close();
-
-        $content = file_get_contents($tempFile);
-        unlink($tempFile);
+        $content = ExportHelper::zipContent($zipFiles);
 
         return $this->_writeExportFile($export, $content);
     }
