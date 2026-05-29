@@ -345,7 +345,7 @@ return [
     'Started' => 'Iniciado',
     'Progress' => 'Progresso',
     'Warnings' => 'Avisos',
-    'Export is being processed. This page will refresh automatically.' => 'A exportação está sendo processada. Esta página será atualizada automaticamente.',
+    'Export is being processed. This page will refresh automatically.' => 'A exportação está a ser processada. Esta página será atualizada automaticamente.',
 
     // Data Sources
     'Generate reports from Formie form submissions' => 'Gerar relatórios a partir de envios de formulários Formie',
