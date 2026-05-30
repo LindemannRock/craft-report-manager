@@ -19,7 +19,7 @@ return [
     'Dashboard' => 'Painel',
     'Reports' => 'Relatórios',
     'Exports' => 'Exportações',
-    'Logs' => 'Logs',
+    'Logs' => 'Registos',
     'Settings' => 'Definições',
 
     // Permissions
@@ -32,9 +32,9 @@ return [
     'Create Exports' => 'Criar exportações',
     'Download Exports' => 'Transferir exportações',
     'Delete Exports' => 'Eliminar exportações',
-    'View Logs' => 'Ver logs',
-    'View System Logs' => 'Ver logs do sistema',
-    'Download System Logs' => 'Transferir logs do sistema',
+    'View Logs' => 'Ver registos',
+    'View System Logs' => 'Ver registos do sistema',
+    'Download System Logs' => 'Descarregar registos do sistema',
     'Manage Settings' => 'Gerir definições',
 
     // Common
@@ -304,7 +304,7 @@ return [
     'Quick Export' => 'Exportação rápida',
     'Search exports...' => 'Pesquisar exportações...',
     'No exports found.' => 'Nenhuma exportação encontrada.',
-    'Records' => 'Logs',
+    'Records' => 'Registos',
     'Triggered By' => 'Acionado por',
     'API' => 'API',
     'Ad-hoc' => 'Ad hoc',
