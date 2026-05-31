@@ -156,7 +156,6 @@ return [
     'General' => '一般',
     'General Settings' => '一般設定',
 
-
     // Settings: Scheduling
     'Scheduling' => 'スケジュール',
     'Scheduling Settings' => 'スケジュール設定',
@@ -176,7 +175,7 @@ return [
     'New scheduled reports run every 6 months from the day and time the report is first saved with scheduling enabled.' => '新しいスケジュールされたレポートは、スケジュールを有効にして最初に保存された日時から 6 か月ごとに実行されます。',
     'New scheduled reports run every 12 months from the day and time the report is first saved with scheduling enabled.' => '新しいスケジュールされたレポートは、スケジュールを有効にして最初に保存された日時から 12 か月ごとに実行されます。',
 
-    // Schedule Options
+    // Settings: Schedule Options
     'Daily' => '毎日',
     'Daily at 2:00 AM' => '毎日 02:00',
     'Every 6 Hours' => '6 時間ごと',
@@ -226,12 +225,12 @@ return [
     'Auto cleanup is disabled. Generated exports are kept until they are deleted manually.' => '自動クリーンアップが無効です。生成済みエクスポートは手動で削除されるまで保持されます。',
     'Export retention is set to 0, so generated exports are kept indefinitely unless they are deleted manually.' => 'エクスポートの保持期間が 0 に設定されているため、手動で削除されない限り生成済みエクスポートは無期限に保持されます。',
 
+    // Settings: Logging
+    'Logging Settings' => 'ログ設定',
+
     // Settings: Interface
     'Interface' => 'インターフェース',
     'Interface Settings' => 'インターフェース設定',
-
-    // Settings: Logging
-    'Logging Settings' => 'ログ設定',
 
     // Reports: Index
     'New Report' => '新しいレポート',

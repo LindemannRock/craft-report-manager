@@ -156,7 +156,6 @@ return [
     'General' => 'Algemeen',
     'General Settings' => 'Algemene instellingen',
 
-
     // Settings: Scheduling
     'Scheduling' => 'Planning',
     'Scheduling Settings' => 'Planningsinstellingen',
@@ -176,7 +175,7 @@ return [
     'New scheduled reports run every 6 months from the day and time the report is first saved with scheduling enabled.' => 'Nieuwe geplande rapporten worden elke 6 maanden uitgevoerd vanaf de dag en het tijdstip waarop het rapport voor het eerst wordt opgeslagen met planning ingeschakeld.',
     'New scheduled reports run every 12 months from the day and time the report is first saved with scheduling enabled.' => 'Nieuwe geplande rapporten worden elke 12 maanden uitgevoerd vanaf de dag en het tijdstip waarop het rapport voor het eerst wordt opgeslagen met planning ingeschakeld.',
 
-    // Schedule Options
+    // Settings: Schedule Options
     'Daily' => 'Dagelijks',
     'Daily at 2:00 AM' => 'Dagelijks om 02:00',
     'Every 6 Hours' => 'Elke 6 uur',
@@ -226,12 +225,12 @@ return [
     'Auto cleanup is disabled. Generated exports are kept until they are deleted manually.' => 'Automatisch opruimen is uitgeschakeld. Gegenereerde exports worden bewaard totdat ze handmatig worden verwijderd.',
     'Export retention is set to 0, so generated exports are kept indefinitely unless they are deleted manually.' => 'De exportbewaarperiode is ingesteld op 0, waardoor gegenereerde exports voor onbepaalde tijd worden bewaard, tenzij ze handmatig worden verwijderd.',
 
+    // Settings: Logging
+    'Logging Settings' => 'Logboekinstellingen',
+
     // Settings: Interface
     'Interface' => 'Interface',
     'Interface Settings' => 'Interface-instellingen',
-
-    // Settings: Logging
-    'Logging Settings' => 'Logboekinstellingen',
 
     // Reports: Index
     'New Report' => 'Nieuw rapport',

@@ -175,7 +175,7 @@ return [
     'New scheduled reports run every 6 months from the day and time the report is first saved with scheduling enabled.' => 'Neue geplante Berichte werden alle 6 Monate ab dem Tag und der Uhrzeit ausgeführt, an dem der Bericht zum ersten Mal mit aktivierter Planung gespeichert wurde.',
     'New scheduled reports run every 12 months from the day and time the report is first saved with scheduling enabled.' => 'Neue geplante Berichte werden alle 12 Monate ab dem Tag und der Uhrzeit ausgeführt, an dem der Bericht zum ersten Mal mit aktivierter Planung gespeichert wurde.',
 
-    // Schedule Options
+    // Settings: Schedule Options
     'Daily' => 'Täglich',
     'Daily at 2:00 AM' => 'Täglich um 02:00 Uhr',
     'Every 6 Hours' => 'Alle 6 Stunden',
@@ -225,12 +225,12 @@ return [
     'Auto cleanup is disabled. Generated exports are kept until they are deleted manually.' => 'Automatische Bereinigung ist deaktiviert. Generierte Exporte werden aufbewahrt, bis sie manuell gelöscht werden.',
     'Export retention is set to 0, so generated exports are kept indefinitely unless they are deleted manually.' => 'Die Export-Aufbewahrungsdauer ist auf 0 gesetzt, sodass generierte Exporte unbegrenzt aufbewahrt werden, sofern sie nicht manuell gelöscht werden.',
 
+    // Settings: Logging
+    'Logging Settings' => 'Protokollierungseinstellungen',
+
     // Settings: Interface
     'Interface' => 'Oberfläche',
     'Interface Settings' => 'Oberflächen-Einstellungen',
-
-    // Settings: Logging
-    'Logging Settings' => 'Protokollierungseinstellungen',
 
     // Reports: Index
     'New Report' => 'Neuer Bericht',

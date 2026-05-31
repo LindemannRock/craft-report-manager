@@ -156,7 +156,6 @@ return [
     'General' => 'Generelt',
     'General Settings' => 'Generelle indstillinger',
 
-
     // Settings: Scheduling
     'Scheduling' => 'Planlægning',
     'Scheduling Settings' => 'Planlægningsindstillinger',
@@ -176,7 +175,7 @@ return [
     'New scheduled reports run every 6 months from the day and time the report is first saved with scheduling enabled.' => 'Nye planlagte rapporter køres hver 6. måned fra den dag og det tidspunkt, rapporten første gang gemmes med planlægning aktiveret.',
     'New scheduled reports run every 12 months from the day and time the report is first saved with scheduling enabled.' => 'Nye planlagte rapporter køres hver 12. måned fra den dag og det tidspunkt, rapporten første gang gemmes med planlægning aktiveret.',
 
-    // Schedule Options
+    // Settings: Schedule Options
     'Daily' => 'Dagligt',
     'Daily at 2:00 AM' => 'Dagligt kl. 02:00',
     'Every 6 Hours' => 'Hver 6. time',
@@ -226,12 +225,12 @@ return [
     'Auto cleanup is disabled. Generated exports are kept until they are deleted manually.' => 'Automatisk oprydning er deaktiveret. Genererede eksporter opbevares, indtil de slettes manuelt.',
     'Export retention is set to 0, so generated exports are kept indefinitely unless they are deleted manually.' => 'Eksportopbevaring er indstillet til 0, så genererede eksporter opbevares på ubestemt tid, medmindre de slettes manuelt.',
 
+    // Settings: Logging
+    'Logging Settings' => 'Logindstillinger',
+
     // Settings: Interface
     'Interface' => 'Brugerflade',
     'Interface Settings' => 'Brugerflade-indstillinger',
-
-    // Settings: Logging
-    'Logging Settings' => 'Logindstillinger',
 
     // Reports: Index
     'New Report' => 'Ny rapport',

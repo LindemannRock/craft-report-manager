@@ -155,6 +155,7 @@ return [
     // Settings: General
     'General' => 'Général',
     'General Settings' => 'Paramètres généraux',
+
     // Settings: Scheduling
     'Scheduling' => 'Planification',
     'Scheduling Settings' => 'Paramètres de planification',
@@ -174,7 +175,7 @@ return [
     'New scheduled reports run every 6 months from the day and time the report is first saved with scheduling enabled.' => 'Les nouveaux rapports planifiés s\'exécutent tous les 6 mois à partir du jour et de l\'heure où le rapport est enregistré pour la première fois avec la planification activée.',
     'New scheduled reports run every 12 months from the day and time the report is first saved with scheduling enabled.' => 'Les nouveaux rapports planifiés s\'exécutent tous les 12 mois à partir du jour et de l\'heure où le rapport est enregistré pour la première fois avec la planification activée.',
 
-    // Schedule Options
+    // Settings: Schedule Options
     'Daily' => 'Quotidien',
     'Daily at 2:00 AM' => 'Quotidien à 02:00',
     'Every 6 Hours' => 'Toutes les 6 heures',
@@ -224,12 +225,12 @@ return [
     'Auto cleanup is disabled. Generated exports are kept until they are deleted manually.' => 'Le nettoyage automatique est désactivé. Les exports générés sont conservés jusqu\'à leur suppression manuelle.',
     'Export retention is set to 0, so generated exports are kept indefinitely unless they are deleted manually.' => 'La durée de rétention des exports est définie à 0, les exports générés sont donc conservés indéfiniment, sauf suppression manuelle.',
 
+    // Settings: Logging
+    'Logging Settings' => 'Paramètres de journalisation',
+
     // Settings: Interface
     'Interface' => 'Interface',
     'Interface Settings' => 'Paramètres d\'interface',
-
-    // Settings: Logging
-    'Logging Settings' => 'Paramètres de journalisation',
 
     // Reports: Index
     'New Report' => 'Nouveau rapport',

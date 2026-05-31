@@ -156,7 +156,6 @@ return [
     'General' => 'Allmänt',
     'General Settings' => 'Allmänna inställningar',
 
-
     // Settings: Scheduling
     'Scheduling' => 'Schemaläggning',
     'Scheduling Settings' => 'Inställningar för schemaläggning',
@@ -176,7 +175,7 @@ return [
     'New scheduled reports run every 6 months from the day and time the report is first saved with scheduling enabled.' => 'Nya schemalagda rapporter körs var 6:e månad från den dag och tid rapporten första gången sparas med schemaläggning aktiverad.',
     'New scheduled reports run every 12 months from the day and time the report is first saved with scheduling enabled.' => 'Nya schemalagda rapporter körs var 12:e månad från den dag och tid rapporten första gången sparas med schemaläggning aktiverad.',
 
-    // Schedule Options
+    // Settings: Schedule Options
     'Daily' => 'Dagligen',
     'Daily at 2:00 AM' => 'Dagligen kl. 02:00',
     'Every 6 Hours' => 'Var 6:e timme',
@@ -226,12 +225,12 @@ return [
     'Auto cleanup is disabled. Generated exports are kept until they are deleted manually.' => 'Automatisk rensning är inaktiverad. Genererade exporter behålls tills de tas bort manuellt.',
     'Export retention is set to 0, so generated exports are kept indefinitely unless they are deleted manually.' => 'Exportkvarhållningen är inställd på 0, så genererade exporter behålls på obestämd tid om de inte tas bort manuellt.',
 
+    // Settings: Logging
+    'Logging Settings' => 'Logginställningar',
+
     // Settings: Interface
     'Interface' => 'Gränssnitt',
     'Interface Settings' => 'Gränssnittsinställningar',
-
-    // Settings: Logging
-    'Logging Settings' => 'Logginställningar',
 
     // Reports: Index
     'New Report' => 'Ny rapport',

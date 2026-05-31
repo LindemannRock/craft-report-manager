@@ -173,7 +173,7 @@ return [
     'New scheduled reports run every 6 months from the day and time the report is first saved with scheduling enabled.' => 'New scheduled reports run every 6 months from the day and time the report is first saved with scheduling enabled.',
     'New scheduled reports run every 12 months from the day and time the report is first saved with scheduling enabled.' => 'New scheduled reports run every 12 months from the day and time the report is first saved with scheduling enabled.',
 
-    // Schedule Options
+    // Settings: Schedule Options
     'Daily' => 'Daily',
     'Daily at 2:00 AM' => 'Daily at 2:00 AM',
     'Every 6 Hours' => 'Every 6 Hours',
@@ -223,12 +223,12 @@ return [
     'Auto cleanup is disabled. Generated exports are kept until they are deleted manually.' => 'Auto cleanup is disabled. Generated exports are kept until they are deleted manually.',
     'Export retention is set to 0, so generated exports are kept indefinitely unless they are deleted manually.' => 'Export retention is set to 0, so generated exports are kept indefinitely unless they are deleted manually.',
 
+    // Settings: Logging
+    'Logging Settings' => 'Logging Settings',
+
     // Settings: Interface
     'Interface' => 'Interface',
     'Interface Settings' => 'Interface Settings',
-
-    // Settings: Logging
-    'Logging Settings' => 'Logging Settings',
 
     // Reports: Index
     'New Report' => 'New Report',

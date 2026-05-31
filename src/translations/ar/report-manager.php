@@ -156,7 +156,6 @@ return [
     'General' => 'عام',
     'General Settings' => 'الإعدادات العامة',
 
-
     // Settings: Scheduling
     'Scheduling' => 'الجدولة',
     'Scheduling Settings' => 'إعدادات الجدولة',
@@ -176,7 +175,7 @@ return [
     'New scheduled reports run every 6 months from the day and time the report is first saved with scheduling enabled.' => 'تعمل التقارير المجدولة الجديدة كل 6 أشهر اعتباراً من اليوم والوقت الذي يُحفظ فيه التقرير لأول مرة مع تفعيل الجدولة.',
     'New scheduled reports run every 12 months from the day and time the report is first saved with scheduling enabled.' => 'تعمل التقارير المجدولة الجديدة كل 12 شهراً اعتباراً من اليوم والوقت الذي يُحفظ فيه التقرير لأول مرة مع تفعيل الجدولة.',
 
-    // Schedule Options
+    // Settings: Schedule Options
     'Daily' => 'يومياً',
     'Daily at 2:00 AM' => 'يومياً في الساعة 02:00',
     'Every 6 Hours' => 'كل 6 ساعات',
@@ -226,12 +225,12 @@ return [
     'Auto cleanup is disabled. Generated exports are kept until they are deleted manually.' => 'التنظيف التلقائي معطّل. يتم الاحتفاظ بالتصديرات المُنشأة حتى يتم حذفها يدوياً.',
     'Export retention is set to 0, so generated exports are kept indefinitely unless they are deleted manually.' => 'مدة الاحتفاظ بالتصديرات مضبوطة على 0، لذا يتم الاحتفاظ بالتصديرات المُنشأة إلى أجل غير مسمى ما لم يتم حذفها يدوياً.',
 
+    // Settings: Logging
+    'Logging Settings' => 'إعدادات التسجيل',
+
     // Settings: Interface
     'Interface' => 'الواجهة',
     'Interface Settings' => 'إعدادات الواجهة',
-
-    // Settings: Logging
-    'Logging Settings' => 'إعدادات التسجيل',
 
     // Reports: Index
     'New Report' => 'تقرير جديد',
