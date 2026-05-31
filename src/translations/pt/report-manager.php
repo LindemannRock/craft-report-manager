@@ -239,7 +239,7 @@ return [
     'No reports found.' => 'Nenhum relatório encontrado.',
     'Last Run' => 'Última execução',
     'Next Run' => 'Próxima execução',
-    'Are you sure you want to delete this report?' => 'Tem a certeza de que deseja eliminar este relatório?',
+    'Are you sure you want to delete this report?' => 'Eliminar este relatório?',
     'Delete report "{name}"? This cannot be undone.' => 'Eliminar o relatório «{name}»? Esta ação não pode ser anulada.',
     'Delete {count} report(s)? This cannot be undone.' => 'Eliminar {count} relatórios? Esta ação não pode ser anulada.',
     'Could not queue export.' => 'Não foi possível colocar a exportação em fila.',
