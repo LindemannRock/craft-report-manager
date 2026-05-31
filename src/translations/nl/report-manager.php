@@ -140,7 +140,7 @@ return [
     'Report not found' => 'Rapport niet gevonden',
     'Report saved.' => 'Rapport opgeslagen.',
     'Settings saved.' => 'Instellingen opgeslagen.',
-    'User not permitted to access this export.' => 'Gebruiker heeft geen toestemming om deze export te openen.',
+    'User does not have permission to access this export.' => 'De gebruiker heeft geen toestemming om toegang te krijgen tot deze export.',
     '{count} export(s) generated successfully.' => '{count} export(s) succesvol gegenereerd.',
     '{count} export(s) queued for generation.' => '{count} export(s) in de wachtrij geplaatst voor generatie.',
     '{success} export(s) succeeded, {fail} failed.' => '{success} export(s) geslaagd, {fail} mislukt.',

@@ -140,7 +140,7 @@ return [
     'Report not found' => 'Rapporten hittades inte',
     'Report saved.' => 'Rapporten sparades.',
     'Settings saved.' => 'Inställningar sparade.',
-    'User not permitted to access this export.' => 'Användaren har inte behörighet att komma åt den här exporten.',
+    'User does not have permission to access this export.' => 'Användaren har inte behörighet att komma åt den här exporten.',
     '{count} export(s) generated successfully.' => '{count} export(er) genererades utan problem.',
     '{count} export(s) queued for generation.' => '{count} export(er) köades för generering.',
     '{success} export(s) succeeded, {fail} failed.' => '{success} export(er) lyckades, {fail} misslyckades.',

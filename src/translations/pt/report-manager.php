@@ -140,7 +140,7 @@ return [
     'Report not found' => 'Relatório não encontrado',
     'Report saved.' => 'Relatório guardado.',
     'Settings saved.' => 'Definições guardadas.',
-    'User not permitted to access this export.' => 'O utilizador não tem permissão para aceder a esta exportação.',
+    'User does not have permission to access this export.' => 'O utilizador não tem permissão para aceder a esta exportação.',
     '{count} export(s) generated successfully.' => '{count} exportação(ões) gerada(s) com sucesso.',
     '{count} export(s) queued for generation.' => '{count} exportação(ões) enfileirada(s) para geração.',
     '{success} export(s) succeeded, {fail} failed.' => '{success} exportação(ões) bem-sucedida(s), {fail} falhou(aram).',

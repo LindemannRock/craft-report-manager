@@ -140,7 +140,7 @@ return [
     'Report not found' => 'Rapport introuvable',
     'Report saved.' => 'Rapport enregistré.',
     'Settings saved.' => 'Paramètres enregistrés.',
-    'User not permitted to access this export.' => 'L\'utilisateur n\'est pas autorisé à accéder à cet export.',
+    'User does not have permission to access this export.' => 'L\'utilisateur n\'a pas la permission d\'accéder à cet export.',
     '{count} export(s) generated successfully.' => '{count} export(s) généré(s) avec succès.',
     '{count} export(s) queued for generation.' => '{count} export(s) mis en file d\'attente pour génération.',
     '{success} export(s) succeeded, {fail} failed.' => '{success} export(s) réussi(s), {fail} échoué(s).',

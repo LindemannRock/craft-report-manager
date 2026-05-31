@@ -140,7 +140,7 @@ return [
     'Report not found' => 'レポートが見つかりません',
     'Report saved.' => 'レポートを保存しました。',
     'Settings saved.' => '設定を保存しました。',
-    'User not permitted to access this export.' => 'このエクスポートへのアクセス権限がありません。',
+    'User does not have permission to access this export.' => 'ユーザーにこのエクスポートへアクセスする権限がありません。',
     '{count} export(s) generated successfully.' => '{count} 件のエクスポートを正常に生成しました。',
     '{count} export(s) queued for generation.' => '{count} 件のエクスポートを生成キューに追加しました。',
     '{success} export(s) succeeded, {fail} failed.' => '{success} 件のエクスポートが成功し、{fail} 件が失敗しました。',

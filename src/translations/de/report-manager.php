@@ -140,7 +140,7 @@ return [
     'Report not found' => 'Bericht nicht gefunden',
     'Report saved.' => 'Bericht gespeichert.',
     'Settings saved.' => 'Einstellungen gespeichert.',
-    'User not permitted to access this export.' => 'Benutzer hat keine Berechtigung, auf diesen Export zuzugreifen.',
+    'User does not have permission to access this export.' => 'Der Benutzer hat keine Berechtigung, auf diesen Export zuzugreifen.',
     '{count} export(s) generated successfully.' => '{count} Export(e) erfolgreich generiert.',
     '{count} export(s) queued for generation.' => '{count} Export(e) zur Generierung in die Warteschlange gestellt.',
     '{success} export(s) succeeded, {fail} failed.' => '{success} Export(e) erfolgreich, {fail} fehlgeschlagen.',

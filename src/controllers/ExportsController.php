@@ -515,7 +515,7 @@ class ExportsController extends Controller
             return;
         }
 
-        throw new ForbiddenHttpException(Craft::t('report-manager', 'User not permitted to access this export.'));
+        throw new ForbiddenHttpException(Craft::t('report-manager', 'User does not have permission to access this export.'));
     }
 
     /**

@@ -138,7 +138,7 @@ return [
     'Report not found' => 'Report not found',
     'Report saved.' => 'Report saved.',
     'Settings saved.' => 'Settings saved.',
-    'User not permitted to access this export.' => 'User not permitted to access this export.',
+    'User does not have permission to access this export.' => 'User does not have permission to access this export.',
     '{count} export(s) generated successfully.' => '{count} export(s) generated successfully.',
     '{count} export(s) queued for generation.' => '{count} export(s) queued for generation.',
     '{success} export(s) succeeded, {fail} failed.' => '{success} export(s) succeeded, {fail} failed.',

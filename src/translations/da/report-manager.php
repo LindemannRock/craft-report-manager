@@ -140,7 +140,7 @@ return [
     'Report not found' => 'Rapport ikke fundet',
     'Report saved.' => 'Rapport gemt.',
     'Settings saved.' => 'Indstillinger gemt.',
-    'User not permitted to access this export.' => 'Brugeren har ikke tilladelse til at tilgå denne eksport.',
+    'User does not have permission to access this export.' => 'Brugeren har ikke tilladelse til at få adgang til denne eksport.',
     '{count} export(s) generated successfully.' => '{count} eksport(er) genereret.',
     '{count} export(s) queued for generation.' => '{count} eksport(er) sat i kø til generering.',
     '{success} export(s) succeeded, {fail} failed.' => '{success} eksport(er) lykkedes, {fail} mislykkedes.',

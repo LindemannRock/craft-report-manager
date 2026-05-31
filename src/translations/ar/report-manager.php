@@ -140,7 +140,7 @@ return [
     'Report not found' => 'التقرير غير موجود',
     'Report saved.' => 'تم حفظ التقرير.',
     'Settings saved.' => 'تم حفظ الإعدادات.',
-    'User not permitted to access this export.' => 'لا يملك المستخدم صلاحية الوصول إلى هذا التصدير.',
+    'User does not have permission to access this export.' => 'ليس لدى المستخدم صلاحية للوصول إلى هذا التصدير.',
     '{count} export(s) generated successfully.' => 'تم إنشاء {count} تصدير/تصديرات بنجاح.',
     '{count} export(s) queued for generation.' => 'تمت إضافة {count} تصدير/تصديرات إلى قائمة الانتظار للإنشاء.',
     '{success} export(s) succeeded, {fail} failed.' => 'نجح {success} تصدير/تصديرات، وفشل {fail}.',
