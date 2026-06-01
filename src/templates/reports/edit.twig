@@ -273,13 +273,16 @@
 
     {% if not isNew %}
         <dl class="meta read-only">
-            <div class="data">
-                <dt class="heading">{{ 'Status'|t('report-manager') }}</dt>
-                <dd class="value">
-                    <span class="status {{ report.enabled ? 'live' : 'disabled' }}"></span>
-                    {{ report.enabled ? 'Enabled'|t('report-manager') : 'Disabled'|t('report-manager') }}
-                </dd>
-            </div>
+	            <div class="data">
+	                <dt class="heading">{{ 'Status'|t('report-manager') }}</dt>
+	                <dd class="value">
+	                    {% include 'lindemannrock-base/_components/status-dot' with {
+	                        value: report.enabled ? 'enabled' : 'disabled',
+	                        colorSet: 'status',
+	                    } only %}
+	                    <span>{{ report.enabled ? 'Enabled'|t('report-manager') : 'Disabled'|t('report-manager') }}</span>
+	                </dd>
+	            </div>
             <div class="data">
                 <dt class="heading">{{ 'ID'|t('report-manager') }}</dt>
                 <dd class="value">{{ report.id }}</dd>

@@ -186,16 +186,16 @@
             <h5 class="heading">{{ 'Report'|t('report-manager') }}</h5>
             <div class="value"><a href="{{ url('report-manager/reports/' ~ report.id) }}">{{ report.name }}</a></div>
         </div>
-        <div class="data">
-            <h5 class="heading">{{ 'Status'|t('report-manager') }}</h5>
-            <div class="value">
-                {% include 'lindemannrock-base/_components/badge' with {
-                    label: report.enabled ? 'Enabled'|t('report-manager') : 'Disabled'|t('report-manager'),
-                    value: report.enabled ? 'enabled' : 'disabled',
-                    colorSet: 'status',
-                } only %}
-            </div>
-        </div>
+	        <div class="data">
+	            <h5 class="heading">{{ 'Status'|t('report-manager') }}</h5>
+	            <div class="value">
+	                {% include 'lindemannrock-base/_components/status-dot' with {
+	                    value: report.enabled ? 'enabled' : 'disabled',
+	                    colorSet: 'status',
+	                } only %}
+	                <span>{{ report.enabled ? 'Enabled'|t('report-manager') : 'Disabled'|t('report-manager') }}</span>
+	            </div>
+	        </div>
         <div class="data">
             <h5 class="heading">{{ dataSourceLabels.entityPlural ?? 'Items'|t('report-manager') }}</h5>
             <div class="value">{{ report.entityIdsArray|length }}</div>
