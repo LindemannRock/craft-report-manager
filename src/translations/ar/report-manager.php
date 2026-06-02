@@ -60,6 +60,7 @@ return [
     'Failed' => 'فشل',
     'Format' => 'التنسيق',
     'Handle' => 'المعرّف',
+    'Handle must be unique.' => 'يجب أن يكون المعرّف فريدًا.',
     'ID' => 'ID',
     'Manual' => 'يدوي',
     'Mode' => 'الوضع',

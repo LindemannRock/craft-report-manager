@@ -60,6 +60,7 @@ return [
     'Failed' => '失敗',
     'Format' => 'フォーマット',
     'Handle' => 'ハンドル',
+    'Handle must be unique.' => 'ハンドルは一意である必要があります。',
     'ID' => 'ID',
     'Manual' => '手動',
     'Mode' => 'モード',

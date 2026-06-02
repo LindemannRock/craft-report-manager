@@ -60,6 +60,7 @@ return [
     'Failed' => 'Mislukt',
     'Format' => 'Formaat',
     'Handle' => 'Handle',
+    'Handle must be unique.' => 'De handle moet uniek zijn.',
     'ID' => 'ID',
     'Manual' => 'Handmatig',
     'Mode' => 'Modus',

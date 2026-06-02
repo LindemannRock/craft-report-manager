@@ -60,6 +60,7 @@ return [
     'Failed' => 'Falhou',
     'Format' => 'Formato',
     'Handle' => 'Identificador',
+    'Handle must be unique.' => 'O identificador deve ser único.',
     'ID' => 'ID',
     'Manual' => 'Manual',
     'Mode' => 'Modo',

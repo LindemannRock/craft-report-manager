@@ -58,6 +58,7 @@ return [
     'Failed' => 'Failed',
     'Format' => 'Format',
     'Handle' => 'Handle',
+    'Handle must be unique.' => 'Handle must be unique.',
     'ID' => 'ID',
     'Manual' => 'Manual',
     'Mode' => 'Mode',
