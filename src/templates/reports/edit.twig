@@ -289,6 +289,20 @@
                 <dd class="value">{{ report.id }}</dd>
             </div>
             <div class="data">
+                <dt class="heading">{{ 'Format'|t('report-manager') }}</dt>
+                <dd class="value">
+                    {% include 'lindemannrock-base/_components/status-dot' with {
+                        value: report.exportFormat,
+                        colorSet: 'exportFormat',
+                    } only %}
+                    <span>{{ report.exportFormat|upper }}</span>
+                </dd>
+            </div>
+            <div class="data">
+                <dt class="heading">{{ 'Mode'|t('report-manager') }}</dt>
+                <dd class="value">{{ report.exportMode == 'combined' ? 'Combined'|t('report-manager') : 'Separate'|t('report-manager') }}</dd>
+            </div>
+            <div class="data">
                 <dt class="heading">{{ dataSourceLabels.entityPlural ?? 'Items'|t('report-manager') }}</dt>
                 <dd class="value">{{ report.entityIdsArray|length }}</dd>
             </div>
