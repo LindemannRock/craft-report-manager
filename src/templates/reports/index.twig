@@ -72,6 +72,7 @@
     table: {
         columns: [
             {key: 'name', label: 'Name'|t('report-manager'), sortable: true},
+            {key: 'handle', label: 'Handle'|t('report-manager'), sortable: true, hideable: true},
             {key: 'dataSource', label: 'Source'|t('report-manager'), sortable: true, hideable: true},
             {key: 'mode', label: 'Mode'|t('report-manager'), hideable: true},
             {key: 'exportFormat', label: 'Format'|t('report-manager'), sortable: true, hideable: true},
@@ -111,6 +112,9 @@
             {{ item.name }}
         {% endif %}
     </td>
+
+    {# Handle #}
+    <td data-column="handle" class="lr-hideable-column"><code>{{ item.handle }}</code></td>
 
     {# Source #}
     <td data-column="dataSource" class="lr-hideable-column">{{ dataSources[item.dataSource].name ?? item.dataSource|capitalize }}</td>
