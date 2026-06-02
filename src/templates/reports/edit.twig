@@ -366,7 +366,18 @@ $('#dataSource').on('change', function() {
             var labels = response.labels || fallbackDataSourceLabels;
             $container.empty();
 
-            $('#entityIds-field .heading label').text(getDataSourceLabel(labels, 'entitySelectionLabel', '{{ 'Items to Export'|t('report-manager')|e('js') }}'));
+            // The heading is a <legend> for checkbox groups (not a <label>); update only its
+            // text node so the required-indicator span is preserved.
+            var headingLabel = getDataSourceLabel(labels, 'entitySelectionLabel', '{{ 'Items to Export'|t('report-manager')|e('js') }}');
+            var $heading = $('#entityIds-field .heading').children('legend, label');
+            var $headingText = $heading.contents().filter(function() {
+                return this.nodeType === 3;
+            }).first();
+            if ($headingText.length) {
+                $headingText[0].textContent = headingLabel;
+            } else {
+                $heading.prepend(document.createTextNode(headingLabel));
+            }
             $('#entityIds-field .instructions p').text(getDataSourceLabel(labels, 'entitySelectionInstructions', '{{ 'Select one or more items to include in this report.'|t('report-manager')|e('js') }}'));
             $container.append($('<input type="hidden" name="entityIds" value="">'));
 
