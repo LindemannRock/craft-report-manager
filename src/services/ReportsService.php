@@ -11,11 +11,11 @@ namespace lindemannrock\reportmanager\services;
 use Craft;
 use craft\base\Component;
 use craft\helpers\Db;
-use craft\helpers\StringHelper;
 use DateTime;
 use DateTimeZone;
 use lindemannrock\base\helpers\DateFormatHelper;
 use lindemannrock\base\helpers\ScheduleHelper;
+use lindemannrock\base\helpers\SlugHandleHelper;
 use lindemannrock\logginglibrary\traits\LoggingTrait;
 use lindemannrock\reportmanager\jobs\GenerateExportJob;
 use lindemannrock\reportmanager\jobs\ProcessScheduledReportJob;
@@ -196,15 +196,14 @@ class ReportsService extends Component
     {
         $isNew = $report->getIsNewRecord();
 
-        // Ensure handle is set and unique
-        if (empty($report->handle)) {
-            $report->handle = $this->generateHandle($report->name);
-        }
+        $report->handle = SlugHandleHelper::normalizeSlug($report->handle, (string)$report->name);
 
-        // Ensure handle is unique
-        $existingReport = ReportRecord::findOne(['handle' => $report->handle]);
-        if ($existingReport && (!$report->id || $existingReport->id !== $report->id)) {
-            $report->handle = $this->generateUniqueHandle($report->handle);
+        if ($isNew) {
+            $report->handle = SlugHandleHelper::makeUnique(
+                ReportRecord::tableName(),
+                'handle',
+                $report->handle,
+            );
         }
 
         if (!ReportManager::getInstance()->getSettings()->enableScheduledReports) {
@@ -580,40 +579,6 @@ class ReportsService extends Component
             $this->logError('Failed to reorder reports', ['error' => $e->getMessage()]);
             return false;
         }
-    }
-
-    /**
-     * Generate a handle from a name
-     *
-     * @param string $name Report name
-     * @return string
-     */
-    private function generateHandle(string $name): string
-    {
-        return StringHelper::toKebabCase($name);
-    }
-
-    /**
-     * Generate a unique handle
-     *
-     * @param string $handle Base handle
-     * @return string
-     */
-    private function generateUniqueHandle(string $handle): string
-    {
-        $baseHandle = $handle;
-
-        for ($counter = 0; $counter < 100; $counter++) {
-            if (ReportRecord::findOne(['handle' => $handle]) === null) {
-                return $handle;
-            }
-            $handle = $baseHandle . '-' . ($counter + 1);
-        }
-
-        throw new \RuntimeException(sprintf(
-            "Could not generate unique handle for '%s' after 100 attempts",
-            $baseHandle
-        ));
     }
 
     /**

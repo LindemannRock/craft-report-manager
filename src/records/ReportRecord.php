@@ -8,8 +8,10 @@
 
 namespace lindemannrock\reportmanager\records;
 
+use Craft;
 use craft\db\ActiveRecord;
 use lindemannrock\base\helpers\ScheduleHelper;
+use lindemannrock\base\helpers\SlugHandleHelper;
 
 /**
  * Report Record
@@ -78,9 +80,26 @@ class ReportRecord extends ActiveRecord
         $rules[] = [['name', 'dataSource'], 'required'];
         $rules[] = [['name'], 'string', 'max' => 255];
         $rules[] = [['handle'], 'string', 'max' => 64];
+        $rules[] = [['handle'], 'validateUniqueHandle'];
         $rules[] = [['entityIds'], 'validateEntityIds'];
 
         return $rules;
+    }
+
+    /**
+     * Validate that the report handle is unique.
+     */
+    public function validateUniqueHandle(string $attribute): void
+    {
+        if ($this->handle === '') {
+            return;
+        }
+
+        if (SlugHandleHelper::exists(self::tableName(), 'handle', $this->handle, [
+            'excludeId' => $this->id,
+        ])) {
+            $this->addError($attribute, Craft::t('report-manager', 'Handle must be unique.'));
+        }
     }
 
     /**
