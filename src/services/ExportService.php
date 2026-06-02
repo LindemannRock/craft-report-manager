@@ -16,6 +16,7 @@ use craft\helpers\Db;
 use craft\helpers\FileHelper;
 use DateTime;
 use lindemannrock\base\helpers\ExportHelper;
+use lindemannrock\base\helpers\SafeSegmentHelper;
 use lindemannrock\logginglibrary\traits\LoggingTrait;
 use lindemannrock\reportmanager\export\QueuedExportContext;
 use lindemannrock\reportmanager\export\QueuedExportResult;
@@ -401,8 +402,10 @@ class ExportService extends Component
 
         // Generate filename
         $timestamp = (new DateTime())->format('Y-m-d_H-i-s');
-        $entityHandle = $entity['handle'] ?? 'export';
-        $export->filename = "{$dataSource}_{$entityHandle}_{$timestamp}.{$format}";
+        $dataSourcePart = SafeSegmentHelper::filenamePart($dataSource, 'export');
+        $entityHandle = SafeSegmentHelper::filenamePart((string)($entity['handle'] ?? 'export'), 'export');
+        $extension = SafeSegmentHelper::filenamePart($format, 'csv');
+        $export->filename = "{$dataSourcePart}_{$entityHandle}_{$timestamp}.{$extension}";
 
         // Set file path based on storage type
         if ($this->_useVolume) {
@@ -827,7 +830,7 @@ class ExportService extends Component
 
         $zipFiles = [];
         foreach ($files as $file) {
-            $filename = $this->sanitizeZipFilename($file['filename']);
+            $filename = (string)$file['filename'];
 
             if (array_key_exists('contents', $file)) {
                 $zipFiles[] = [
@@ -937,23 +940,6 @@ class ExportService extends Component
     }
 
     /**
-     * Sanitize a ZIP file path.
-     *
-     * @param string $filename File path inside the ZIP archive
-     * @return string
-     */
-    private function sanitizeZipFilename(string $filename): string
-    {
-        $filename = str_replace('\\', '/', $filename);
-        $parts = array_filter(
-            explode('/', $filename),
-            static fn(string $part) => $part !== '' && $part !== '.' && $part !== '..'
-        );
-
-        return !empty($parts) ? implode('/', $parts) : 'export-file.txt';
-    }
-
-    /**
      * Write export file to storage (volume or local)
      *
      * @param ExportRecord $export Export record
@@ -1031,7 +1017,9 @@ class ExportService extends Component
 
         // Generate filename
         $timestamp = (new DateTime())->format('Y-m-d_H-i-s');
-        $export->filename = "{$dataSource}_combined_{$timestamp}.{$format}";
+        $dataSourcePart = SafeSegmentHelper::filenamePart($dataSource, 'export');
+        $extension = SafeSegmentHelper::filenamePart($format, 'csv');
+        $export->filename = "{$dataSourcePart}_combined_{$timestamp}.{$extension}";
 
         // Set file path based on storage type
         if ($this->_useVolume) {
@@ -1400,17 +1388,16 @@ class ExportService extends Component
      */
     private function ensureFilenameExtension(string $filename, string $format): string
     {
-        $filename = basename(str_replace('\\', '/', trim($filename)));
-        $filename = preg_replace('/[^a-zA-Z0-9._-]+/', '-', $filename) ?: 'export';
-        $filename = trim($filename, '.-_');
-
-        if ($filename === '') {
-            $filename = 'export';
-        }
-
         $extension = strtolower($format);
+        $filename = SafeSegmentHelper::filenamePart(basename(str_replace('\\', '/', trim($filename))), 'export', [
+            'allowDots' => true,
+        ]);
+
         if (!str_ends_with(strtolower($filename), '.' . $extension)) {
-            $filename = preg_replace('/\.[a-zA-Z0-9]+$/', '', $filename) ?: $filename;
+            $dotPosition = strrpos($filename, '.');
+            if ($dotPosition !== false) {
+                $filename = substr($filename, 0, $dotPosition) ?: $filename;
+            }
             $filename .= '.' . $extension;
         }
 

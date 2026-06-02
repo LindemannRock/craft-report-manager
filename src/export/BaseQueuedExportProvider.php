@@ -8,6 +8,8 @@
 
 namespace lindemannrock\reportmanager\export;
 
+use lindemannrock\base\helpers\SafeSegmentHelper;
+
 /**
  * Base Queued Export Provider
  *
@@ -57,10 +59,11 @@ abstract class BaseQueuedExportProvider implements QueuedExportProviderInterface
      */
     public function getFilename(array $payload, string $format): string
     {
-        $handle = preg_replace('/[^a-zA-Z0-9_-]+/', '-', static::handle()) ?: 'export';
+        $handle = SafeSegmentHelper::filenamePart(static::handle(), 'export');
         $timestamp = (new \DateTime())->format('Y-m-d_H-i-s');
+        $extension = SafeSegmentHelper::filenamePart($format, 'csv');
 
-        return strtolower(trim($handle, '-')) . '_' . $timestamp . '.' . $format;
+        return $handle . '_' . $timestamp . '.' . $extension;
     }
 
     /**
