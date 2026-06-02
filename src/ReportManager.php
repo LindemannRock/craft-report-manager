@@ -123,12 +123,6 @@ class ReportManager extends Plugin
                         'scheduled' => ColorHelper::getPaletteColor('teal'),
                         'api' => ColorHelper::getPaletteColor('purple'),
                     ],
-                    'exportFormat' => [
-                        'xlsx' => ColorHelper::getPaletteColor('green'),
-                        'csv' => ColorHelper::getPaletteColor('blue'),
-                        'json' => ColorHelper::getPaletteColor('amber'),
-                        'zip' => ColorHelper::getPaletteColor('purple'),
-                    ],
                 ],
                 'installExperience' => [
                     'headline' => Craft::t('report-manager', 'Report Manager'),
