@@ -189,26 +189,28 @@
             name: 'dateRange',
             value: report.dateRange,
             options: dateRangeOptions,
-            errors: report.getErrors('dateRange'),
-            toggle: true,
-            targetPrefix: 'daterange-'
+            errors: report.getErrors('dateRange')
         }) }}
 
-        <div id="daterange-custom"{% if report.dateRange != 'custom' %} class="hidden"{% endif %}>
-            {{ forms.dateField({
-                label: 'Start Date'|t('report-manager'),
-                id: 'customDateStart',
-                name: 'customDateStart',
-                value: report.customDateStart
-            }) }}
+        {{ forms.dateField({
+            label: 'Start Date'|t('report-manager'),
+            id: 'customDateStart',
+            name: 'customDateStart',
+            value: report.customDateStart,
+            errors: report.getErrors('customDateStart'),
+            fieldId: 'customDateStart-field',
+            fieldClass: report.dateRange == 'custom' ? '' : 'hidden'
+        }) }}
 
-            {{ forms.dateField({
-                label: 'End Date'|t('report-manager'),
-                id: 'customDateEnd',
-                name: 'customDateEnd',
-                value: report.customDateEnd
-            }) }}
-        </div>
+        {{ forms.dateField({
+            label: 'End Date'|t('report-manager'),
+            id: 'customDateEnd',
+            name: 'customDateEnd',
+            value: report.customDateEnd,
+            errors: report.getErrors('customDateEnd'),
+            fieldId: 'customDateEnd-field',
+            fieldClass: report.dateRange == 'custom' ? '' : 'hidden'
+        }) }}
 
         {{ forms.selectField({
             label: 'Format'|t('report-manager'),
@@ -344,11 +346,8 @@ if (saveShortcut) {
 
 // Toggle custom date range visibility
 $('#dateRange').on('change', function() {
-    if ($(this).val() === 'custom') {
-        $('#daterange-custom').removeClass('hidden').slideDown();
-    } else {
-        $('#daterange-custom').slideUp();
-    }
+    var isCustom = $(this).val() === 'custom';
+    $('#customDateStart-field, #customDateEnd-field').toggleClass('hidden', !isCustom);
 });
 
 
