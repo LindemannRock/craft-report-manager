@@ -12,9 +12,6 @@ use Craft;
 use craft\base\FieldInterface;
 use craft\db\Query;
 use craft\elements\Category;
-use craft\helpers\DateTimeHelper;
-use craft\helpers\Db;
-use DateTime;
 
 /**
  * Categories Data Source
@@ -69,6 +66,7 @@ class CategoriesDataSource extends BaseDataSource
             'combinedPrimaryColumnLabel' => Craft::t('report-manager', 'Category Group Name'),
             'dateRangeInstructions' => Craft::t('report-manager', 'Filter categories by date range.'),
             'exportModeInstructions' => Craft::t('report-manager', 'How to handle multiple category groups.'),
+            'dateFilterInfo' => Craft::t('report-manager', 'Includes categories from the selected category groups whose Filter by date falls within the Date Range, for the selected sites.'),
         ]);
     }
 
@@ -305,31 +303,7 @@ class CategoriesDataSource extends BaseDataSource
             $query->siteId('*');
         }
 
-        if (!empty($options['dateStart'])) {
-            $dateStart = $options['dateStart'] instanceof DateTime
-                ? $options['dateStart']
-                : (DateTimeHelper::toDateTime($options['dateStart']) ?: null);
-            $query->andWhere(['>=', 'elements.dateCreated', Db::prepareDateForDb($dateStart)]);
-        }
-
-        if (!empty($options['dateEnd'])) {
-            $dateEnd = $options['dateEnd'] instanceof DateTime
-                ? $options['dateEnd']
-                : (DateTimeHelper::toDateTime($options['dateEnd']) ?: null);
-            $query->andWhere(['<=', 'elements.dateCreated', Db::prepareDateForDb($dateEnd)]);
-        }
-
-        if (!empty($options['dateRange'])) {
-            $dateStart = $this->getDateRangeStart($options['dateRange']);
-            $dateEnd = $this->getDateRangeEnd($options['dateRange']);
-
-            if ($dateStart) {
-                $query->andWhere(['>=', 'elements.dateCreated', Db::prepareDateForDb($dateStart)]);
-            }
-            if ($dateEnd) {
-                $query->andWhere(['<=', 'elements.dateCreated', Db::prepareDateForDb($dateEnd)]);
-            }
-        }
+        $this->applyDateFilter($query, $options, $this->dateColumn($this->resolveDateField($options)));
 
         if (!empty($options['limit'])) {
             $query->limit((int) $options['limit']);

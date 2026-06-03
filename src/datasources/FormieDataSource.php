@@ -10,8 +10,6 @@ namespace lindemannrock\reportmanager\datasources;
 
 use Craft;
 use craft\db\Query;
-use craft\helpers\DateTimeHelper;
-use craft\helpers\Db;
 use DateTime;
 use lindemannrock\base\helpers\DateRangeHelper;
 use lindemannrock\base\helpers\PluginHelper;
@@ -70,7 +68,37 @@ class FormieDataSource extends BaseDataSource
             'combinedPrimaryColumnLabel' => Craft::t('report-manager', 'Form Name'),
             'dateRangeInstructions' => Craft::t('report-manager', 'Filter submissions by date range.'),
             'exportModeInstructions' => Craft::t('report-manager', 'How to handle multiple forms.'),
+            'dateFilterInfo' => Craft::t('report-manager', 'Includes submissions from the selected forms whose Filter by date falls within the Date Range.'),
         ]);
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public static function dateFieldOptions(): array
+    {
+        // A submission's dateCreated is its submission time.
+        return [
+            ['value' => 'dateCreated', 'label' => Craft::t('report-manager', 'Submission Date')],
+            ['value' => 'dateUpdated', 'label' => Craft::t('report-manager', 'Date Updated')],
+        ];
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public static function defaultDateField(): string
+    {
+        return 'dateCreated';
+    }
+
+    /**
+     * @inheritdoc
+     */
+    protected function dateColumn(string $field): string
+    {
+        // Submission queries reference the column unqualified.
+        return $field;
     }
 
     /**
@@ -249,33 +277,8 @@ class FormieDataSource extends BaseDataSource
             $query->siteId('*');
         }
 
-        // Apply date range filters
-        if (!empty($options['dateStart'])) {
-            $dateStart = $options['dateStart'] instanceof DateTime
-                ? $options['dateStart']
-                : (DateTimeHelper::toDateTime($options['dateStart']) ?: null);
-            $query->andWhere(['>=', 'dateCreated', Db::prepareDateForDb($dateStart)]);
-        }
-
-        if (!empty($options['dateEnd'])) {
-            $dateEnd = $options['dateEnd'] instanceof DateTime
-                ? $options['dateEnd']
-                : (DateTimeHelper::toDateTime($options['dateEnd']) ?: null);
-            $query->andWhere(['<=', 'dateCreated', Db::prepareDateForDb($dateEnd)]);
-        }
-
-        // Apply date range shorthand
-        if (!empty($options['dateRange'])) {
-            $dateStart = $this->getDateRangeStart($options['dateRange']);
-            $dateEnd = $this->getDateRangeEnd($options['dateRange']);
-
-            if ($dateStart) {
-                $query->andWhere(['>=', 'dateCreated', Db::prepareDateForDb($dateStart)]);
-            }
-            if ($dateEnd) {
-                $query->andWhere(['<=', 'dateCreated', Db::prepareDateForDb($dateEnd)]);
-            }
-        }
+        // Apply date range filter against the report's chosen date field
+        $this->applyDateFilter($query, $options, $this->dateColumn($this->resolveDateField($options)));
 
         // Apply status filter
         if (!empty($options['statusId'])) {
@@ -316,33 +319,8 @@ class FormieDataSource extends BaseDataSource
             $query->siteId('*');
         }
 
-        // Apply date range filters
-        if (!empty($options['dateStart'])) {
-            $dateStart = $options['dateStart'] instanceof DateTime
-                ? $options['dateStart']
-                : (DateTimeHelper::toDateTime($options['dateStart']) ?: null);
-            $query->andWhere(['>=', 'dateCreated', Db::prepareDateForDb($dateStart)]);
-        }
-
-        if (!empty($options['dateEnd'])) {
-            $dateEnd = $options['dateEnd'] instanceof DateTime
-                ? $options['dateEnd']
-                : (DateTimeHelper::toDateTime($options['dateEnd']) ?: null);
-            $query->andWhere(['<=', 'dateCreated', Db::prepareDateForDb($dateEnd)]);
-        }
-
-        // Apply date range shorthand
-        if (!empty($options['dateRange'])) {
-            $dateStart = $this->getDateRangeStart($options['dateRange']);
-            $dateEnd = $this->getDateRangeEnd($options['dateRange']);
-
-            if ($dateStart) {
-                $query->andWhere(['>=', 'dateCreated', Db::prepareDateForDb($dateStart)]);
-            }
-            if ($dateEnd) {
-                $query->andWhere(['<=', 'dateCreated', Db::prepareDateForDb($dateEnd)]);
-            }
-        }
+        // Apply date range filter against the report's chosen date field
+        $this->applyDateFilter($query, $options, $this->dateColumn($this->resolveDateField($options)));
 
         // Apply status filter
         if (!empty($options['statusId'])) {

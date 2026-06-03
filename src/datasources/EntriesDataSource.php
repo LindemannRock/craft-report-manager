@@ -12,9 +12,6 @@ use Craft;
 use craft\base\FieldInterface;
 use craft\db\Query;
 use craft\elements\Entry;
-use craft\helpers\DateTimeHelper;
-use craft\helpers\Db;
-use DateTime;
 
 /**
  * Entries Data Source
@@ -69,7 +66,28 @@ class EntriesDataSource extends BaseDataSource
             'combinedPrimaryColumnLabel' => Craft::t('report-manager', 'Section Name'),
             'dateRangeInstructions' => Craft::t('report-manager', 'Filter entries by date range.'),
             'exportModeInstructions' => Craft::t('report-manager', 'How to handle multiple sections.'),
+            'dateFilterInfo' => Craft::t('report-manager', 'Includes entries from the selected sections whose Filter by date falls within the Date Range, for the selected sites.'),
         ]);
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public static function dateFieldOptions(): array
+    {
+        return [
+            ['value' => 'postDate', 'label' => Craft::t('report-manager', 'Post Date')],
+            ['value' => 'dateCreated', 'label' => Craft::t('report-manager', 'Date Created')],
+            ['value' => 'dateUpdated', 'label' => Craft::t('report-manager', 'Date Updated')],
+        ];
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public static function defaultDateField(): string
+    {
+        return 'postDate';
     }
 
     /**
@@ -309,30 +327,26 @@ class EntriesDataSource extends BaseDataSource
             $query->siteId('*');
         }
 
-        if (!empty($options['dateStart'])) {
-            $dateStart = $options['dateStart'] instanceof DateTime
-                ? $options['dateStart']
-                : (DateTimeHelper::toDateTime($options['dateStart']) ?: null);
-            $query->andWhere(['>=', 'elements.dateCreated', Db::prepareDateForDb($dateStart)]);
+        // postDate/dateCreated/dateUpdated all map to native EntryQuery params.
+        // Craft applies these to the subquery (the entries table is not joined on
+        // the main query), and assumes system-timezone strings — so format the
+        // bounds in the system zone and let Craft convert to UTC.
+        $field = $this->resolveDateField($options);
+        [$start, $end] = $this->resolveDateBounds($options);
+        $tz = new \DateTimeZone(Craft::$app->getTimeZone());
+        $conditions = ['and'];
+        if ($start) {
+            $conditions[] = '>= ' . (clone $start)->setTimezone($tz)->format('Y-m-d H:i:s');
         }
-
-        if (!empty($options['dateEnd'])) {
-            $dateEnd = $options['dateEnd'] instanceof DateTime
-                ? $options['dateEnd']
-                : (DateTimeHelper::toDateTime($options['dateEnd']) ?: null);
-            $query->andWhere(['<=', 'elements.dateCreated', Db::prepareDateForDb($dateEnd)]);
+        if ($end) {
+            $conditions[] = '<= ' . (clone $end)->setTimezone($tz)->format('Y-m-d H:i:s');
         }
-
-        if (!empty($options['dateRange'])) {
-            $dateStart = $this->getDateRangeStart($options['dateRange']);
-            $dateEnd = $this->getDateRangeEnd($options['dateRange']);
-
-            if ($dateStart) {
-                $query->andWhere(['>=', 'elements.dateCreated', Db::prepareDateForDb($dateStart)]);
-            }
-            if ($dateEnd) {
-                $query->andWhere(['<=', 'elements.dateCreated', Db::prepareDateForDb($dateEnd)]);
-            }
+        if (count($conditions) > 1) {
+            match ($field) {
+                'postDate' => $query->postDate($conditions),
+                'dateUpdated' => $query->dateUpdated($conditions),
+                default => $query->dateCreated($conditions),
+            };
         }
 
         if (!empty($options['limit'])) {
