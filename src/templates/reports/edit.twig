@@ -64,6 +64,17 @@
     {% endif %}
 {% endblock %}
 
+{# Validation errors summary — rendered above the form by the cp layout #}
+{% if report.hasErrors() %}
+    {% set errorSummary %}
+        {% include 'lindemannrock-base/_partials/error-summary' with {
+            errors: report.getErrors(),
+            linkMode: 'field-id',
+            translationCategory: 'report-manager'
+        } %}
+    {% endset %}
+{% endif %}
+
 {% block content %}
     <input type="hidden" name="action" value="report-manager/reports/save">
     <input type="hidden" name="redirect" value="{{ 'report-manager/reports'|hash }}">
@@ -71,14 +82,6 @@
         <input type="hidden" name="reportId" value="{{ report.id }}">
     {% endif %}
     {{ csrfInput() }}
-
-    {% if report.hasErrors() %}
-        {{ include('lindemannrock-base/_partials/error-summary', {
-            errors: report.getErrors(),
-            linkMode: 'field-id',
-            translationCategory: 'report-manager'
-        }) }}
-    {% endif %}
 
     <div id="fields">
         {{ forms.textField({
@@ -349,6 +352,41 @@ $('#dateRange').on('change', function() {
     var isCustom = $(this).val() === 'custom';
     $('#customDateStart-field, #customDateEnd-field').toggleClass('hidden', !isCustom);
 });
+
+// Live check: warn the moment an inverted range is picked (start after end),
+// which would silently produce an empty export. The server enforces the same
+// rule on save (ReportRecord::validateCustomDateRange) — this is just faster feedback.
+var customRangeErrorMsg = {{ 'End date must be on or after the start date.'|t('report-manager')|json_encode|raw }};
+
+function getPickerDate($input) {
+    return $input.hasClass('hasDatepicker') ? $input.datepicker('getDate') : null;
+}
+
+function validateCustomDateRange() {
+    var $start = $('#customDateStart');
+    var $end = $('#customDateEnd');
+    if (!$start.length || !$end.length) {
+        return;
+    }
+
+    var start = getPickerDate($start);
+    var end = getPickerDate($end);
+    var $field = $('#customDateEnd-field');
+    var $error = $('#customDateEnd-range-error');
+
+    if (start && end && start > end) {
+        if (!$error.length) {
+            $error = $('<ul class="errors" id="customDateEnd-range-error"><li></li></ul>');
+            $field.addClass('has-errors').append($error);
+        }
+        $error.find('li').text(customRangeErrorMsg);
+    } else {
+        $error.remove();
+        $field.removeClass('has-errors');
+    }
+}
+
+$('#customDateStart, #customDateEnd').on('change', validateCustomDateRange);
 
 
 const fallbackDataSourceLabels = {{ dataSourceLabels|json_encode|raw }};
