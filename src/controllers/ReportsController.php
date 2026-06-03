@@ -205,6 +205,12 @@ class ReportsController extends Controller
         $dataSourceLabels = $plugin->dataSources->getDataSourceLabels($currentDataSource);
         $dataSourceCapabilities = $plugin->dataSources->getDataSourceCapabilities($currentDataSource);
 
+        // Date fields the current source can filter on (the report's "Filter by date")
+        $currentSourceInstance = $currentDataSource
+            ? $plugin->dataSources->getDataSource($currentDataSource)
+            : null;
+        $dateFieldOptions = $currentSourceInstance ? $currentSourceInstance::dateFieldOptions() : [];
+
         $canAccessGeneratedFiles = !$isNew && Craft::$app->getUser()->checkPermission('reportManager:manageExports');
         $generatedExports = [];
         $generatedExportsTotalCount = 0;
@@ -237,6 +243,7 @@ class ReportsController extends Controller
             'entities' => $entities,
             'dataSourceLabels' => $dataSourceLabels,
             'dataSourceCapabilities' => $dataSourceCapabilities,
+            'dateFieldOptions' => $dateFieldOptions,
             'canAccessGeneratedFiles' => $canAccessGeneratedFiles,
             'generatedExports' => $generatedExports,
             'generatedExportFileExists' => $generatedExportFileExists,
@@ -324,6 +331,9 @@ class ReportsController extends Controller
 
         $report->customDateStart = $dateStart?->setTime(0, 0, 0);
         $report->customDateEnd = $dateEnd?->setTime(23, 59, 59);
+
+        // Which date column the range filters on (empty = data-source default)
+        $report->dateField = $request->getBodyParam('dateField') ?: null;
 
         // Handle field handles
         $fieldHandles = $request->getBodyParam('fieldHandles');
@@ -476,6 +486,7 @@ class ReportsController extends Controller
                     'dateRange' => $report->dateRange,
                     'dateStart' => $report->customDateStart,
                     'dateEnd' => $report->customDateEnd,
+                    'dateField' => $report->dateField,
                     'fieldHandles' => $report->getFieldHandlesArray(),
                     'siteIds' => $siteIds,
                 ]
@@ -509,6 +520,7 @@ class ReportsController extends Controller
                     'dateRange' => $report->dateRange,
                     'dateStart' => $report->customDateStart,
                     'dateEnd' => $report->customDateEnd,
+                    'dateField' => $report->dateField,
                     'fieldHandles' => $report->getFieldHandlesArray(),
                     'siteIds' => $siteIds,
                 ]

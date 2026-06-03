@@ -10,6 +10,9 @@ namespace lindemannrock\reportmanager\datasources;
 
 use Craft;
 use craft\base\ElementInterface;
+use craft\elements\db\ElementQuery;
+use craft\helpers\DateTimeHelper;
+use craft\helpers\Db;
 use DateTime;
 use DateTimeInterface;
 use lindemannrock\base\helpers\DateRangeHelper;
@@ -47,6 +50,7 @@ abstract class BaseDataSource implements DataSourceInterface
             'combinedPrimaryColumnLabel' => Craft::t('report-manager', 'Item Name'),
             'dateRangeInstructions' => Craft::t('report-manager', 'Filter records by date range.'),
             'exportModeInstructions' => Craft::t('report-manager', 'How to handle multiple items.'),
+            'dateFilterInfo' => Craft::t('report-manager', 'Records are included when their Filter by date value falls within the Date Range.'),
         ];
     }
 
@@ -63,6 +67,25 @@ abstract class BaseDataSource implements DataSourceInterface
             'siteFiltering' => true,
             'scheduling' => true,
         ];
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public static function dateFieldOptions(): array
+    {
+        return [
+            ['value' => 'dateCreated', 'label' => Craft::t('report-manager', 'Date Created')],
+            ['value' => 'dateUpdated', 'label' => Craft::t('report-manager', 'Date Updated')],
+        ];
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public static function defaultDateField(): string
+    {
+        return 'dateCreated';
     }
 
     /**
@@ -133,6 +156,106 @@ abstract class BaseDataSource implements DataSourceInterface
     protected function getDateRangeEnd(string $dateRange): ?DateTime
     {
         return DateRangeHelper::getBounds($dateRange)['end'];
+    }
+
+    /**
+     * Resolve which date field a query should filter on.
+     *
+     * Falls back to the source default when the report has not chosen one or
+     * chose a value this source does not support.
+     *
+     * @param array $options Query options
+     * @return string A value guaranteed to be in dateFieldOptions()
+     * @since 5.4.0
+     */
+    protected function resolveDateField(array $options): string
+    {
+        $field = $options['dateField'] ?? '';
+        $allowed = array_column(static::dateFieldOptions(), 'value');
+
+        return in_array($field, $allowed, true) ? $field : static::defaultDateField();
+    }
+
+    /**
+     * Map a date field to the query column it filters on.
+     *
+     * Element-backed sources qualify the column with the elements table; override
+     * for fields stored elsewhere (e.g. entries.postDate) or unqualified columns.
+     *
+     * @param string $field A dateFieldOptions() value
+     * @return string Column reference for andWhere()
+     * @since 5.4.0
+     */
+    protected function dateColumn(string $field): string
+    {
+        return 'elements.' . $field;
+    }
+
+    /**
+     * Resolve the effective [start, end] bounds for a query from its options.
+     *
+     * A custom range arrives as an explicit dateStart/dateEnd pair; a named
+     * range (anything but 'custom') supplies its own bounds and takes priority.
+     *
+     * @param array $options Query options (dateStart, dateEnd, dateRange)
+     * @return array{0: \DateTime|null, 1: \DateTime|null}
+     * @since 5.4.0
+     */
+    protected function resolveDateBounds(array $options): array
+    {
+        $start = null;
+        $end = null;
+
+        if (!empty($options['dateStart'])) {
+            $start = $options['dateStart'] instanceof DateTime
+                ? $options['dateStart']
+                : (DateTimeHelper::toDateTime($options['dateStart']) ?: null);
+        }
+
+        if (!empty($options['dateEnd'])) {
+            $end = $options['dateEnd'] instanceof DateTime
+                ? $options['dateEnd']
+                : (DateTimeHelper::toDateTime($options['dateEnd']) ?: null);
+        }
+
+        if (!empty($options['dateRange'])) {
+            $rangeStart = $this->getDateRangeStart($options['dateRange']);
+            $rangeEnd = $this->getDateRangeEnd($options['dateRange']);
+
+            if ($rangeStart) {
+                $start = $rangeStart;
+            }
+            if ($rangeEnd) {
+                $end = $rangeEnd;
+            }
+        }
+
+        return [$start, $end];
+    }
+
+    /**
+     * Apply the report's date-range filter to a query against the given column.
+     *
+     * Suitable for date columns present on the element query's main table
+     * (elements.dateCreated/dateUpdated, or a submission's unqualified columns).
+     * Columns living on a sub-table (e.g. entries.postDate) must instead use the
+     * element query's native date param — see EntriesDataSource.
+     *
+     * @param ElementQuery $query Element query to constrain
+     * @param array $options Query options (dateStart, dateEnd, dateRange)
+     * @param string $column Column reference returned by dateColumn()
+     * @since 5.4.0
+     */
+    protected function applyDateFilter(ElementQuery $query, array $options, string $column): void
+    {
+        [$start, $end] = $this->resolveDateBounds($options);
+
+        if ($start) {
+            $query->andWhere(['>=', $column, Db::prepareDateForDb($start)]);
+        }
+        if ($end) {
+            $query->andWhere(['<=', $column, Db::prepareDateForDb($end)]);
+        }
     }
 
     /**

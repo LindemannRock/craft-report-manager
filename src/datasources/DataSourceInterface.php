@@ -56,6 +56,22 @@ interface DataSourceInterface
     public static function capabilities(): array;
 
     /**
+     * Get the date fields this source can filter a report's date range by.
+     *
+     * @return array<array{value: string, label: string}> Ordered; first entry is conventional default
+     * @since 5.4.0
+     */
+    public static function dateFieldOptions(): array;
+
+    /**
+     * Get the default date field used when a report has not chosen one.
+     *
+     * @return string One of the values returned by dateFieldOptions()
+     * @since 5.4.0
+     */
+    public static function defaultDateField(): string;
+
+    /**
      * Get the data source icon URL
      *
      * @return string|null URL to data source icon

@@ -64,6 +64,8 @@ class ApiController extends Controller
             'success' => true,
             'labels' => $dataSourceInstance::uiLabels(),
             'capabilities' => $dataSourceInstance::capabilities(),
+            'dateFieldOptions' => $dataSourceInstance::dateFieldOptions(),
+            'defaultDateField' => $dataSourceInstance::defaultDateField(),
             'entities' => $entities,
         ]);
     }
