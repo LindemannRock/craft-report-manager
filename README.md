@@ -557,6 +557,14 @@ Skip the SQL if the columns and index already exist. Apply your Craft table pref
    ];
    ```
 
+### Export Is Empty (No Rows)
+
+If a report generates a file with no rows:
+
+1. **Check the date range.** For a **Custom Range**, the End Date must be on or after the Start Date. An inverted range (e.g. Start `4/30`, End `3/30`) matches no records. The edit screen now flags this inline and blocks saving, but reports saved before this check may still hold an inverted range — re-open and fix the dates.
+2. **Widen the range.** Confirm records actually exist within the selected dates for the chosen data source.
+3. **Check the selected items and sites.** If specific items or sites are selected, ensure they contain data for the range.
+
 ### Scheduled Reports Not Running
 
 1. Check **Settings → General → Enable Scheduled Reports** is enabled
