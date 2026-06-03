@@ -148,6 +148,7 @@ return [
 
     // Validation messages
     'End date must be on or after the start date.' => 'La fecha de fin debe ser igual o posterior a la fecha de inicio.',
+    'Invalid date field for the selected data source.' => 'Campo de fecha no válido para el origen de datos seleccionado.',
     'Export path cannot be in a web-accessible directory (@webroot)' => 'La ruta de exportación no puede estar en un directorio accesible por web (@webroot)',
     'Export path cannot contain directory traversal sequences (..)' => 'La ruta de exportación no puede contener secuencias de traversal de directorio (..)',
     'Export path must start with @root or @storage (secure locations only)' => 'La ruta de exportación debe comenzar con @root o @storage (solo ubicaciones seguras)',
@@ -270,6 +271,8 @@ return [
     'Custom Range' => 'Rango personalizado',
     'Start Date' => 'Fecha de inicio',
     'End Date' => 'Fecha de fin',
+    'Filter by date' => 'Filtrar por fecha',
+    'Which date the Date Range filters on.' => 'La fecha por la que filtra el Rango de fechas.',
     'Export Format' => 'Formato de exportación',
     'Export Mode' => 'Modo de exportación',
     'How to handle multiple forms.' => 'Cómo gestionar múltiples formularios.',
@@ -376,6 +379,10 @@ return [
     'Filter categories by date range.' => 'Filtrar categorías por rango de fechas.',
     'How to handle multiple category groups.' => 'Cómo gestionar varios grupos de categorías.',
     'How to handle multiple sections.' => 'Cómo gestionar varias secciones.',
+    'Records are included when their Filter by date value falls within the Date Range.' => 'Los registros se incluyen cuando su valor de Filtrar por fecha está dentro del Rango de fechas.',
+    'Includes entries from the selected sections whose Filter by date falls within the Date Range, for the selected sites.' => 'Incluye entradas de las secciones seleccionadas cuyo Filtrar por fecha está dentro del Rango de fechas, para los sitios seleccionados.',
+    'Includes categories from the selected category groups whose Filter by date falls within the Date Range, for the selected sites.' => 'Incluye categorías de los grupos de categorías seleccionados cuyo Filtrar por fecha está dentro del Rango de fechas, para los sitios seleccionados.',
+    'Includes submissions from the selected forms whose Filter by date falls within the Date Range.' => 'Incluye envíos de los formularios seleccionados cuyo Filtrar por fecha está dentro del Rango de fechas.',
 
     // System Fields
     'Submission ID' => 'ID de envío',
@@ -394,6 +401,7 @@ return [
     'URI' => 'URI',
     'Date Updated' => 'Fecha de actualización',
     'Post Date' => 'Fecha de publicación',
+    'Submission Date' => 'Fecha de envío',
     'Expiry Date' => 'Fecha de caducidad',
 
     // Config overrides

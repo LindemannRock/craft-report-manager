@@ -148,6 +148,7 @@ return [
 
     // Validation messages
     'End date must be on or after the start date.' => 'Das Enddatum muss am oder nach dem Startdatum liegen.',
+    'Invalid date field for the selected data source.' => 'Ungültiges Datumsfeld für die ausgewählte Datenquelle.',
     'Export path cannot be in a web-accessible directory (@webroot)' => 'Der Exportpfad darf sich nicht in einem web-zugänglichen Verzeichnis befinden (@webroot)',
     'Export path cannot contain directory traversal sequences (..)' => 'Der Exportpfad darf keine Verzeichnis-Traversal-Sequenzen enthalten (..)',
     'Export path must start with @root or @storage (secure locations only)' => 'Der Exportpfad muss mit @root oder @storage beginnen (nur sichere Speicherorte)',
@@ -270,6 +271,8 @@ return [
     'Custom Range' => 'Benutzerdefinierter Bereich',
     'Start Date' => 'Startdatum',
     'End Date' => 'Enddatum',
+    'Filter by date' => 'Nach Datum filtern',
+    'Which date the Date Range filters on.' => 'Nach welchem Datum der Datumsbereich filtert.',
     'Export Format' => 'Exportformat',
     'Export Mode' => 'Exportmodus',
     'How to handle multiple forms.' => 'Umgang mit mehreren Formularen.',
@@ -376,6 +379,10 @@ return [
     'Filter categories by date range.' => 'Kategorien nach Datumsbereich filtern.',
     'How to handle multiple category groups.' => 'Wie mehrere Kategoriegruppen behandelt werden sollen.',
     'How to handle multiple sections.' => 'Wie mehrere Sektionen behandelt werden sollen.',
+    'Records are included when their Filter by date value falls within the Date Range.' => 'Datensätze werden einbezogen, wenn ihr Wert für „Nach Datum filtern" innerhalb des Datumsbereichs liegt.',
+    'Includes entries from the selected sections whose Filter by date falls within the Date Range, for the selected sites.' => 'Enthält Einträge aus den ausgewählten Sektionen, deren „Nach Datum filtern"-Wert innerhalb des Datumsbereichs liegt, für die ausgewählten Websites.',
+    'Includes categories from the selected category groups whose Filter by date falls within the Date Range, for the selected sites.' => 'Enthält Kategorien aus den ausgewählten Kategoriegruppen, deren „Nach Datum filtern"-Wert innerhalb des Datumsbereichs liegt, für die ausgewählten Websites.',
+    'Includes submissions from the selected forms whose Filter by date falls within the Date Range.' => 'Enthält Einsendungen aus den ausgewählten Formularen, deren „Nach Datum filtern"-Wert innerhalb des Datumsbereichs liegt.',
 
     // System Fields
     'Submission ID' => 'Einsendungs-ID',
@@ -394,6 +401,7 @@ return [
     'URI' => 'URI',
     'Date Updated' => 'Aktualisierungsdatum',
     'Post Date' => 'Veröffentlichungsdatum',
+    'Submission Date' => 'Einsendungsdatum',
     'Expiry Date' => 'Ablaufdatum',
 
     // Config overrides

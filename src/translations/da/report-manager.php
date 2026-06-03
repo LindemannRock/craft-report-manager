@@ -148,6 +148,7 @@ return [
 
     // Validation messages
     'End date must be on or after the start date.' => 'Slutdatoen skal være den samme som eller efter startdatoen.',
+    'Invalid date field for the selected data source.' => 'Ugyldigt datofelt for den valgte datakilde.',
     'Export path cannot be in a web-accessible directory (@webroot)' => 'Eksportstien kan ikke befinde sig i en web-tilgængelig mappe (@webroot)',
     'Export path cannot contain directory traversal sequences (..)' => 'Eksportstien må ikke indeholde mappegennemløbssekvenser (..)',
     'Export path must start with @root or @storage (secure locations only)' => 'Eksportstien skal starte med @root eller @storage (kun sikre steder)',
@@ -270,6 +271,8 @@ return [
     'Custom Range' => 'Brugerdefineret interval',
     'Start Date' => 'Startdato',
     'End Date' => 'Slutdato',
+    'Filter by date' => 'Filtrer efter dato',
+    'Which date the Date Range filters on.' => 'Den dato som Datointervallet filtrerer på.',
     'Export Format' => 'Eksportformat',
     'Export Mode' => 'Eksporttilstand',
     'How to handle multiple forms.' => 'Sådan håndteres flere formularer.',
@@ -376,6 +379,10 @@ return [
     'Filter categories by date range.' => 'Filtrér kategorier efter datointerval.',
     'How to handle multiple category groups.' => 'Hvordan flere kategorigrupper skal håndteres.',
     'How to handle multiple sections.' => 'Sådan håndteres flere sektioner.',
+    'Records are included when their Filter by date value falls within the Date Range.' => 'Poster inkluderes, når deres Filtrer efter dato-værdi falder inden for Datointervallet.',
+    'Includes entries from the selected sections whose Filter by date falls within the Date Range, for the selected sites.' => 'Inkluderer indlæg fra de valgte sektioner, hvis Filtrer efter dato falder inden for Datointervallet, for de valgte websteder.',
+    'Includes categories from the selected category groups whose Filter by date falls within the Date Range, for the selected sites.' => 'Inkluderer kategorier fra de valgte kategorigrupper, hvis Filtrer efter dato falder inden for Datointervallet, for de valgte websteder.',
+    'Includes submissions from the selected forms whose Filter by date falls within the Date Range.' => 'Inkluderer indsendelser fra de valgte formularer, hvis Filtrer efter dato falder inden for Datointervallet.',
 
     // System Fields
     'Submission ID' => 'Indsendelse-ID',
@@ -394,6 +401,7 @@ return [
     'URI' => 'URI',
     'Date Updated' => 'Dato opdateret',
     'Post Date' => 'Publiceringsdato',
+    'Submission Date' => 'Indsendelsesdato',
     'Expiry Date' => 'Udløbsdato',
 
     // Config overrides

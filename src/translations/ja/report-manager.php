@@ -148,6 +148,7 @@ return [
 
     // Validation messages
     'End date must be on or after the start date.' => '終了日は開始日以降である必要があります。',
+    'Invalid date field for the selected data source.' => '選択したデータソースに対して無効な日付フィールドです。',
     'Export path cannot be in a web-accessible directory (@webroot)' => 'エクスポートパスは Web からアクセス可能なディレクトリ（@webroot）に設定できません',
     'Export path cannot contain directory traversal sequences (..)' => 'エクスポートパスにディレクトリトラバーサルシーケンス（..）を含めることはできません',
     'Export path must start with @root or @storage (secure locations only)' => 'エクスポートパスは @root または @storage から始まる必要があります（安全な場所のみ）',
@@ -270,6 +271,8 @@ return [
     'Custom Range' => 'カスタム範囲',
     'Start Date' => '開始日',
     'End Date' => '終了日',
+    'Filter by date' => '日付でフィルター',
+    'Which date the Date Range filters on.' => '日付範囲が適用される日付フィールドを指定します。',
     'Export Format' => 'エクスポートフォーマット',
     'Export Mode' => 'エクスポートモード',
     'How to handle multiple forms.' => '複数のフォームの処理方法。',
@@ -376,6 +379,10 @@ return [
     'Filter categories by date range.' => '期間でカテゴリを絞り込みます。',
     'How to handle multiple category groups.' => '複数のカテゴリグループを処理する方法。',
     'How to handle multiple sections.' => '複数のセクションの処理方法。',
+    'Records are included when their Filter by date value falls within the Date Range.' => 'レコードは、日付でフィルターの値が日付範囲内に収まる場合に含まれます。',
+    'Includes entries from the selected sections whose Filter by date falls within the Date Range, for the selected sites.' => '選択したサイトに対して、日付でフィルターが日付範囲内に収まる、選択したセクションのエントリを含みます。',
+    'Includes categories from the selected category groups whose Filter by date falls within the Date Range, for the selected sites.' => '選択したサイトに対して、日付でフィルターが日付範囲内に収まる、選択したカテゴリグループのカテゴリを含みます。',
+    'Includes submissions from the selected forms whose Filter by date falls within the Date Range.' => '日付でフィルターが日付範囲内に収まる、選択したフォームの送信を含みます。',
 
     // System Fields
     'Submission ID' => '送信 ID',
@@ -394,6 +401,7 @@ return [
     'URI' => 'URI',
     'Date Updated' => '更新日',
     'Post Date' => '投稿日',
+    'Submission Date' => '送信日',
     'Expiry Date' => '有効期限',
 
     // Config overrides

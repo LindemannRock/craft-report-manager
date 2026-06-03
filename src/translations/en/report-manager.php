@@ -146,6 +146,7 @@ return [
 
     // Validation messages
     'End date must be on or after the start date.' => 'End date must be on or after the start date.',
+    'Invalid date field for the selected data source.' => 'Invalid date field for the selected data source.',
     'Export path cannot be in a web-accessible directory (@webroot)' => 'Export path cannot be in a web-accessible directory (@webroot)',
     'Export path cannot contain directory traversal sequences (..)' => 'Export path cannot contain directory traversal sequences (..)',
     'Export path must start with @root or @storage (secure locations only)' => 'Export path must start with @root or @storage (secure locations only)',
@@ -268,6 +269,8 @@ return [
     'Custom Range' => 'Custom Range',
     'Start Date' => 'Start Date',
     'End Date' => 'End Date',
+    'Filter by date' => 'Filter by date',
+    'Which date the Date Range filters on.' => 'Which date the Date Range filters on.',
     'Export Format' => 'Export Format',
     'Export Mode' => 'Export Mode',
     'How to handle multiple forms.' => 'How to handle multiple forms.',
@@ -374,6 +377,10 @@ return [
     'Filter categories by date range.' => 'Filter categories by date range.',
     'How to handle multiple category groups.' => 'How to handle multiple category groups.',
     'How to handle multiple sections.' => 'How to handle multiple sections.',
+    'Records are included when their Filter by date value falls within the Date Range.' => 'Records are included when their Filter by date value falls within the Date Range.',
+    'Includes entries from the selected sections whose Filter by date falls within the Date Range, for the selected sites.' => 'Includes entries from the selected sections whose Filter by date falls within the Date Range, for the selected sites.',
+    'Includes categories from the selected category groups whose Filter by date falls within the Date Range, for the selected sites.' => 'Includes categories from the selected category groups whose Filter by date falls within the Date Range, for the selected sites.',
+    'Includes submissions from the selected forms whose Filter by date falls within the Date Range.' => 'Includes submissions from the selected forms whose Filter by date falls within the Date Range.',
 
     // System Fields
     'Submission ID' => 'Submission ID',
@@ -392,6 +399,7 @@ return [
     'URI' => 'URI',
     'Date Updated' => 'Date Updated',
     'Post Date' => 'Post Date',
+    'Submission Date' => 'Submission Date',
     'Expiry Date' => 'Expiry Date',
 
     // Config overrides

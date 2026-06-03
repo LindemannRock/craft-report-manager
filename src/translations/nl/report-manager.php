@@ -148,6 +148,7 @@ return [
 
     // Validation messages
     'End date must be on or after the start date.' => 'De einddatum moet op of na de begindatum liggen.',
+    'Invalid date field for the selected data source.' => 'Ongeldig datumveld voor de geselecteerde gegevensbron.',
     'Export path cannot be in a web-accessible directory (@webroot)' => 'Het exportpad mag zich niet in een webtoegankelijke map bevinden (@webroot)',
     'Export path cannot contain directory traversal sequences (..)' => 'Het exportpad mag geen maptransversale reeksen bevatten (..)',
     'Export path must start with @root or @storage (secure locations only)' => 'Het exportpad moet beginnen met @root of @storage (alleen beveiligde locaties)',
@@ -270,6 +271,8 @@ return [
     'Custom Range' => 'Aangepast bereik',
     'Start Date' => 'Begindatum',
     'End Date' => 'Einddatum',
+    'Filter by date' => 'Filteren op datum',
+    'Which date the Date Range filters on.' => 'Op welke datum het Datumbereik filtert.',
     'Export Format' => 'Exportformaat',
     'Export Mode' => 'Exportmodus',
     'How to handle multiple forms.' => 'Hoe om te gaan met meerdere formulieren.',
@@ -376,6 +379,10 @@ return [
     'Filter categories by date range.' => 'Filter categorieën op datumbereik.',
     'How to handle multiple category groups.' => 'Hoe meerdere categoriegroepen worden afgehandeld.',
     'How to handle multiple sections.' => 'Hoe meerdere secties worden afgehandeld.',
+    'Records are included when their Filter by date value falls within the Date Range.' => 'Records worden opgenomen wanneer hun waarde voor Filteren op datum binnen het Datumbereik valt.',
+    'Includes entries from the selected sections whose Filter by date falls within the Date Range, for the selected sites.' => 'Bevat vermeldingen uit de geselecteerde secties waarvan Filteren op datum binnen het Datumbereik valt, voor de geselecteerde sites.',
+    'Includes categories from the selected category groups whose Filter by date falls within the Date Range, for the selected sites.' => 'Bevat categorieën uit de geselecteerde categoriegroepen waarvan Filteren op datum binnen het Datumbereik valt, voor de geselecteerde sites.',
+    'Includes submissions from the selected forms whose Filter by date falls within the Date Range.' => 'Bevat inzendingen uit de geselecteerde formulieren waarvan Filteren op datum binnen het Datumbereik valt.',
 
     // System Fields
     'Submission ID' => 'Inzending-ID',
@@ -394,6 +401,7 @@ return [
     'URI' => 'URI',
     'Date Updated' => 'Datum bijgewerkt',
     'Post Date' => 'Publicatiedatum',
+    'Submission Date' => 'Inzendingsdatum',
     'Expiry Date' => 'Vervaldatum',
 
     // Config overrides

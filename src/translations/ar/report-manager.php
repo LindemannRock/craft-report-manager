@@ -148,6 +148,7 @@ return [
 
     // Validation messages
     'End date must be on or after the start date.' => 'يجب أن يكون تاريخ الانتهاء في تاريخ البداية أو بعده.',
+    'Invalid date field for the selected data source.' => 'حقل تاريخ غير صالح لمصدر البيانات المحدد.',
     'Export path cannot be in a web-accessible directory (@webroot)' => 'لا يمكن أن يكون مسار التصدير في مجلد يمكن الوصول إليه عبر الويب (@webroot)',
     'Export path cannot contain directory traversal sequences (..)' => 'لا يمكن أن يحتوي مسار التصدير على تسلسلات اجتياز المجلدات (..)',
     'Export path must start with @root or @storage (secure locations only)' => 'يجب أن يبدأ مسار التصدير بـ @root أو @storage (المواقع الآمنة فقط)',
@@ -270,6 +271,8 @@ return [
     'Custom Range' => 'نطاق مخصص',
     'Start Date' => 'تاريخ البداية',
     'End Date' => 'تاريخ الانتهاء',
+    'Filter by date' => 'التصفية حسب التاريخ',
+    'Which date the Date Range filters on.' => 'التاريخ الذي يُطبَّق عليه نطاق التاريخ للتصفية.',
     'Export Format' => 'تنسيق التصدير',
     'Export Mode' => 'وضع التصدير',
     'How to handle multiple forms.' => 'كيفية التعامل مع نماذج متعددة.',
@@ -376,6 +379,10 @@ return [
     'Filter categories by date range.' => 'تصفية الفئات حسب نطاق التاريخ.',
     'How to handle multiple category groups.' => 'كيفية التعامل مع مجموعات فئات متعددة.',
     'How to handle multiple sections.' => 'كيفية التعامل مع أقسام متعددة.',
+    'Records are included when their Filter by date value falls within the Date Range.' => 'يتم تضمين السجلات عندما تقع قيمة التصفية حسب التاريخ ضمن نطاق التاريخ.',
+    'Includes entries from the selected sections whose Filter by date falls within the Date Range, for the selected sites.' => 'يتضمن الإدخالات من الأقسام المحددة التي تقع قيمة التصفية حسب التاريخ فيها ضمن نطاق التاريخ، للمواقع المحددة.',
+    'Includes categories from the selected category groups whose Filter by date falls within the Date Range, for the selected sites.' => 'يتضمن الفئات من مجموعات الفئات المحددة التي تقع قيمة التصفية حسب التاريخ فيها ضمن نطاق التاريخ، للمواقع المحددة.',
+    'Includes submissions from the selected forms whose Filter by date falls within the Date Range.' => 'يتضمن الإرسالات من النماذج المحددة التي تقع قيمة التصفية حسب التاريخ فيها ضمن نطاق التاريخ.',
 
     // System Fields
     'Submission ID' => 'معرّف الإرسال',
@@ -394,6 +401,7 @@ return [
     'URI' => 'URI',
     'Date Updated' => 'تاريخ التحديث',
     'Post Date' => 'تاريخ النشر',
+    'Submission Date' => 'تاريخ الإرسال',
     'Expiry Date' => 'تاريخ الانتهاء',
 
     // Config overrides

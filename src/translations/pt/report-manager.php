@@ -148,6 +148,7 @@ return [
 
     // Validation messages
     'End date must be on or after the start date.' => 'A data de término deve ser igual ou posterior à data de início.',
+    'Invalid date field for the selected data source.' => 'Campo de data inválido para a origem de dados selecionada.',
     'Export path cannot be in a web-accessible directory (@webroot)' => 'O caminho de exportação não pode estar num diretório acessível pela web (@webroot)',
     'Export path cannot contain directory traversal sequences (..)' => 'O caminho de exportação não pode conter sequências de travessia de diretório (..)',
     'Export path must start with @root or @storage (secure locations only)' => 'O caminho de exportação deve começar com @root ou @storage (somente locais seguros)',
@@ -270,6 +271,8 @@ return [
     'Custom Range' => 'Intervalo personalizado',
     'Start Date' => 'Data de início',
     'End Date' => 'Data de término',
+    'Filter by date' => 'Filtrar por data',
+    'Which date the Date Range filters on.' => 'A data pela qual o Intervalo de datas filtra.',
     'Export Format' => 'Formato de exportação',
     'Export Mode' => 'Modo de exportação',
     'How to handle multiple forms.' => 'Como lidar com múltiplos formulários.',
@@ -376,6 +379,10 @@ return [
     'Filter categories by date range.' => 'Filtrar categorias por intervalo de datas.',
     'How to handle multiple category groups.' => 'Como tratar vários grupos de categorias.',
     'How to handle multiple sections.' => 'Como lidar com várias secções.',
+    'Records are included when their Filter by date value falls within the Date Range.' => 'Os registos são incluídos quando o seu valor de Filtrar por data se enquadra no Intervalo de datas.',
+    'Includes entries from the selected sections whose Filter by date falls within the Date Range, for the selected sites.' => 'Inclui entradas das secções selecionadas cujo Filtrar por data se enquadra no Intervalo de datas, para os sites selecionados.',
+    'Includes categories from the selected category groups whose Filter by date falls within the Date Range, for the selected sites.' => 'Inclui categorias dos grupos de categorias selecionados cujo Filtrar por data se enquadra no Intervalo de datas, para os sites selecionados.',
+    'Includes submissions from the selected forms whose Filter by date falls within the Date Range.' => 'Inclui envios dos formulários selecionados cujo Filtrar por data se enquadra no Intervalo de datas.',
 
     // System Fields
     'Submission ID' => 'ID do envio',
@@ -394,6 +401,7 @@ return [
     'URI' => 'URI',
     'Date Updated' => 'Data de atualização',
     'Post Date' => 'Data de publicação',
+    'Submission Date' => 'Data da submissão',
     'Expiry Date' => 'Data de expiração',
 
     // Config overrides

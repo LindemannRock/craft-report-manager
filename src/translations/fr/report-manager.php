@@ -148,6 +148,7 @@ return [
 
     // Validation messages
     'End date must be on or after the start date.' => 'La date de fin doit être identique ou postérieure à la date de début.',
+    'Invalid date field for the selected data source.' => 'Champ de date non valide pour la source de données sélectionnée.',
     'Export path cannot be in a web-accessible directory (@webroot)' => 'Le chemin d\'export ne peut pas se trouver dans un répertoire accessible sur le web (@webroot)',
     'Export path cannot contain directory traversal sequences (..)' => 'Le chemin d\'export ne peut pas contenir de séquences de traversée de répertoire (..)',
     'Export path must start with @root or @storage (secure locations only)' => 'Le chemin d\'export doit commencer par @root ou @storage (emplacements sécurisés uniquement)',
@@ -270,6 +271,8 @@ return [
     'Custom Range' => 'Plage personnalisée',
     'Start Date' => 'Date de début',
     'End Date' => 'Date de fin',
+    'Filter by date' => 'Filtrer par date',
+    'Which date the Date Range filters on.' => 'La date sur laquelle la Plage de dates s\'applique.',
     'Export Format' => 'Format d\'export',
     'Export Mode' => 'Mode d\'export',
     'How to handle multiple forms.' => 'Comment gérer plusieurs formulaires.',
@@ -376,6 +379,10 @@ return [
     'Filter categories by date range.' => 'Filtrer les catégories par plage de dates.',
     'How to handle multiple category groups.' => 'Comment gérer plusieurs groupes de catégories.',
     'How to handle multiple sections.' => 'Comment gérer plusieurs sections.',
+    'Records are included when their Filter by date value falls within the Date Range.' => 'Les enregistrements sont inclus lorsque leur valeur Filtrer par date se situe dans la Plage de dates.',
+    'Includes entries from the selected sections whose Filter by date falls within the Date Range, for the selected sites.' => 'Inclut les entrées des sections sélectionnées dont Filtrer par date se situe dans la Plage de dates, pour les sites sélectionnés.',
+    'Includes categories from the selected category groups whose Filter by date falls within the Date Range, for the selected sites.' => 'Inclut les catégories des groupes de catégories sélectionnés dont Filtrer par date se situe dans la Plage de dates, pour les sites sélectionnés.',
+    'Includes submissions from the selected forms whose Filter by date falls within the Date Range.' => 'Inclut les soumissions des formulaires sélectionnés dont Filtrer par date se situe dans la Plage de dates.',
 
     // System Fields
     'Submission ID' => 'ID de soumission',
@@ -394,7 +401,8 @@ return [
     'URI' => 'URI',
     'Date Updated' => 'Date de mise à jour',
     'Post Date' => 'Date de publication',
-    'Expiry Date' => 'Date d’expiration',
+    'Submission Date' => 'Date de soumission',
+    'Expiry Date' => 'Date d\'expiration',
 
     // Config overrides
     'This is being overridden by the <code>autoCleanupExports</code> setting in <code>config/report-manager.php</code>.' => 'Ce paramètre est remplacé par le paramètre <code>autoCleanupExports</code> dans <code>config/report-manager.php</code>.',
