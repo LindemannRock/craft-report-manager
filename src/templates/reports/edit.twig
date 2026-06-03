@@ -128,6 +128,14 @@
             errors: report.getErrors('dataSource')
         }) }}
 
+        {# Explains, per data source, what gets exported and how the date range filters it #}
+        {% include 'lindemannrock-base/_components/info-box' with {
+            message: dataSourceLabels.dateFilterInfo ?? 'Records are included when their Filter by date value falls within the Date Range.'|t('report-manager'),
+            type: 'info',
+            margin: 'none',
+            messageId: 'dateFilterInfo-message',
+        } only %}
+
         {% if siteOptions|length > 0 %}
             {{ forms.checkboxGroupField({
                 label: 'Sites'|t('report-manager'),
@@ -184,6 +192,16 @@
             id: 'enabled',
             name: 'enabled',
             on: report.enabled ?? true
+        }) }}
+
+        {{ forms.selectField({
+            label: 'Filter by date'|t('report-manager'),
+            instructions: 'Which date the Date Range filters on.'|t('report-manager'),
+            id: 'dateField',
+            name: 'dateField',
+            value: report.dateField,
+            options: dateFieldOptions,
+            errors: report.getErrors('dateField')
         }) }}
 
         {{ forms.selectField({
@@ -415,6 +433,20 @@ $('#dataSource').on('change', function() {
             var $container = $('#entityIds');
             var $emptyMessage = $('#entities-empty-message');
             var labels = response.labels || fallbackDataSourceLabels;
+
+            // Update "Filter by date" options + the per-source info box
+            var $dateField = $('#dateField');
+            if ($dateField.length && response.dateFieldOptions) {
+                var currentDateField = $dateField.val();
+                var dateFieldValues = response.dateFieldOptions.map(function(o) { return o.value; });
+                $dateField.empty();
+                response.dateFieldOptions.forEach(function(o) {
+                    $dateField.append($('<option>').attr('value', o.value).text(o.label));
+                });
+                $dateField.val(dateFieldValues.indexOf(currentDateField) !== -1 ? currentDateField : response.defaultDateField);
+            }
+            $('#dateFilterInfo-message').text(getDataSourceLabel(labels, 'dateFilterInfo', ''));
+
             $container.empty();
 
             // The heading is a <legend> for checkbox groups (not a <label>); update only its
