@@ -12,6 +12,7 @@ use Craft;
 use craft\db\ActiveRecord;
 use lindemannrock\base\helpers\ScheduleHelper;
 use lindemannrock\base\helpers\SlugHandleHelper;
+use lindemannrock\reportmanager\ReportManager;
 
 /**
  * Report Record
@@ -27,6 +28,7 @@ use lindemannrock\base\helpers\SlugHandleHelper;
  * @property string $dateRange
  * @property \DateTime|null $customDateStart
  * @property \DateTime|null $customDateEnd
+ * @property string|null $dateField Which date column the date range filters on (null = data-source default)
  * @property string|null $fieldHandles JSON array
  * @property string $exportFormat
  * @property string $exportMode separate or combined
@@ -83,8 +85,33 @@ class ReportRecord extends ActiveRecord
         $rules[] = [['handle'], 'validateUniqueHandle'];
         $rules[] = [['entityIds'], 'validateEntityIds'];
         $rules[] = [['customDateEnd'], 'validateCustomDateRange'];
+        $rules[] = [['dateField'], 'validateDateField'];
 
         return $rules;
+    }
+
+    /**
+     * Validate that the chosen date field is one the data source supports.
+     *
+     * Empty is valid — it means "use the data source default" at query time.
+     *
+     * @since 5.4.0
+     */
+    public function validateDateField(): void
+    {
+        if (empty($this->dateField)) {
+            return;
+        }
+
+        $source = ReportManager::getInstance()?->dataSources->getDataSource($this->dataSource);
+        if ($source === null) {
+            return;
+        }
+
+        $allowed = array_column($source::dateFieldOptions(), 'value');
+        if (!in_array($this->dateField, $allowed, true)) {
+            $this->addError('dateField', Craft::t('report-manager', 'Invalid date field for the selected data source.'));
+        }
     }
 
     /**
