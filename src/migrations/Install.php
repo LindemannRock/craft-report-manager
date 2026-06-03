@@ -135,6 +135,7 @@ class Install extends Migration
             'dateRange' => $this->string(32)->notNull()->defaultValue('last30days'),
             'customDateStart' => $this->dateTime()->null(),
             'customDateEnd' => $this->dateTime()->null(),
+            'dateField' => $this->string(64)->null()->comment('Which date column the date range filters on; null = data-source default'),
             'fieldHandles' => $this->text()->null()->comment('JSON array of field handles to include'),
             // Export settings
             'exportFormat' => $this->string(16)->notNull()->defaultValue('csv'),
@@ -189,6 +190,7 @@ class Install extends Migration
             'dateRangeUsed' => $this->string(32)->null(),
             'dateStartUsed' => $this->dateTime()->null(),
             'dateEndUsed' => $this->dateTime()->null(),
+            'dateFieldUsed' => $this->string(64)->null()->comment('Which date column the export date range filtered on'),
             'fieldHandlesUsed' => $this->text()->null()->comment('JSON array'),
             'siteIdsUsed' => $this->text()->null()->comment('JSON array of site IDs'),
             // File details
