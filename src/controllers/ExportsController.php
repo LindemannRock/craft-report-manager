@@ -245,12 +245,16 @@ class ExportsController extends Controller
         $dateStart = null;
         $dateEnd = null;
 
+        // The date picker is date-only, so a custom range covers whole days:
+        // start of day for the start date, end of day for the end date.
         if (!empty($customDateStart['date'])) {
             $dateStart = DateTimeHelper::toDateTime($customDateStart['date']) ?: null;
+            $dateStart?->setTime(0, 0, 0);
         }
 
         if (!empty($customDateEnd['date'])) {
             $dateEnd = DateTimeHelper::toDateTime($customDateEnd['date']) ?: null;
+            $dateEnd?->setTime(23, 59, 59);
         }
 
         // Check if we should process immediately or queue

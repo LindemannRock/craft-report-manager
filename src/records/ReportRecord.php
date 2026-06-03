@@ -82,8 +82,30 @@ class ReportRecord extends ActiveRecord
         $rules[] = [['handle'], 'string', 'max' => 64];
         $rules[] = [['handle'], 'validateUniqueHandle'];
         $rules[] = [['entityIds'], 'validateEntityIds'];
+        $rules[] = [['customDateEnd'], 'validateCustomDateRange'];
 
         return $rules;
+    }
+
+    /**
+     * Validate the custom date range.
+     *
+     * An inverted range (start after end) matches no records, so the export
+     * silently comes back empty. Reject it instead of producing a confusing
+     * empty file. Open-ended ranges (only one bound set) stay valid.
+     *
+     * @since 5.4.0
+     */
+    public function validateCustomDateRange(): void
+    {
+        if ($this->dateRange !== 'custom') {
+            return;
+        }
+
+        if ($this->customDateStart && $this->customDateEnd
+            && $this->customDateStart > $this->customDateEnd) {
+            $this->addError('customDateEnd', Craft::t('report-manager', 'End date must be on or after the start date.'));
+        }
     }
 
     /**

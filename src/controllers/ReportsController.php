@@ -313,12 +313,17 @@ class ReportsController extends Controller
         $customDateStart = $request->getBodyParam('customDateStart');
         $customDateEnd = $request->getBodyParam('customDateEnd');
 
-        $report->customDateStart = !empty($customDateStart['date'])
+        // The date picker is date-only, so a custom range covers whole days:
+        // start of day for the start date, end of day for the end date.
+        $dateStart = !empty($customDateStart['date'])
             ? (DateTimeHelper::toDateTime($customDateStart['date']) ?: null)
             : null;
-        $report->customDateEnd = !empty($customDateEnd['date'])
+        $dateEnd = !empty($customDateEnd['date'])
             ? (DateTimeHelper::toDateTime($customDateEnd['date']) ?: null)
             : null;
+
+        $report->customDateStart = $dateStart?->setTime(0, 0, 0);
+        $report->customDateEnd = $dateEnd?->setTime(23, 59, 59);
 
         // Handle field handles
         $fieldHandles = $request->getBodyParam('fieldHandles');
