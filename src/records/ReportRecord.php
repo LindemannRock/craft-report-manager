@@ -24,7 +24,7 @@ use lindemannrock\reportmanager\ReportManager;
  * @property string $handle
  * @property string|null $description
  * @property string $dataSource
-     * @property string|null $entityIds JSON array of data-source entity IDs
+ * @property string|null $entityIds JSON array of data-source entity IDs
  * @property string $dateRange
  * @property \DateTime|null $customDateStart
  * @property \DateTime|null $customDateEnd
@@ -137,6 +137,8 @@ class ReportRecord extends ActiveRecord
 
     /**
      * Validate that the report handle is unique.
+     *
+     * @since 5.4.0
      */
     public function validateUniqueHandle(string $attribute): void
     {
