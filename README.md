@@ -23,6 +23,7 @@ This plugin is in active development and not yet available on the Craft Plugin S
 - **Multiple Data Sources** - Extensible architecture for Craft-native content, Formie, and future integrations
 - **Field Selection** - Choose which fields to include in exports
 - **Date Range Filtering** - Filter data with the shared LindemannRock Base date presets or a custom range
+- **Filter by Date** - Choose which date the range applies to per data source (entries by Post Date, Created, or Updated; categories by Created or Updated; Formie by Submission or Updated date)
 - **Multi-Site Support** - Filter exports by site
 
 ### Scheduled Reports
@@ -45,7 +46,7 @@ This plugin is in active development and not yet available on the Craft Plugin S
 ### Craft Content Exports
 - **Content Inventory** - Export entries by section for audits, migrations, and Feed Me-compatible source files
 - **Field Mapping** - Include system fields and section field-layout fields
-- **Date Filtering** - Filter by entry creation date and site
+- **Date Filtering** - Filter by Post Date (default), Created, or Updated date, and site
 
 ### Formie Integration
 - **Form Selection** - Export submissions from any Formie form
@@ -562,8 +563,9 @@ Skip the SQL if the columns and index already exist. Apply your Craft table pref
 If a report generates a file with no rows:
 
 1. **Check the date range.** For a **Custom Range**, the End Date must be on or after the Start Date. An inverted range (e.g. Start `4/30`, End `3/30`) matches no records. The edit screen now flags this inline and blocks saving, but reports saved before this check may still hold an inverted range — re-open and fix the dates.
-2. **Widen the range.** Confirm records actually exist within the selected dates for the chosen data source.
-3. **Check the selected items and sites.** If specific items or sites are selected, ensure they contain data for the range.
+2. **Check "Filter by date".** The range is applied to the field chosen here. Entries default to **Post Date** — entries with no Post Date (drafts/pending) won't match a dated range; switch to **Created** to include them. Formie uses the submission date; categories use Created.
+3. **Widen the range.** Confirm records actually exist within the selected dates for the chosen data source.
+4. **Check the selected items and sites.** If specific items or sites are selected, ensure they contain data for the range.
 
 ### Scheduled Reports Not Running
 
