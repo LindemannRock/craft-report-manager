@@ -147,6 +147,7 @@ return [
     '{success} export(s) succeeded, {fail} failed.' => '{success} export(s) geslaagd, {fail} mislukt.',
 
     // Validation messages
+    'End date must be on or after the start date.' => 'De einddatum moet op of na de begindatum liggen.',
     'Export path cannot be in a web-accessible directory (@webroot)' => 'Het exportpad mag zich niet in een webtoegankelijke map bevinden (@webroot)',
     'Export path cannot contain directory traversal sequences (..)' => 'Het exportpad mag geen maptransversale reeksen bevatten (..)',
     'Export path must start with @root or @storage (secure locations only)' => 'Het exportpad moet beginnen met @root of @storage (alleen beveiligde locaties)',

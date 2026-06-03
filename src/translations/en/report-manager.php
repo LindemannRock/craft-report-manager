@@ -145,6 +145,7 @@ return [
     '{success} export(s) succeeded, {fail} failed.' => '{success} export(s) succeeded, {fail} failed.',
 
     // Validation messages
+    'End date must be on or after the start date.' => 'End date must be on or after the start date.',
     'Export path cannot be in a web-accessible directory (@webroot)' => 'Export path cannot be in a web-accessible directory (@webroot)',
     'Export path cannot contain directory traversal sequences (..)' => 'Export path cannot contain directory traversal sequences (..)',
     'Export path must start with @root or @storage (secure locations only)' => 'Export path must start with @root or @storage (secure locations only)',

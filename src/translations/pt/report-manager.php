@@ -147,6 +147,7 @@ return [
     '{success} export(s) succeeded, {fail} failed.' => '{success} exportação(ões) bem-sucedida(s), {fail} falhou(aram).',
 
     // Validation messages
+    'End date must be on or after the start date.' => 'A data de término deve ser igual ou posterior à data de início.',
     'Export path cannot be in a web-accessible directory (@webroot)' => 'O caminho de exportação não pode estar num diretório acessível pela web (@webroot)',
     'Export path cannot contain directory traversal sequences (..)' => 'O caminho de exportação não pode conter sequências de travessia de diretório (..)',
     'Export path must start with @root or @storage (secure locations only)' => 'O caminho de exportação deve começar com @root ou @storage (somente locais seguros)',

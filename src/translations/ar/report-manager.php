@@ -147,6 +147,7 @@ return [
     '{success} export(s) succeeded, {fail} failed.' => 'نجح {success} تصدير/تصديرات، وفشل {fail}.',
 
     // Validation messages
+    'End date must be on or after the start date.' => 'يجب أن يكون تاريخ الانتهاء في تاريخ البداية أو بعده.',
     'Export path cannot be in a web-accessible directory (@webroot)' => 'لا يمكن أن يكون مسار التصدير في مجلد يمكن الوصول إليه عبر الويب (@webroot)',
     'Export path cannot contain directory traversal sequences (..)' => 'لا يمكن أن يحتوي مسار التصدير على تسلسلات اجتياز المجلدات (..)',
     'Export path must start with @root or @storage (secure locations only)' => 'يجب أن يبدأ مسار التصدير بـ @root أو @storage (المواقع الآمنة فقط)',

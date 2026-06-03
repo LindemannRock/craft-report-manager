@@ -147,6 +147,7 @@ return [
     '{success} export(s) succeeded, {fail} failed.' => '{success} export(er) lyckades, {fail} misslyckades.',
 
     // Validation messages
+    'End date must be on or after the start date.' => 'Slutdatumet måste vara samma som eller efter startdatumet.',
     'Export path cannot be in a web-accessible directory (@webroot)' => 'Exportsökvägen kan inte finnas i en webb-tillgänglig katalog (@webroot)',
     'Export path cannot contain directory traversal sequences (..)' => 'Exportsökvägen får inte innehålla katalogtraverseringssekvenser (..)',
     'Export path must start with @root or @storage (secure locations only)' => 'Exportsökvägen måste börja med @root eller @storage (endast säkra platser)',

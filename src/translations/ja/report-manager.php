@@ -147,6 +147,7 @@ return [
     '{success} export(s) succeeded, {fail} failed.' => '{success} 件のエクスポートが成功し、{fail} 件が失敗しました。',
 
     // Validation messages
+    'End date must be on or after the start date.' => '終了日は開始日以降である必要があります。',
     'Export path cannot be in a web-accessible directory (@webroot)' => 'エクスポートパスは Web からアクセス可能なディレクトリ（@webroot）に設定できません',
     'Export path cannot contain directory traversal sequences (..)' => 'エクスポートパスにディレクトリトラバーサルシーケンス（..）を含めることはできません',
     'Export path must start with @root or @storage (secure locations only)' => 'エクスポートパスは @root または @storage から始まる必要があります（安全な場所のみ）',

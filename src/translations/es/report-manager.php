@@ -147,6 +147,7 @@ return [
     '{success} export(s) succeeded, {fail} failed.' => '{success} exportación/exportaciones correcta(s), {fail} fallida(s).',
 
     // Validation messages
+    'End date must be on or after the start date.' => 'La fecha de fin debe ser igual o posterior a la fecha de inicio.',
     'Export path cannot be in a web-accessible directory (@webroot)' => 'La ruta de exportación no puede estar en un directorio accesible por web (@webroot)',
     'Export path cannot contain directory traversal sequences (..)' => 'La ruta de exportación no puede contener secuencias de traversal de directorio (..)',
     'Export path must start with @root or @storage (secure locations only)' => 'La ruta de exportación debe comenzar con @root o @storage (solo ubicaciones seguras)',
