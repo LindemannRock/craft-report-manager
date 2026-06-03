@@ -30,6 +30,7 @@ use craft\helpers\Json;
  * @property string|null $dateRangeUsed
  * @property \DateTime|null $dateStartUsed
  * @property \DateTime|null $dateEndUsed
+ * @property string|null $dateFieldUsed Which date column the export's date range filtered on
  * @property string|null $fieldHandlesUsed JSON array
  * @property string|null $siteIdsUsed JSON array of site IDs
  * @property string $format

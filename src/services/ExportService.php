@@ -389,6 +389,7 @@ class ExportService extends Component
                 ? $options['dateEnd']
                 : (DateTimeHelper::toDateTime($options['dateEnd']) ?: null))
             : null;
+        $export->dateFieldUsed = $options['dateField'] ?? null;
 
         // Field handles
         if (!empty($options['fieldHandles'])) {
@@ -526,6 +527,10 @@ class ExportService extends Component
 
             if ($export->dateEndUsed) {
                 $options['dateEnd'] = $export->dateEndUsed;
+            }
+
+            if ($export->dateFieldUsed) {
+                $options['dateField'] = $export->dateFieldUsed;
             }
 
             // Site IDs filter
@@ -1009,6 +1014,7 @@ class ExportService extends Component
                 ? $options['dateEnd']
                 : (DateTimeHelper::toDateTime($options['dateEnd']) ?: null))
             : null;
+        $export->dateFieldUsed = $options['dateField'] ?? null;
 
         // Site IDs filter
         if (!empty($options['siteIds']) && is_array($options['siteIds'])) {
@@ -1074,6 +1080,10 @@ class ExportService extends Component
 
             if ($export->dateEndUsed) {
                 $options['dateEnd'] = $export->dateEndUsed;
+            }
+
+            if ($export->dateFieldUsed) {
+                $options['dateField'] = $export->dateFieldUsed;
             }
 
             // Site IDs filter
