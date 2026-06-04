@@ -198,7 +198,7 @@ class ReportsService extends Component
 
         $report->handle = SlugHandleHelper::normalizeSlug($report->handle, (string)$report->name);
 
-        if ($isNew) {
+        if ($isNew && $report->handle !== '') {
             $report->handle = SlugHandleHelper::makeUnique(
                 ReportRecord::tableName(),
                 'handle',
