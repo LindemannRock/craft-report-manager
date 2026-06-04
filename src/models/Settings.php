@@ -13,6 +13,8 @@ use craft\base\Model;
 use lindemannrock\base\helpers\DateRangeHelper;
 use lindemannrock\base\helpers\ExportHelper;
 use lindemannrock\base\helpers\ScheduleHelper;
+use lindemannrock\base\helpers\StoragePathHelper;
+use lindemannrock\base\helpers\StorageVolumeHelper;
 use lindemannrock\base\traits\DateFormatSettingsTrait;
 use lindemannrock\base\traits\DateRangeSettingsTrait;
 use lindemannrock\base\traits\ExportFormatSettingsTrait;
@@ -23,6 +25,7 @@ use lindemannrock\base\traits\SettingsConfigTrait;
 use lindemannrock\base\traits\SettingsDisplayNameTrait;
 use lindemannrock\base\traits\SettingsPersistenceTrait;
 use lindemannrock\base\validators\StoragePathValidator;
+use lindemannrock\base\validators\StorageVolumeValidator;
 use lindemannrock\logginglibrary\traits\LoggingTrait;
 
 /**
@@ -259,7 +262,7 @@ class Settings extends Model
             ['csvEnclosure', 'default', 'value' => '"'],
             ['dashboardRefreshInterval', 'integer', 'min' => 0, 'max' => 3600],
             ['dashboardRefreshInterval', 'default', 'value' => 0],
-            [['exportVolumeUid'], 'string'],
+            [['exportVolumeUid'], StorageVolumeValidator::class],
             [
                 ['exportPath'],
                 StoragePathValidator::class,
@@ -307,15 +310,22 @@ class Settings extends Model
     {
         // If a volume is selected, display volume info
         if ($this->exportVolumeUid) {
-            $volume = Craft::$app->getVolumes()->getVolumeByUid($this->exportVolumeUid);
-            if ($volume) {
-                return "Volume: {$volume->name}/report-manager/exports";
-            }
+            return StorageVolumeHelper::displayPath($this->exportVolumeUid, 'report-manager/exports')
+                ?? Craft::t('report-manager', 'Export Storage Volume');
         }
 
         // No volume selected - use regular export path and properly resolve it
         $rawPath = $this->exportPath;
-        $path = Craft::getAlias($rawPath);
+        try {
+            $path = StoragePathHelper::resolve($rawPath);
+        } catch (\Throwable $e) {
+            $this->logWarning('Configured exportPath could not be resolved; falling back to default.', [
+                'configuredPath' => $rawPath,
+                'error' => $e->getMessage(),
+                'fallback' => '@storage/report-manager/exports',
+            ]);
+            $path = Craft::getAlias('@storage/report-manager/exports');
+        }
 
         // If alias resolution failed or returned empty, log and fall back to default
         if (empty($path)) {

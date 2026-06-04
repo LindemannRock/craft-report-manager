@@ -203,13 +203,15 @@ return [
 
 **Local Storage (default):**
 - Exports saved to `storage/report-manager/exports/`
-- Configure path via `exportPath` setting
+- Configure path via the `exportPath` setting. Alias-based paths such as `@storage/...` and `@root/...` are supported, and paths resolving inside `@webroot` are rejected.
 
 **Volume Storage:**
 1. Create a volume in Craft (Settings → Filesystems → Volumes)
 2. Go to **Report Manager → Settings → Export**
 3. Select the volume
 4. Exports saved to `report-manager/exports/` within the volume
+
+Local and remote volumes are supported. Local volumes that resolve inside `@webroot` are rejected; for remote volumes, public accessibility depends on the filesystem/provider settings configured in Craft.
 
 ## Scheduled Reports
 
@@ -597,7 +599,7 @@ If the cleanup job is missing:
 ### Storage Permission Errors
 
 1. **Local storage:** Ensure `storage/report-manager/exports/` is writable
-2. **Volume storage:** Check volume filesystem permissions
+2. **Volume storage:** Check volume filesystem permissions and remote provider access rules
 
 ## Support
 

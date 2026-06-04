@@ -17,6 +17,7 @@ use craft\helpers\FileHelper;
 use DateTime;
 use lindemannrock\base\helpers\ExportHelper;
 use lindemannrock\base\helpers\SafeSegmentHelper;
+use lindemannrock\base\helpers\StorageVolumeHelper;
 use lindemannrock\logginglibrary\traits\LoggingTrait;
 use lindemannrock\reportmanager\export\QueuedExportContext;
 use lindemannrock\reportmanager\export\QueuedExportResult;
@@ -76,17 +77,25 @@ class ExportService extends Component
 
         // Check if a volume is configured
         if (!empty($settings->exportVolumeUid)) {
-            $volume = Craft::$app->getVolumes()->getVolumeByUid($settings->exportVolumeUid);
-            if ($volume) {
-                try {
-                    $this->_volumeFs = $volume->getFs();
-                    $this->_useVolume = true;
-                    $this->logInfo('Using volume for export storage', ['volume' => $volume->name]);
-                    return;
-                } catch (\Exception $e) {
-                    $this->logError('Failed to initialize volume filesystem, falling back to local', [
-                        'error' => $e->getMessage(),
-                    ]);
+            $volumeErrors = StorageVolumeHelper::validateVolume($settings->exportVolumeUid);
+            if ($volumeErrors !== []) {
+                $this->logWarning('Export volume failed validation. Falling back to local storage.', [
+                    'exportVolumeUid' => $settings->exportVolumeUid,
+                    'errors' => $volumeErrors,
+                ]);
+            } else {
+                $volume = Craft::$app->getVolumes()->getVolumeByUid($settings->exportVolumeUid);
+                if ($volume) {
+                    try {
+                        $this->_volumeFs = $volume->getFs();
+                        $this->_useVolume = true;
+                        $this->logInfo('Using volume for export storage', ['volume' => $volume->name]);
+                        return;
+                    } catch (\Exception $e) {
+                        $this->logError('Failed to initialize volume filesystem, falling back to local', [
+                            'error' => $e->getMessage(),
+                        ]);
+                    }
                 }
             }
         }
