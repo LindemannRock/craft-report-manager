@@ -170,6 +170,7 @@
 
         <p class="light{{ entities|length > 0 ? ' hidden' : '' }}" id="entities-empty-message">{{ dataSourceLabels.emptyEntitiesMessage ?? 'No items available.'|t('report-manager') }}</p>
 
+        {% include 'lindemannrock-base/_components/plugin-credit' %}
     </div>
 
     {% if not isNew and canAccessGeneratedFiles %}
