@@ -443,16 +443,8 @@ class ReportManager extends Plugin
             return;
         }
 
-        if ($checkExisting) {
-            $existingJob = (new \craft\db\Query())
-                ->from('{{%queue}}')
-                ->where(['like', 'job', 'reportmanager'])
-                ->andWhere(['like', 'job', 'CleanupExportsJob'])
-                ->exists();
-
-            if ($existingJob) {
-                return;
-            }
+        if ($checkExisting && $this->hasPendingExportCleanupJob()) {
+            return;
         }
 
         $nextRun ??= (clone DateFormatHelper::now())->modify('+300 seconds');
@@ -488,6 +480,20 @@ class ReportManager extends Plugin
     public function scheduleNextExportCleanupJob(): void
     {
         $this->scheduleExportCleanupJob(ScheduleHelper::calculateNext('daily'), false);
+    }
+
+    /**
+     * Check whether a generated export cleanup job is already pending.
+     */
+    private function hasPendingExportCleanupJob(): bool
+    {
+        return (new \craft\db\Query())
+            ->from('{{%queue}}')
+            ->where(['like', 'job', 'reportmanager'])
+            ->andWhere(['like', 'job', 'CleanupExportsJob'])
+            ->andWhere(['fail' => false])
+            ->andWhere(['timeUpdated' => null])
+            ->exists();
     }
 
     /**

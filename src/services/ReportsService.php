@@ -515,6 +515,8 @@ class ReportsService extends Component
             ->where(['like', 'job', 'reportmanager'])
             ->andWhere(['like', 'job', 'ProcessScheduledReportJob'])
             ->andWhere(['like', 'job', 'reportId";i:' . $reportId . ';'])
+            ->andWhere(['fail' => false])
+            ->andWhere(['timeUpdated' => null])
             ->exists();
     }
 
