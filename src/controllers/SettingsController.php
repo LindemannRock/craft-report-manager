@@ -10,6 +10,8 @@ namespace lindemannrock\reportmanager\controllers;
 
 use Craft;
 use craft\web\Controller;
+use lindemannrock\base\helpers\SettingsPostHelper;
+use lindemannrock\reportmanager\models\Settings;
 use lindemannrock\reportmanager\ReportManager;
 use yii\web\Response;
 
@@ -121,7 +123,7 @@ class SettingsController extends Controller
         $this->requirePostRequest();
 
         $plugin = ReportManager::getInstance();
-        $settings = $plugin->getSettings();
+        $settings = Settings::loadFromDatabase();
         $postedSettings = Craft::$app->getRequest()->getBodyParam('settings', []);
         $section = $this->_validSettingsSection(
             Craft::$app->getRequest()->getBodyParam('section', 'general'),
@@ -129,47 +131,17 @@ class SettingsController extends Controller
         $scheduledReportsWereEnabled = $settings->enableScheduledReports;
         $exportCleanupWasEnabled = $settings->autoCleanupExports && $settings->exportRetention > 0;
 
-        // Fields that should be cast to int
-        $intFields = ['maxExportBatchSize', 'exportRetention', 'itemsPerPage'];
+        $result = SettingsPostHelper::apply(
+            model: $settings,
+            postedValues: is_array($postedSettings) ? $postedSettings : [],
+            allowedAttributes: $this->_validationAttributesForSection($section),
+            isOverridden: fn(string $attribute): bool => $settings->isOverriddenByConfig($attribute),
+        );
 
-        // Fields that should be cast to bool
-        $boolFields = ['enableScheduledReports', 'autoCleanupExports', 'csvIncludeBom'];
-
-        // Fields that should be nullable strings (empty string becomes null)
-        $nullableStringFields = ['exportVolumeUid'];
-
-        // Update settings with posted values
-        foreach ($postedSettings as $key => $value) {
-            if (property_exists($settings, $key) && !$settings->isOverriddenByConfig($key)) {
-                // Cast to appropriate type
-                if (in_array($key, $intFields, true)) {
-                    $settings->$key = (int)$value;
-                } elseif (in_array($key, $boolFields, true)) {
-                    $settings->$key = (bool)$value;
-                } elseif (in_array($key, $nullableStringFields, true)) {
-                    $settings->$key = $value !== '' && $value !== null ? $value : null;
-                } else {
-                    // Multi-state selects (e.g. "Use global default" = '') need '' → null
-                    // so nullable properties hold null, not a coerced false / 0.
-                    if ($value === '') {
-                        $type = (new \ReflectionProperty($settings, $key))->getType();
-                        if ($type instanceof \ReflectionNamedType && $type->allowsNull()) {
-                            $value = null;
-                        }
-                    }
-                    $settings->$key = $value;
-                }
-            }
-        }
-
-        $attributesToValidate = $this->_validationAttributesForSection($section);
-        $attributesToValidate = array_values(array_filter(
-            $attributesToValidate,
-            fn(string $attribute): bool => !$settings->isOverriddenByConfig($attribute),
-        ));
+        $attributesToValidate = $result->attributesToValidate;
 
         // Validate
-        if (!$settings->validate($attributesToValidate)) {
+        if ($result->hasErrors || !$settings->validate($attributesToValidate)) {
             Craft::$app->getSession()->setError(Craft::t('report-manager', 'Could not save settings.'));
 
             return $this->renderTemplate('report-manager/settings/' . $section, [

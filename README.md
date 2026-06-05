@@ -586,6 +586,12 @@ If the cleanup job is missing:
 3. Check that **Auto Cleanup Exports** is enabled.
 4. Check that `exportRetention` is greater than `0`.
 
+### Settings Save Shows a Validation Error
+
+Numeric settings such as maximum export batch size, export retention, and items per page must be whole numbers within the allowed range. If a value is invalid, Report Manager keeps you on the same settings page and shows the field error inline.
+
+When a setting is overridden in `config/report-manager.php`, the Control Panel field is skipped during save. Change the config file value instead.
+
 ### XLSX Export Issues
 
 1. Ensure PhpSpreadsheet is installed:
