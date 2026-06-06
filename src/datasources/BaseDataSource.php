@@ -237,7 +237,7 @@ abstract class BaseDataSource implements DataSourceInterface
      * Apply the report's date-range filter to a query against the given column.
      *
      * Suitable for date columns present on the element query's main table
-     * (elements.dateCreated/dateUpdated, or a submission's unqualified columns).
+     * (elements.dateCreated/dateUpdated).
      * Columns living on a sub-table (e.g. entries.postDate) must instead use the
      * element query's native date param — see EntriesDataSource.
      *

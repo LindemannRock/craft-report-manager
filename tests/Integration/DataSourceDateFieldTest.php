@@ -64,7 +64,7 @@ final class DataSourceDateFieldTest extends TestCase
         self::assertSame('dateUpdated', $resolve->invoke($source, ['dateField' => 'dateUpdated']), 'Valid choice is honoured');
     }
 
-    public function testDateColumnQualificationDiffersBySource(): void
+    public function testDateColumnQualificationUsesElementsTableForElementSources(): void
     {
         $categories = new CategoriesDataSource();
         $catColumn = new ReflectionMethod($categories, 'dateColumn');
@@ -74,7 +74,7 @@ final class DataSourceDateFieldTest extends TestCase
         $formie = new FormieDataSource();
         $formieColumn = new ReflectionMethod($formie, 'dateColumn');
         $formieColumn->setAccessible(true);
-        self::assertSame('dateCreated', $formieColumn->invoke($formie, 'dateCreated'));
+        self::assertSame('elements.dateCreated', $formieColumn->invoke($formie, 'dateCreated'));
     }
 
     public function testReportAcceptsADateFieldTheSourceSupports(): void

@@ -95,15 +95,6 @@ class FormieDataSource extends BaseDataSource
     /**
      * @inheritdoc
      */
-    protected function dateColumn(string $field): string
-    {
-        // Submission queries reference the column unqualified.
-        return $field;
-    }
-
-    /**
-     * @inheritdoc
-     */
     public static function iconUrl(): ?string
     {
         return null;
