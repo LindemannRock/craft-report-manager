@@ -1,5 +1,52 @@
 # Changelog
 
+## [5.4.0](https://github.com/LindemannRock/craft-report-manager/compare/v5.3.0...v5.4.0) (2026-06-07)
+
+
+### Added
+
+* add additional options for default date range in config ([faf3e7d](https://github.com/LindemannRock/craft-report-manager/commit/faf3e7d11c20f2f73a5865764a12a6e33f6ab292))
+* add date filtering options and info box to report edit form ([58c9674](https://github.com/LindemannRock/craft-report-manager/commit/58c96747276c37cd5866bb48e90bba524f85ef08))
+* add date filtering options for categories, entries, and form submissions ([9e66b91](https://github.com/LindemannRock/craft-report-manager/commit/9e66b9100e78f128af88cbf7b34ef01e73b8518b))
+* add dateField property and validation to report records ([6866bb0](https://github.com/LindemannRock/craft-report-manager/commit/6866bb0c8a331ac5c5bd23c162bf33b29c015f15))
+* add dateFieldUsed property to export records ([8d9f273](https://github.com/LindemannRock/craft-report-manager/commit/8d9f2730b10106fcc760964e37cebf78efe6de9b))
+* add export format and mode display to report details ([02500df](https://github.com/LindemannRock/craft-report-manager/commit/02500df94ec898f1c95a1343ea48b269898576f7))
+* add handle column to reports table with hideable option ([ecefe5b](https://github.com/LindemannRock/craft-report-manager/commit/ecefe5b42459820799aee57174707d1621b56051))
+* add handle uniqueness check for new report records ([8f958af](https://github.com/LindemannRock/craft-report-manager/commit/8f958af05fa815d771e00279d77efaf17189dc58))
+* add plugin credit component to export and edit templates ([033f201](https://github.com/LindemannRock/craft-report-manager/commit/033f201f3fc5c2d358825ccd696a393952962314))
+* add static analysis script for CI workflow ([a7123c3](https://github.com/LindemannRock/craft-report-manager/commit/a7123c355972a76401a5fa97c3dd43b977b8f529))
+* add unique handle validation for report records ([bb1eacf](https://github.com/LindemannRock/craft-report-manager/commit/bb1eacf628907beb70c6777c2aeb0f21f2b9c9ad))
+* add unique handle validation method to report records ([349ae8a](https://github.com/LindemannRock/craft-report-manager/commit/349ae8ab13aee44576576e9e55537ba520d813c5))
+* **controllers:** add date field options and default date field to reports ([0d59bfd](https://github.com/LindemannRock/craft-report-manager/commit/0d59bfd86290b95d4aeb0450c06c51d5f1384747))
+* **controllers:** add permissions for report creation and access to generated exports ([1b0a888](https://github.com/LindemannRock/craft-report-manager/commit/1b0a888628302b143866221d02e034e129a809a5))
+* **i18n:** add new translation keys for report creation and updates ([2c66263](https://github.com/LindemannRock/craft-report-manager/commit/2c662639ea5226cc6e88f8e455c4fda6aeca289e))
+* **i18n:** add new validation and date filter messages in multiple locales ([fc8dd99](https://github.com/LindemannRock/craft-report-manager/commit/fc8dd9987ba58d3275f6e1a1b59f5116b68801f8))
+* **i18n:** add unique handle validation message in multiple languages ([7d3a58d](https://github.com/LindemannRock/craft-report-manager/commit/7d3a58dc513e7a7359aa1d5f68a6fbe5f1adc5e6))
+* **i18n:** add validation message for end date requirement across translations ([1f31365](https://github.com/LindemannRock/craft-report-manager/commit/1f31365889458ae4c9d0689d399145f17880859a))
+* **i18n:** update translations for site and category terms ([03b3cff](https://github.com/LindemannRock/craft-report-manager/commit/03b3cff87d3c7f45725cb3266a32308146a09b42))
+* **jobs:** add scheduleNextExportCleanupJob for automated cleanup ([97e625f](https://github.com/LindemannRock/craft-report-manager/commit/97e625f98faf137cb3632e07549a505f7f24b31b))
+* **migrations:** add dateField and dateFieldUsed to report and export tables ([fd1e0c2](https://github.com/LindemannRock/craft-report-manager/commit/fd1e0c20e3dc3441a0f0598ad72eccf7715ff78c))
+* **queue:** add pending export cleanup job check and refactor logic ([ace1f0e](https://github.com/LindemannRock/craft-report-manager/commit/ace1f0eb87a02d32c02c7d5f0913df36f7ebbc8e))
+* **schedule:** add schedule options for report generation ([01bd189](https://github.com/LindemannRock/craft-report-manager/commit/01bd1896ade847f399db4a57c74b53347f9f6423))
+* **settings:** add attribute labels for report generation settings ([d025969](https://github.com/LindemannRock/craft-report-manager/commit/d0259697954eb5cba3bb721d45d5041de37022e4))
+* **settings:** add schedule options for report generation ([30d6ee7](https://github.com/LindemannRock/craft-report-manager/commit/30d6ee7e608d4e17b0a0d226d50866e3ca7af07f))
+* **settings:** add storage path and volume validation for exports ([6cdc42d](https://github.com/LindemannRock/craft-report-manager/commit/6cdc42d2b15e33e8e7484fee4c5be59bec6e60ee))
+* **settings:** replace settings handling with SettingsPostHelper ([ce39577](https://github.com/LindemannRock/craft-report-manager/commit/ce39577a033f74c5ffab5988b97fb64fd464b193))
+* **tests:** add date field filter tests for entries and categories ([097adde](https://github.com/LindemannRock/craft-report-manager/commit/097adde40ea5d6c9b5a5a16ea8a7f0b41f439aa1))
+* **tests:** add SchedulerPatternTest for export cleanup functionality ([3c45267](https://github.com/LindemannRock/craft-report-manager/commit/3c452676101cfd116ef6b28e09ae0b1c561b84b9))
+
+
+### Fixed
+
+* correct date formatting for created timestamps in reports ([fb26d18](https://github.com/LindemannRock/craft-report-manager/commit/fb26d187d0a2569906d1a65b0c5f3306d613c446))
+* correct permission error message for export access ([a7942d7](https://github.com/LindemannRock/craft-report-manager/commit/a7942d783a13e93a8c79d6ea402b68737f845ce1))
+* **i18n:** correct Portuguese translation for export processing message ([eb966da](https://github.com/LindemannRock/craft-report-manager/commit/eb966da6e2f797ce8fa63fc4002c125a406eb1fa))
+* **i18n:** correct Portuguese translation for report deletion confirmation ([505bbf8](https://github.com/LindemannRock/craft-report-manager/commit/505bbf8e66be975abcbf61131ec2fe466ce76f1f))
+* **i18n:** correct Portuguese translations for logs and records ([e0d4a11](https://github.com/LindemannRock/craft-report-manager/commit/e0d4a11b3462108505c225528cdfeee038f29f4d))
+* **i18n:** correct punctuation in Japanese translation strings ([c0c94e4](https://github.com/LindemannRock/craft-report-manager/commit/c0c94e44db523222622661c38bc19e7a55765c29))
+* **i18n:** correct translation keys for report timestamps ([ab47f7e](https://github.com/LindemannRock/craft-report-manager/commit/ab47f7e739e25c99780c543acb7c1d2a821b8968))
+* **i18n:** correct translations ([0b7bf93](https://github.com/LindemannRock/craft-report-manager/commit/0b7bf93350e0701d3894b032280318f489dbb130))
+
 ## [5.3.0](https://github.com/LindemannRock/craft-report-manager/compare/v5.2.1...v5.3.0) - 2026-05-22
 
 
