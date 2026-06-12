@@ -19,7 +19,7 @@ return [
     'Dashboard' => 'Oversikt',
     'Reports' => 'Rapporter',
     'Exports' => 'Eksporter',
-    'Logs' => 'Loggfiler',
+    'Logs' => 'Logger',
     'Settings' => 'Innstillinger',
 
     // Permissions
