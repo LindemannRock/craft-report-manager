@@ -1,0 +1,9 @@
+{
+    "name": "Report Manager",
+    "handle": "report-manager",
+    "description": "Report generation and analytics manager for Craft CMS with extensible data source support",
+    "version": "5.4.0",
+    "developer": "LindemannRock",
+    "developerUrl": "https://lindemannrock.com",
+    "documentationUrl": "https://github.com/LindemannRock/craft-report-manager/blob/main/README.md"
+}

@@ -1,0 +1,24 @@
+{
+    "generated": [
+        "developers/twig-globals.md",
+        "developers/shared-features.md"
+    ],
+    "manual": [
+        "get-started/requirements.md",
+        "get-started/installation.md",
+        "get-started/quickstart.md",
+        "get-started/configuration.md",
+        "developers/permissions.md",
+        "developers/events.md",
+        "developers/data-sources.md",
+        "developers/queued-export-providers.md",
+        "feature-tour/overview.md",
+        "feature-tour/reports.md",
+        "feature-tour/data-sources.md",
+        "feature-tour/exports.md",
+        "feature-tour/scheduling.md",
+        "resources/troubleshooting.md",
+        "resources/translations.md"
+    ],
+    "lastGenerated": "2026-06-13T23:51:42+03:00"
+}
