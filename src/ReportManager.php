@@ -20,6 +20,7 @@ use lindemannrock\base\helpers\ColorHelper;
 use lindemannrock\base\helpers\CpNavHelper;
 use lindemannrock\base\helpers\DateFormatHelper;
 use lindemannrock\base\helpers\PluginHelper;
+use lindemannrock\base\helpers\RecurringQueueHelper;
 use lindemannrock\base\helpers\ScheduleHelper;
 use lindemannrock\logginglibrary\LoggingLibrary;
 use lindemannrock\logginglibrary\traits\LoggingTrait;
@@ -443,11 +444,12 @@ class ReportManager extends Plugin
             return;
         }
 
-        if ($checkExisting && $this->hasPendingExportCleanupJob()) {
+        $nextRun ??= ScheduleHelper::calculateNext('daily');
+
+        if ($nextRun === null) {
             return;
         }
 
-        $nextRun ??= (clone DateFormatHelper::now())->modify('+300 seconds');
         $delay = max(0, $nextRun->getTimestamp() - DateFormatHelper::now()->getTimestamp());
 
         if ($delay <= 0) {
@@ -461,10 +463,21 @@ class ReportManager extends Plugin
             false,
         );
 
-        Craft::$app->getQueue()->delay($delay)->push(new CleanupExportsJob([
+        $jobFactory = static fn(): CleanupExportsJob => new CleanupExportsJob([
             'reschedule' => true,
             'nextRunTime' => $nextRunTime,
-        ]));
+        ]);
+
+        if ($checkExisting) {
+            RecurringQueueHelper::ensurePending(
+                pluginToken: 'reportmanager',
+                jobClass: CleanupExportsJob::class,
+                delay: $delay,
+                jobFactory: $jobFactory,
+            );
+        } else {
+            Craft::$app->getQueue()->delay($delay)->push($jobFactory());
+        }
 
         $this->logInfo('Scheduled export cleanup job', [
             'delay_seconds' => $delay,
@@ -483,30 +496,12 @@ class ReportManager extends Plugin
     }
 
     /**
-     * Check whether a generated export cleanup job is already pending.
-     */
-    private function hasPendingExportCleanupJob(): bool
-    {
-        return (new \craft\db\Query())
-            ->from('{{%queue}}')
-            ->where(['like', 'job', 'reportmanager'])
-            ->andWhere(['like', 'job', 'CleanupExportsJob'])
-            ->andWhere(['fail' => false])
-            ->andWhere(['timeUpdated' => null])
-            ->exists();
-    }
-
-    /**
      * Delete queued generated export cleanup jobs.
      *
      * @return int Number of deleted queue rows
      */
     public function deleteExportCleanupJobs(): int
     {
-        return (int) Craft::$app->getDb()->createCommand()->delete('{{%queue}}', [
-            'and',
-            ['like', 'job', 'reportmanager'],
-            ['like', 'job', 'CleanupExportsJob'],
-        ])->execute();
+        return RecurringQueueHelper::deletePending('reportmanager', CleanupExportsJob::class);
     }
 }

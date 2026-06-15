@@ -14,6 +14,7 @@ use craft\helpers\Db;
 use DateTime;
 use DateTimeZone;
 use lindemannrock\base\helpers\DateFormatHelper;
+use lindemannrock\base\helpers\RecurringQueueHelper;
 use lindemannrock\base\helpers\ScheduleHelper;
 use lindemannrock\base\helpers\SlugHandleHelper;
 use lindemannrock\logginglibrary\traits\LoggingTrait;
@@ -319,7 +320,7 @@ class ReportsService extends Component
         $queued = 0;
 
         foreach ($reports as $report) {
-            if ($this->queueScheduledReportJob($report)) {
+            if ($this->queueScheduledReportJob($report, false)) {
                 $queued++;
             }
         }
@@ -348,8 +349,6 @@ class ReportsService extends Component
 
         if ($replaceExisting) {
             $this->deleteScheduledReportJobs((int) $report->id);
-        } elseif ($this->hasScheduledReportJob((int) $report->id)) {
-            return false;
         }
 
         $delay = max(0, $nextScheduledAt->getTimestamp() - DateFormatHelper::now()->getTimestamp());
@@ -362,14 +361,22 @@ class ReportsService extends Component
             $includeYear,
         );
 
-        Craft::$app->getQueue()->delay($delay)->push(new ProcessScheduledReportJob([
-            'reportId' => (int) $report->id,
-            'runAtTime' => $runAtTime,
-        ]));
+        $queueDelay = max(1, $delay);
+
+        RecurringQueueHelper::ensurePending(
+            pluginToken: 'reportmanager',
+            jobClass: ProcessScheduledReportJob::class,
+            delay: $queueDelay,
+            jobFactory: static fn(): ProcessScheduledReportJob => new ProcessScheduledReportJob([
+                'reportId' => (int) $report->id,
+                'runAtTime' => $runAtTime,
+            ]),
+            extraLikeTokens: [$this->scheduledReportQueueToken((int) $report->id)],
+        );
 
         $this->logInfo('Queued scheduled report job', [
             'reportId' => $report->id,
-            'delay_seconds' => $delay,
+            'delay_seconds' => $queueDelay,
             'run_at' => $runAtTime,
         ]);
 
@@ -395,7 +402,7 @@ class ReportsService extends Component
         ];
 
         if ($reportId !== null) {
-            $condition[] = ['like', 'job', 'reportId";i:' . $reportId . ';'];
+            $condition[] = ['like', 'job', $this->scheduledReportQueueToken($reportId)];
         }
 
         return (int) Craft::$app->getDb()->createCommand()->delete('{{%queue}}', $condition)->execute();
@@ -503,21 +510,11 @@ class ReportsService extends Component
     }
 
     /**
-     * Check whether a scheduled report job is already queued for a report.
-     *
-     * @param int $reportId
-     * @return bool
+     * Get the serialized queue token for a scheduled report ID.
      */
-    private function hasScheduledReportJob(int $reportId): bool
+    private function scheduledReportQueueToken(int $reportId): string
     {
-        return (new \craft\db\Query())
-            ->from('{{%queue}}')
-            ->where(['like', 'job', 'reportmanager'])
-            ->andWhere(['like', 'job', 'ProcessScheduledReportJob'])
-            ->andWhere(['like', 'job', 'reportId";i:' . $reportId . ';'])
-            ->andWhere(['fail' => false])
-            ->andWhere(['timeUpdated' => null])
-            ->exists();
+        return 's:8:"reportId";i:' . $reportId . ';';
     }
 
     /**
