@@ -459,8 +459,9 @@ class ReportManager extends Plugin
         $nextRunTime = DateFormatHelper::formatCompactDatetimeFromSettings(
             $nextRun,
             $settings,
+            null,
             false,
-            false,
+            pluginHandle: 'report-manager',
         );
 
         $jobFactory = static fn(): CleanupExportsJob => new CleanupExportsJob([

@@ -356,9 +356,10 @@ class ReportsService extends Component
         $runAtTime = DateFormatHelper::formatCompactDatetimeFromSettings(
             $nextScheduledAt,
             ReportManager::getInstance()->getSettings(),
-            false,
+            null,
             false,
             $includeYear,
+            pluginHandle: 'report-manager',
         );
 
         $queueDelay = max(1, $delay);
