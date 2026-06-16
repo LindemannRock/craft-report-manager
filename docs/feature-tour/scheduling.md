@@ -36,4 +36,6 @@ Report Manager queues one job per enabled, scheduled report. When a report's job
 > [!TIP]
 > Scheduled jobs run on Craft's queue. A queue worker must be running for scheduled reports to fire on time. The exports they produce follow the same queue, status, and retention flow as manual exports — see [Exports](exports.md).
 
+Craft stores queue job descriptions when rows are queued, so date/time format changes apply to newly queued rows. Existing delayed rows keep their old label until they run or are requeued. Queue labels stay compact: numeric months render numerically, while short and long month settings both render as short month names.
+
 Turning the global switch off removes the queued scheduled-report jobs; turning it back on re-queues them.

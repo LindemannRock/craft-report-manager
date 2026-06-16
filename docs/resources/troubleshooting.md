@@ -23,6 +23,10 @@ Common issues and how to resolve them. If something isn't covered here, check th
 
 **Why it happens:** A report only runs automatically when the global switch *and* the report's own switch are both on, the report is enabled, and the queue is processing. Check the report's **Next Run** time in the Reports list.
 
+Report Manager owns one pending queue row per scheduled report. If a deployment or queue restore leaves duplicate pending rows for the same report, the scheduler collapses them automatically the next time it reconciles scheduled reports. Export cleanup uses a separate daily maintenance row and is also de-duplicated automatically.
+
+Craft stores queue job descriptions when rows are queued, so date/time format changes apply to newly queued rows. Existing delayed rows keep their old label until they run or are requeued. Queue labels stay compact: numeric months render numerically, while short and long month settings both render as short month names.
+
 ## The Formie data source doesn't appear
 
 **Quick checks:**
