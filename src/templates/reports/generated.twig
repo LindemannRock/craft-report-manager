@@ -169,9 +169,13 @@
 
 {% block bulkActions %}
     {% if canDelete %}
-        <button type="button" class="btn secondary" id="lr-bulk-delete-btn">
-            {{ 'Delete'|t('report-manager') }} (<span class="lr-bulk-count">0</span>)
-        </button>
+        {% include 'lindemannrock-base/_components/bulk-actions-menu' with {
+            label: 'Actions'|t('report-manager'),
+            countId: 'lr-bulk-actions-count',
+            items: [
+                {id: 'lr-bulk-delete-btn', label: 'Delete'|t('report-manager'), class: 'error'},
+            ],
+        } only %}
     {% endif %}
 {% endblock %}
 
@@ -249,15 +253,6 @@
             bulkDeleteFailed: {{ 'Could not delete files.'|t('report-manager')|json_encode|raw }},
             bulkDeleteConfirmTemplate: {{ 'Delete {count} file(s)? This cannot be undone.'|t('report-manager')|json_encode|raw }},
         };
-
-        document.addEventListener('lr:selectionChanged', function(e) {
-            const ids = (e.detail && Array.isArray(e.detail.selectedIds))
-                ? e.detail.selectedIds
-                : [];
-            document.querySelectorAll('.lr-bulk-count').forEach(function(el) {
-                el.textContent = ids.length;
-            });
-        });
 
         function selectedIds() {
             return window.lrTableSelection ? window.lrTableSelection.getSelectedIds() : [];
