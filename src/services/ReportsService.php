@@ -15,6 +15,7 @@ use DateTime;
 use DateTimeZone;
 use lindemannrock\base\helpers\DateFormatHelper;
 use lindemannrock\base\helpers\RecurringQueueHelper;
+use lindemannrock\base\helpers\RecurringQueueResult;
 use lindemannrock\base\helpers\ScheduleHelper;
 use lindemannrock\base\helpers\SlugHandleHelper;
 use lindemannrock\logginglibrary\traits\LoggingTrait;
@@ -302,7 +303,7 @@ class ReportsService extends Component
     /**
      * Queue scheduled report jobs for all active scheduled reports.
      *
-     * @return int Number of queued reports
+     * @return int Number of newly queued reports
      */
     public function queueAllScheduledReportJobs(): int
     {
@@ -320,7 +321,8 @@ class ReportsService extends Component
         $queued = 0;
 
         foreach ($reports as $report) {
-            if ($this->queueScheduledReportJob($report, false)) {
+            $result = $this->ensureScheduledReportJob($report, false);
+            if ($result?->wasCreated()) {
                 $queued++;
             }
         }
@@ -337,14 +339,21 @@ class ReportsService extends Component
      */
     public function queueScheduledReportJob(ReportRecord $report, bool $replaceExisting = true): bool
     {
+        $result = $this->ensureScheduledReportJob($report, $replaceExisting);
+
+        return $result?->hasPending() ?? false;
+    }
+
+    private function ensureScheduledReportJob(ReportRecord $report, bool $replaceExisting = true): ?RecurringQueueResult
+    {
         if (!ReportManager::getInstance()->getSettings()->enableScheduledReports) {
-            return false;
+            return null;
         }
 
         $nextScheduledAt = $this->normalizeDateTime($report->nextScheduledAt);
 
         if (!$report->id || !$report->enabled || !$report->enableSchedule || !$nextScheduledAt) {
-            return false;
+            return null;
         }
 
         if ($replaceExisting) {
@@ -364,7 +373,7 @@ class ReportsService extends Component
 
         $queueDelay = max(1, $delay);
 
-        RecurringQueueHelper::ensurePending(
+        $result = RecurringQueueHelper::ensurePending(
             pluginToken: 'reportmanager',
             jobClass: ProcessScheduledReportJob::class,
             delay: $queueDelay,
@@ -375,13 +384,22 @@ class ReportsService extends Component
             extraLikeTokens: [$this->scheduledReportQueueToken((int) $report->id)],
         );
 
-        $this->logInfo('Queued scheduled report job', [
-            'reportId' => $report->id,
-            'delay_seconds' => $queueDelay,
-            'run_at' => $runAtTime,
-        ]);
+        if ($result->wasCreated()) {
+            $this->logInfo('Queued scheduled report job', [
+                'reportId' => $report->id,
+                'delay_seconds' => $queueDelay,
+                'run_at' => $runAtTime,
+            ]);
+        }
 
-        return true;
+        if ($result->duplicatesDeleted > 0) {
+            $this->logInfo('Collapsed duplicate scheduled report jobs', [
+                'reportId' => $report->id,
+                'duplicates_deleted' => $result->duplicatesDeleted,
+            ]);
+        }
+
+        return $result;
     }
 
     /**

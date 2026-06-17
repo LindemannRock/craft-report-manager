@@ -470,20 +470,33 @@ class ReportManager extends Plugin
         ]);
 
         if ($checkExisting) {
-            RecurringQueueHelper::ensurePending(
+            $result = RecurringQueueHelper::ensurePending(
                 pluginToken: 'reportmanager',
                 jobClass: CleanupExportsJob::class,
                 delay: $delay,
                 jobFactory: $jobFactory,
             );
+
+            if ($result->wasCreated()) {
+                $this->logInfo('Scheduled export cleanup job', [
+                    'delay_seconds' => $delay,
+                    'next_run' => $nextRunTime,
+                ]);
+            }
+
+            if ($result->duplicatesDeleted > 0) {
+                $this->logInfo('Collapsed duplicate export cleanup jobs', [
+                    'duplicates_deleted' => $result->duplicatesDeleted,
+                ]);
+            }
         } else {
             Craft::$app->getQueue()->delay($delay)->push($jobFactory());
-        }
 
-        $this->logInfo('Scheduled export cleanup job', [
-            'delay_seconds' => $delay,
-            'next_run' => $nextRunTime,
-        ]);
+            $this->logInfo('Scheduled export cleanup job', [
+                'delay_seconds' => $delay,
+                'next_run' => $nextRunTime,
+            ]);
+        }
     }
 
     /**
