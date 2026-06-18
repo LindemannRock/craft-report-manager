@@ -1,5 +1,21 @@
 # Changelog
 
+## [5.5.0](https://github.com/LindemannRock/craft-report-manager/compare/v5.4.0...v5.5.0) - 2026-06-18
+
+
+### Added
+
+* **queue:** enhance job scheduling with duplicate handling and logging ([25213be](https://github.com/LindemannRock/craft-report-manager/commit/25213be1d289fdaf631a16b49764c88d566bf9f4))
+* **queue:** implement recurring job management for exports and reports ([886aeaf](https://github.com/LindemannRock/craft-report-manager/commit/886aeaf15daae0944dbef4e9523ed72dc5d9ebc5))
+* replace bulk action buttons with menu components for exports and reports ([21f223c](https://github.com/LindemannRock/craft-report-manager/commit/21f223c2a233eef06d3e4f442913b69cb7c59700))
+
+
+### Fixed
+
+* correct pluginHandle parameter in date formatting calls ([666aadd](https://github.com/LindemannRock/craft-report-manager/commit/666aadd21c5238ccc14ebd86ae9cccb99417f954))
+* **i18n:** correct Norwegian and Portuguese translations for logs and sections ([7a16039](https://github.com/LindemannRock/craft-report-manager/commit/7a16039f911f4f6dc44ebfc55f88c0904f62e684))
+* **i18n:** correct Portuguese and Swedish translations for default schedule and export defaults ([6bdb7e0](https://github.com/LindemannRock/craft-report-manager/commit/6bdb7e094a1aad4a4425afaa2be32d3ce232c18d))
+
 ## [5.4.0](https://github.com/LindemannRock/craft-report-manager/compare/v5.3.0...v5.4.0) - 2026-06-07
 
 
