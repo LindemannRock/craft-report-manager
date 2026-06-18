@@ -30,11 +30,11 @@ return [
     'Delete Reports' => 'Ta bort rapporter',
     'Manage Exports' => 'Hantera exporter',
     'Create Exports' => 'Skapa exporter',
-    'Download Exports' => 'Ladda ned exporter',
+    'Download Exports' => 'Ladda ner exporter',
     'Delete Exports' => 'Ta bort exporter',
     'View Logs' => 'Visa loggar',
     'View System Logs' => 'Visa systemloggar',
-    'Download System Logs' => 'Ladda ned systemloggar',
+    'Download System Logs' => 'Ladda ner systemloggar',
     'Manage Settings' => 'Hantera inställningar',
 
     // Common
@@ -51,7 +51,7 @@ return [
     'Details' => 'Detaljer',
     'Disable' => 'Inaktivera',
     'Disabled' => 'Inaktiverad',
-    'Download' => 'Ladda ned',
+    'Download' => 'Ladda ner',
     'Edit' => 'Redigera',
     'Enable' => 'Aktivera',
     'Enabled' => 'Aktiverad',
