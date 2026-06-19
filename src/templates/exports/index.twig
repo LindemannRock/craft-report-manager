@@ -222,7 +222,8 @@
             deleteConfirmTemplate: {{ 'Delete export "{name}"? This cannot be undone.'|t('report-manager')|json_encode|raw }},
             bulkDeletedTemplate: {{ 'Deleted {count} export(s).'|t('report-manager')|json_encode|raw }},
             bulkDeleteFailed: {{ 'Could not delete exports.'|t('report-manager')|json_encode|raw }},
-            bulkDeleteConfirmTemplate: {{ 'Delete {count} export(s)? This cannot be undone.'|t('report-manager')|json_encode|raw }},
+            bulkDeleteConfirmSingular: {{ 'Delete {count} export? This cannot be undone.'|t('report-manager')|json_encode|raw }},
+            bulkDeleteConfirmPlural: {{ 'Delete {count} exports? This cannot be undone.'|t('report-manager')|json_encode|raw }},
         };
 
         function selectedIds() {
@@ -262,7 +263,8 @@
         document.getElementById('lr-bulk-delete-btn')?.addEventListener('click', function() {
             const ids = selectedIds();
             if (!ids.length) return;
-            if (!confirm(T.bulkDeleteConfirmTemplate.replace('{count}', ids.length))) return;
+            const confirmTemplate = ids.length === 1 ? T.bulkDeleteConfirmSingular : T.bulkDeleteConfirmPlural;
+            if (!confirm(confirmTemplate.replace('{count}', ids.length))) return;
 
             Craft.sendActionRequest('POST', 'report-manager/exports/bulk-delete', {
                 data: {exportIds: ids},

@@ -243,7 +243,8 @@ return [
     'Next Run' => 'Volgende uitvoering',
     'Are you sure you want to delete this report?' => 'Weet u zeker dat u dit rapport wilt verwijderen?',
     'Delete report "{name}"? This cannot be undone.' => 'Rapport „{name}" verwijderen? Dit kan niet ongedaan worden gemaakt.',
-    'Delete {count} report(s)? This cannot be undone.' => '{count} rapporten verwijderen? Dit kan niet ongedaan worden gemaakt.',
+    'Delete {count} report? This cannot be undone.' => '{count} rapport verwijderen? Dit kan niet ongedaan worden gemaakt.',
+    'Delete {count} reports? This cannot be undone.' => '{count} rapporten verwijderen? Dit kan niet ongedaan worden gemaakt.',
     'Could not queue export.' => 'Export kon niet in de wachtrij worden geplaatst.',
     'Could not enable reports.' => 'Rapporten konden niet worden ingeschakeld.',
     'Could not disable reports.' => 'Rapporten konden niet worden uitgeschakeld.',
@@ -301,7 +302,8 @@ return [
     'Could not delete file.' => 'Bestand kon niet worden verwijderd.',
     'Could not delete files.' => 'Bestanden konden niet worden verwijderd.',
     'Delete "{name}"? This cannot be undone.' => '„{name}" verwijderen? Dit kan niet ongedaan worden gemaakt.',
-    'Delete {count} file(s)? This cannot be undone.' => '{count} bestanden verwijderen? Dit kan niet ongedaan worden gemaakt.',
+    'Delete {count} file? This cannot be undone.' => '{count} bestand verwijderen? Dit kan niet ongedaan worden gemaakt.',
+    'Delete {count} files? This cannot be undone.' => '{count} bestanden verwijderen? Dit kan niet ongedaan worden gemaakt.',
     'Deleted {count} file(s).' => '{count} bestanden verwijderd.',
 
     // Exports: Index
@@ -316,7 +318,8 @@ return [
     'Scheduled' => 'Gepland',
     'Export deleted.' => 'Export verwijderd.',
     'Delete export "{name}"? This cannot be undone.' => 'Export „{name}" verwijderen? Dit kan niet ongedaan worden gemaakt.',
-    'Delete {count} export(s)? This cannot be undone.' => '{count} exports verwijderen? Dit kan niet ongedaan worden gemaakt.',
+    'Delete {count} export? This cannot be undone.' => '{count} export verwijderen? Dit kan niet ongedaan worden gemaakt.',
+    'Delete {count} exports? This cannot be undone.' => '{count} exports verwijderen? Dit kan niet ongedaan worden gemaakt.',
     'Could not delete exports.' => 'Exports konden niet worden verwijderd.',
     'Deleted {count} export(s).' => '{count} exports verwijderd.',
 

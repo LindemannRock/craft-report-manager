@@ -243,7 +243,8 @@ return [
     'Next Run' => '次回の実行',
     'Are you sure you want to delete this report?' => 'このレポートを削除してもよろしいですか？',
     'Delete report "{name}"? This cannot be undone.' => 'レポート「 {name} 」を削除しますか？この操作は取り消せません。',
-    'Delete {count} report(s)? This cannot be undone.' => '{count} 件のレポートを削除しますか？この操作は取り消せません。',
+    'Delete {count} report? This cannot be undone.' => '{count} 件のレポートを削除しますか？この操作は取り消せません。',
+    'Delete {count} reports? This cannot be undone.' => '{count} 件のレポートを削除しますか？この操作は取り消せません。',
     'Could not queue export.' => 'エクスポートをキューに追加できませんでした。',
     'Could not enable reports.' => 'レポートを有効にできませんでした。',
     'Could not disable reports.' => 'レポートを無効にできませんでした。',
@@ -301,7 +302,8 @@ return [
     'Could not delete file.' => 'ファイルを削除できませんでした。',
     'Could not delete files.' => 'ファイルを削除できませんでした。',
     'Delete "{name}"? This cannot be undone.' => '「 {name} 」を削除しますか？この操作は取り消せません。',
-    'Delete {count} file(s)? This cannot be undone.' => '{count} 件のファイルを削除しますか？この操作は取り消せません。',
+    'Delete {count} file? This cannot be undone.' => '{count} 件のファイルを削除しますか？この操作は取り消せません。',
+    'Delete {count} files? This cannot be undone.' => '{count} 件のファイルを削除しますか？この操作は取り消せません。',
     'Deleted {count} file(s).' => '{count} 件のファイルを削除しました。',
 
     // Exports: Index
@@ -316,7 +318,8 @@ return [
     'Scheduled' => 'スケジュール済み',
     'Export deleted.' => 'エクスポートを削除しました。',
     'Delete export "{name}"? This cannot be undone.' => 'エクスポート「 {name} 」を削除しますか？この操作は取り消せません。',
-    'Delete {count} export(s)? This cannot be undone.' => '{count} 件のエクスポートを削除しますか？この操作は取り消せません。',
+    'Delete {count} export? This cannot be undone.' => '{count} 件のエクスポートを削除しますか？この操作は取り消せません。',
+    'Delete {count} exports? This cannot be undone.' => '{count} 件のエクスポートを削除しますか？この操作は取り消せません。',
     'Could not delete exports.' => 'エクスポートを削除できませんでした。',
     'Deleted {count} export(s).' => '{count} 件のエクスポートを削除しました。',
 

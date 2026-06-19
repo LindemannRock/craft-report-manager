@@ -243,7 +243,8 @@ return [
     'Next Run' => 'Nächste Ausführung',
     'Are you sure you want to delete this report?' => 'Sind Sie sicher, dass Sie diesen Bericht löschen möchten?',
     'Delete report "{name}"? This cannot be undone.' => 'Bericht „{name}" löschen? Diese Aktion kann nicht rückgängig gemacht werden.',
-    'Delete {count} report(s)? This cannot be undone.' => '{count} Berichte löschen? Diese Aktion kann nicht rückgängig gemacht werden.',
+    'Delete {count} report? This cannot be undone.' => '{count} Bericht löschen? Dies kann nicht rückgängig gemacht werden.',
+    'Delete {count} reports? This cannot be undone.' => '{count} Berichte löschen? Dies kann nicht rückgängig gemacht werden.',
     'Could not queue export.' => 'Export konnte nicht in die Warteschlange gestellt werden.',
     'Could not enable reports.' => 'Berichte konnten nicht aktiviert werden.',
     'Could not disable reports.' => 'Berichte konnten nicht deaktiviert werden.',
@@ -301,7 +302,8 @@ return [
     'Could not delete file.' => 'Datei konnte nicht gelöscht werden.',
     'Could not delete files.' => 'Dateien konnten nicht gelöscht werden.',
     'Delete "{name}"? This cannot be undone.' => '„{name}" löschen? Diese Aktion kann nicht rückgängig gemacht werden.',
-    'Delete {count} file(s)? This cannot be undone.' => '{count} Dateien löschen? Diese Aktion kann nicht rückgängig gemacht werden.',
+    'Delete {count} file? This cannot be undone.' => '{count} Datei löschen? Dies kann nicht rückgängig gemacht werden.',
+    'Delete {count} files? This cannot be undone.' => '{count} Dateien löschen? Dies kann nicht rückgängig gemacht werden.',
     'Deleted {count} file(s).' => '{count} Dateien gelöscht.',
 
     // Exports: Index
@@ -316,7 +318,8 @@ return [
     'Scheduled' => 'Geplant',
     'Export deleted.' => 'Export gelöscht.',
     'Delete export "{name}"? This cannot be undone.' => 'Export „{name}" löschen? Diese Aktion kann nicht rückgängig gemacht werden.',
-    'Delete {count} export(s)? This cannot be undone.' => '{count} Exporte löschen? Diese Aktion kann nicht rückgängig gemacht werden.',
+    'Delete {count} export? This cannot be undone.' => '{count} Export löschen? Dies kann nicht rückgängig gemacht werden.',
+    'Delete {count} exports? This cannot be undone.' => '{count} Exporte löschen? Dies kann nicht rückgängig gemacht werden.',
     'Could not delete exports.' => 'Exporte konnten nicht gelöscht werden.',
     'Deleted {count} export(s).' => '{count} Exporte gelöscht.',
 

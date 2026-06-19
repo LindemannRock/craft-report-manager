@@ -243,7 +243,8 @@ return [
     'Next Run' => 'Prochaine exécution',
     'Are you sure you want to delete this report?' => 'Voulez-vous vraiment supprimer ce rapport ?',
     'Delete report "{name}"? This cannot be undone.' => 'Supprimer le rapport « {name} » ? Cette action est irréversible.',
-    'Delete {count} report(s)? This cannot be undone.' => 'Supprimer {count} rapports ? Cette action est irréversible.',
+    'Delete {count} report? This cannot be undone.' => 'Supprimer {count} rapport ? Cette action est irréversible.',
+    'Delete {count} reports? This cannot be undone.' => 'Supprimer {count} rapports ? Cette action est irréversible.',
     'Could not queue export.' => 'Impossible de mettre l\'export en file d\'attente.',
     'Could not enable reports.' => 'Impossible d\'activer les rapports.',
     'Could not disable reports.' => 'Impossible de désactiver les rapports.',
@@ -301,7 +302,8 @@ return [
     'Could not delete file.' => 'Impossible de supprimer le fichier.',
     'Could not delete files.' => 'Impossible de supprimer les fichiers.',
     'Delete "{name}"? This cannot be undone.' => 'Supprimer « {name} » ? Cette action est irréversible.',
-    'Delete {count} file(s)? This cannot be undone.' => 'Supprimer {count} fichiers ? Cette action est irréversible.',
+    'Delete {count} file? This cannot be undone.' => 'Supprimer {count} fichier ? Cette action est irréversible.',
+    'Delete {count} files? This cannot be undone.' => 'Supprimer {count} fichiers ? Cette action est irréversible.',
     'Deleted {count} file(s).' => '{count} fichiers supprimés.',
 
     // Exports: Index
@@ -316,7 +318,8 @@ return [
     'Scheduled' => 'Planifié',
     'Export deleted.' => 'Export supprimé.',
     'Delete export "{name}"? This cannot be undone.' => 'Supprimer l\'export « {name} » ? Cette action est irréversible.',
-    'Delete {count} export(s)? This cannot be undone.' => 'Supprimer {count} exports ? Cette action est irréversible.',
+    'Delete {count} export? This cannot be undone.' => 'Supprimer {count} export ? Cette action est irréversible.',
+    'Delete {count} exports? This cannot be undone.' => 'Supprimer {count} exports ? Cette action est irréversible.',
     'Could not delete exports.' => 'Impossible de supprimer les exports.',
     'Deleted {count} export(s).' => '{count} exports supprimés.',
 

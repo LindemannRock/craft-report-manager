@@ -243,7 +243,8 @@ return [
     'Next Run' => 'Próxima execução',
     'Are you sure you want to delete this report?' => 'Eliminar este relatório?',
     'Delete report "{name}"? This cannot be undone.' => 'Eliminar o relatório «{name}»? Esta ação não pode ser anulada.',
-    'Delete {count} report(s)? This cannot be undone.' => 'Eliminar {count} relatórios? Esta ação não pode ser anulada.',
+    'Delete {count} report? This cannot be undone.' => 'Eliminar {count} relatório? Esta ação não pode ser anulada.',
+    'Delete {count} reports? This cannot be undone.' => 'Eliminar {count} relatórios? Esta ação não pode ser anulada.',
     'Could not queue export.' => 'Não foi possível colocar a exportação em fila.',
     'Could not enable reports.' => 'Não foi possível ativar os relatórios.',
     'Could not disable reports.' => 'Não foi possível desativar os relatórios.',
@@ -301,7 +302,8 @@ return [
     'Could not delete file.' => 'Não foi possível eliminar o ficheiro.',
     'Could not delete files.' => 'Não foi possível eliminar os ficheiros.',
     'Delete "{name}"? This cannot be undone.' => 'Eliminar «{name}»? Esta ação não pode ser anulada.',
-    'Delete {count} file(s)? This cannot be undone.' => 'Eliminar {count} ficheiros? Esta ação não pode ser anulada.',
+    'Delete {count} file? This cannot be undone.' => 'Eliminar {count} ficheiro? Esta ação não pode ser anulada.',
+    'Delete {count} files? This cannot be undone.' => 'Eliminar {count} ficheiros? Esta ação não pode ser anulada.',
     'Deleted {count} file(s).' => '{count} ficheiros eliminados.',
 
     // Exports: Index
@@ -316,7 +318,8 @@ return [
     'Scheduled' => 'Agendado',
     'Export deleted.' => 'Exportação excluída.',
     'Delete export "{name}"? This cannot be undone.' => 'Eliminar a exportação «{name}»? Esta ação não pode ser anulada.',
-    'Delete {count} export(s)? This cannot be undone.' => 'Eliminar {count} exportações? Esta ação não pode ser anulada.',
+    'Delete {count} export? This cannot be undone.' => 'Eliminar {count} exportação? Esta ação não pode ser anulada.',
+    'Delete {count} exports? This cannot be undone.' => 'Eliminar {count} exportações? Esta ação não pode ser anulada.',
     'Could not delete exports.' => 'Não foi possível eliminar as exportações.',
     'Deleted {count} export(s).' => '{count} exportações eliminadas.',
 
