@@ -1,5 +1,12 @@
 # Changelog
 
+## [5.5.1](https://github.com/LindemannRock/craft-report-manager/compare/v5.5.0...v5.5.1) - 2026-06-20
+
+
+### Fixed
+
+* **i18n:** correct translations across multiple locales ([f6778f0](https://github.com/LindemannRock/craft-report-manager/commit/f6778f0c15ffbb9b124fdf584a37a837ceb28f1a))
+
 ## [5.5.0](https://github.com/LindemannRock/craft-report-manager/compare/v5.4.0...v5.5.0) - 2026-06-18
 
 
