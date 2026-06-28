@@ -19,6 +19,12 @@
     {value: 'failed', label: 'Failed'|t('report-manager'), colorKey: 'failed'},
 ] %}
 
+{# Value => translated label lookup for the collapsed status-filter button. #}
+{% set statusLabels = {} %}
+{% for opt in statusOptions %}
+    {% set statusLabels = statusLabels|merge({(opt.value): opt.label}) %}
+{% endfor %}
+
 {# Build format options from enabled exports config. #}
 {% set formatOptions = [{value: 'all', label: 'All Formats'|t('report-manager')}] %}
 {% for format in lrExportFormatOptions() %}
@@ -49,7 +55,7 @@
             type: 'status',
             param: 'status',
             current: statusFilter,
-            label: statusFilter == 'all' ? 'All'|t('report-manager') : statusFilter|capitalize,
+            label: statusLabels[statusFilter] ?? statusFilter|capitalize,
             colorSet: 'exportStatus',
             options: statusOptions,
         },
