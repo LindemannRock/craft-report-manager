@@ -100,8 +100,9 @@
         </div>
 
         {% if not settings.getErrors('exportPath') %}
+            {% set exportPath = settings.getExportPath() %}
             {% include 'lindemannrock-base/_components/info-box' with {
-                message: '<strong>' ~ 'Export Location:'|t('report-manager') ~ '</strong> <code>' ~ settings.getExportPath() ~ '</code>'
+                message: '<strong>' ~ 'Export Location:'|t('report-manager') ~ '</strong> <code>' ~ exportPath|e ~ '</code>'
             } %}
         {% endif %}
 
