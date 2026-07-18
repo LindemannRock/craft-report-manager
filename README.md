@@ -6,7 +6,7 @@
 [![Craft CMS](https://img.shields.io/badge/Craft%20CMS-5.0+-orange.svg)](https://craftcms.com/)
 [![PHP](https://img.shields.io/badge/PHP-8.2+-blue.svg)](https://php.net/)
 [![Logging Library](https://img.shields.io/badge/Logging%20Library-5.0+-green.svg)](https://github.com/LindemannRock/craft-logging-library)
-[![License](https://img.shields.io/packagist/l/lindemannrock/craft-report-manager.svg)](LICENSE)
+[![License](https://img.shields.io/packagist/l/lindemannrock/craft-report-manager.svg)](LICENSE.md)
 
 Saved reporting, content inventory, and export management for Craft CMS with extensible data source support.
 
