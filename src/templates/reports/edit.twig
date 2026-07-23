@@ -69,7 +69,6 @@
     {% set errorSummary %}
         {% include 'lindemannrock-base/_partials/error-summary' with {
             errors: report.getErrors(),
-            linkMode: 'field-id',
         } %}
     {% endset %}
 {% endif %}
