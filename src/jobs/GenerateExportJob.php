@@ -66,16 +66,20 @@ class GenerateExportJob extends BaseJob implements RetryableJobInterface
 
         // Generate the export
         $this->setProgress($queue, 0.1, Craft::t('report-manager', 'Starting export generation...'));
+        $progressCallback = function(int $progress) use ($queue, $export): void {
+            $queueProgress = 0.1 + (max(1, min(99, $progress)) / 100 * 0.89);
+            $this->setProgress($queue, min(0.99, $queueProgress), $export->getStatusLabel());
+        };
 
         $exportService = ReportManager::getInstance()->exports;
 
         // Use provider, combined, or standard generation based on export type
         if ($export->isProviderExport()) {
-            $success = $exportService->generateQueuedExport($export);
+            $success = $exportService->generateQueuedExport($export, $progressCallback);
         } elseif ($this->combined || $export->isCombinedExport()) {
-            $success = $exportService->generateCombinedExport($export);
+            $success = $exportService->generateCombinedExport($export, $progressCallback);
         } else {
-            $success = $exportService->generateExport($export);
+            $success = $exportService->generateExport($export, $progressCallback);
         }
 
         if ($success) {

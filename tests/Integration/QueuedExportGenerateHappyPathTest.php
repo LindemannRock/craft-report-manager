@@ -44,6 +44,7 @@ final class QueuedExportGenerateHappyPathTest extends TestCase
             ],
             warnings: ['__rm_test_warning'],
         );
+        StubQueuedExportProvider::$progressUpdates = [25, 75];
 
         $export = $this->exports->createQueuedExport(
             providerHandle: StubQueuedExportProvider::handle(),
@@ -51,10 +52,17 @@ final class QueuedExportGenerateHappyPathTest extends TestCase
             payload: ['caller' => '__rm_test_caller'],
         );
 
-        $ok = $this->exports->generateQueuedExport($export);
+        $progressUpdates = [];
+        $ok = $this->exports->generateQueuedExport(
+            $export,
+            static function(int $progress) use (&$progressUpdates): void {
+                $progressUpdates[] = $progress;
+            },
+        );
 
         self::assertTrue($ok, 'generateQueuedExport() should return true on the happy path');
         self::assertCount(1, StubQueuedExportProvider::$generateCalls, 'Provider::generate() should run exactly once');
+        self::assertSame([25, 75], $progressUpdates);
 
         $fresh = ExportRecord::findOne($export->id);
         self::assertNotNull($fresh);

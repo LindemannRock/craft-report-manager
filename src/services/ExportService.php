@@ -516,13 +516,16 @@ class ExportService extends Component
      * Generate an export
      *
      * @param ExportRecord $export Export record
+     * @param callable(int): void|null $progressCallback Progress callback receiving an integer percentage
      * @return bool
+     * @since 5.6.0 Added the optional progress callback.
      */
-    public function generateExport(ExportRecord $export): bool
+    public function generateExport(ExportRecord $export, ?callable $progressCallback = null): bool
     {
         // Update status to processing
         $export->status = ExportRecord::STATUS_PROCESSING;
         $export->startedAt = new DateTime();
+        $export->progress = max(1, (int)$export->progress);
         $export->save();
 
         try {
@@ -566,6 +569,7 @@ class ExportService extends Component
                 $export->entityId,
                 $fieldHandles,
                 $options,
+                $progressCallback,
             );
 
             // Update export record
@@ -604,9 +608,11 @@ class ExportService extends Component
      * Generate a queued provider export.
      *
      * @param ExportRecord $export Export record
+     * @param callable(int): void|null $progressCallback Progress callback receiving an integer percentage
      * @return bool
+     * @since 5.6.0 Added the optional progress callback.
      */
-    public function generateQueuedExport(ExportRecord $export): bool
+    public function generateQueuedExport(ExportRecord $export, ?callable $progressCallback = null): bool
     {
         $export->status = ExportRecord::STATUS_PROCESSING;
         $export->startedAt = new DateTime();
@@ -641,7 +647,12 @@ class ExportService extends Component
 
             $context = new QueuedExportContext(
                 $export,
-                fn(int $progress, ?string $message = null) => $this->updateQueuedExportProgress($export, $progress, $message)
+                fn(int $progress, ?string $message = null) => $this->updateQueuedExportProgress(
+                    $export,
+                    $progress,
+                    $message,
+                    $progressCallback,
+                )
             );
 
             $result = $provider->generate($export->getPayloadArray(), $context);
@@ -699,6 +710,7 @@ class ExportService extends Component
      * @param int $entityId Entity ID
      * @param string[] $fieldHandles Selected field handles
      * @param array $options Query options
+     * @param callable(int): void|null $progressCallback Progress callback receiving an integer percentage
      * @return array{path: string, size: int, recordCount: int}
      */
     private function generateStreamedEntityFile(
@@ -707,6 +719,7 @@ class ExportService extends Component
         int $entityId,
         array $fieldHandles,
         array $options,
+        ?callable $progressCallback = null,
     ): array {
         $writer = null;
 
@@ -723,6 +736,12 @@ class ExportService extends Component
 
                     $writer->writeRows($rows);
                 },
+                fn(int $processed, int $total) => $this->updateStandardExportProgress(
+                    $export,
+                    $processed,
+                    $total,
+                    $progressCallback,
+                ),
             );
 
             if (!$writer instanceof StreamedExportWriter) {
@@ -757,6 +776,7 @@ class ExportService extends Component
      * @param string[] $fieldHandles Selected field handles
      * @param array $options Query options
      * @param array<string, string> $labels Data-source UI labels
+     * @param callable(int): void|null $progressCallback Progress callback receiving an integer percentage
      * @return array{path: string, size: int, recordCount: int}
      */
     private function generateStreamedCombinedFile(
@@ -766,6 +786,7 @@ class ExportService extends Component
         array $fieldHandles,
         array $options,
         array $labels,
+        ?callable $progressCallback = null,
     ): array {
         $allHeaders = [$labels['combinedPrimaryColumnLabel'] ?? Craft::t('report-manager', 'Item Name')];
         $entityNames = [];
@@ -794,7 +815,8 @@ class ExportService extends Component
         $recordCount = 0;
 
         try {
-            foreach ($entityIds as $entityId) {
+            $entityCount = count($entityIds);
+            foreach ($entityIds as $entityIndex => $entityId) {
                 $entityName = $entityNames[$entityId];
                 $recordCount += $this->forEachExportBatch(
                     $dataSource,
@@ -826,6 +848,14 @@ class ExportService extends Component
 
                         $writer->writeRows($combinedRows);
                     },
+                    fn(int $processed, int $total) => $this->updateStandardExportProgress(
+                        $export,
+                        $processed,
+                        $total,
+                        $progressCallback,
+                        $entityIndex,
+                        $entityCount,
+                    ),
                 );
             }
 
@@ -859,6 +889,7 @@ class ExportService extends Component
      * @param string[] $fieldHandles Selected field handles
      * @param array $options Query options
      * @param callable(string[], array<int, array<int, mixed>>): void $consumer
+     * @param callable(int, int): void|null $progressCallback Progress callback receiving processed and total rows
      * @return int Number of rows written
      */
     private function forEachExportBatch(
@@ -867,6 +898,7 @@ class ExportService extends Component
         array $fieldHandles,
         array $options,
         callable $consumer,
+        ?callable $progressCallback = null,
     ): int {
         $settings = ReportManager::getInstance()->getSettings();
         $batchSize = max(1, min($settings->maxExportBatchSize, self::SAFE_MAX_BATCH_SIZE));
@@ -903,6 +935,9 @@ class ExportService extends Component
             $consumer($headers, $rows);
 
             $recordCount += $batchCount;
+            if ($progressCallback !== null) {
+                $progressCallback($recordCount, $total);
+            }
 
             unset($data, $rows);
             gc_collect_cycles();
@@ -915,6 +950,38 @@ class ExportService extends Component
         } while ($offset < $total);
 
         return $recordCount;
+    }
+
+    /**
+     * Persist standard export progress and forward it to the queue job.
+     *
+     * Combined exports weight each selected entity equally so progress moves
+     * throughout every source without adding duplicate count queries.
+     *
+     * @param callable(int): void|null $progressCallback
+     */
+    private function updateStandardExportProgress(
+        ExportRecord $export,
+        int $processed,
+        int $total,
+        ?callable $progressCallback,
+        int $entityIndex = 0,
+        int $entityCount = 1,
+    ): void {
+        $entityCount = max(1, $entityCount);
+        $entityProgress = $total > 0 ? min(1, $processed / $total) : 1;
+        $progress = (int)floor((($entityIndex + $entityProgress) / $entityCount) * 99);
+        $progress = max(1, min(99, $progress));
+
+        if ($progress <= (int)$export->progress) {
+            return;
+        }
+
+        $export->progress = $progress;
+        $export->save(false, ['progress']);
+        if ($progressCallback !== null) {
+            $progressCallback($progress);
+        }
     }
 
     /**
@@ -1351,12 +1418,15 @@ class ExportService extends Component
      * Generate a combined export (multiple entities in one file)
      *
      * @param ExportRecord $export Export record
+     * @param callable(int): void|null $progressCallback Progress callback receiving an integer percentage
      * @return bool
+     * @since 5.6.0 Added the optional progress callback.
      */
-    public function generateCombinedExport(ExportRecord $export): bool
+    public function generateCombinedExport(ExportRecord $export, ?callable $progressCallback = null): bool
     {
         $export->status = ExportRecord::STATUS_PROCESSING;
         $export->startedAt = new DateTime();
+        $export->progress = max(1, (int)$export->progress);
         $export->save();
 
         try {
@@ -1405,6 +1475,7 @@ class ExportService extends Component
                 $export->getFieldHandlesUsedArray(),
                 $options,
                 $labels,
+                $progressCallback,
             );
 
             // Update export record
@@ -1602,9 +1673,14 @@ class ExportService extends Component
      * @param ExportRecord $export Export record
      * @param int $progress Progress percentage
      * @param string|null $message Optional progress message
+     * @param callable(int): void|null $progressCallback Progress callback receiving an integer percentage
      */
-    private function updateQueuedExportProgress(ExportRecord $export, int $progress, ?string $message = null): void
-    {
+    private function updateQueuedExportProgress(
+        ExportRecord $export,
+        int $progress,
+        ?string $message = null,
+        ?callable $progressCallback = null,
+    ): void {
         $progress = max(0, min(99, $progress));
         $export->progress = $progress;
 
@@ -1615,6 +1691,9 @@ class ExportService extends Component
         }
 
         $export->save();
+        if ($progressCallback !== null) {
+            $progressCallback($progress);
+        }
     }
 
     /**

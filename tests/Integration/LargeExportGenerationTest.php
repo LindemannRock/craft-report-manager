@@ -10,7 +10,9 @@ declare(strict_types=1);
 
 namespace lindemannrock\reportmanager\tests\Integration;
 
+use craft\queue\QueueInterface;
 use lindemannrock\reportmanager\events\RegisterDataSourcesEvent;
+use lindemannrock\reportmanager\jobs\GenerateExportJob;
 use lindemannrock\reportmanager\records\ExportRecord;
 use lindemannrock\reportmanager\services\DataSourcesService;
 use lindemannrock\reportmanager\tests\Stubs\StubLargeExportDataSource;
@@ -97,11 +99,23 @@ final class LargeExportGenerationTest extends TestCase
         );
 
         self::assertSame(['id', 'shared'], $export->getFieldHandlesUsedArray());
-        self::assertTrue($this->exports->generateCombinedExport($export));
+        $progressUpdates = [];
+        self::assertTrue($this->exports->generateCombinedExport(
+            $export,
+            static function(int $progress) use (&$progressUpdates): void {
+                $progressUpdates[] = $progress;
+            },
+        ));
 
         $fresh = ExportRecord::findOne($export->id);
         self::assertNotNull($fresh);
         self::assertSame(1280, $fresh->recordCount);
+        self::assertSame(100, $fresh->progress);
+        self::assertContains(99, $progressUpdates);
+        self::assertNotEmpty(array_filter(
+            $progressUpdates,
+            static fn(int $progress): bool => $progress > 1 && $progress < 99,
+        ));
         self::assertSame([1, 1, 2], array_column(StubLargeExportDataSource::$exportRequests, 'entityId'));
         self::assertSame([0, 1000, 0], array_column(StubLargeExportDataSource::$exportRequests, 'offset'));
         self::assertSame([1000, 1000, 1000], array_column(StubLargeExportDataSource::$exportRequests, 'limit'));
@@ -147,6 +161,40 @@ final class LargeExportGenerationTest extends TestCase
             array_fill(0, 13, 100),
             array_column(StubLargeExportDataSource::$exportRequests, 'limit'),
         );
+    }
+
+    public function testQueueJobPublishesProgressWhileBatchesAreGenerated(): void
+    {
+        $this->settings()->maxExportBatchSize = 500;
+        $export = $this->exports->createExport(
+            StubLargeExportDataSource::handle(),
+            StubLargeExportDataSource::PRIMARY_ENTITY_ID,
+            'csv',
+            ['fieldHandles' => ['id']],
+        );
+        $progressUpdates = [];
+        $progressLabels = [];
+        $queue = $this->createMock(QueueInterface::class);
+        $queue->method('setProgress')
+            ->willReturnCallback(static function(int $progress, ?string $label = null) use (
+                &$progressUpdates,
+                &$progressLabels,
+            ): void {
+                $progressUpdates[] = $progress;
+                $progressLabels[] = $label;
+            });
+
+        $job = new GenerateExportJob(['exportId' => (int)$export->id]);
+        $job->execute($queue);
+
+        self::assertSame(10, $progressUpdates[0]);
+        self::assertSame(100, $progressUpdates[array_key_last($progressUpdates)]);
+        self::assertNotEmpty(array_filter(
+            $progressUpdates,
+            static fn(int $progress): bool => $progress > 10 && $progress < 100,
+        ));
+        self::assertContains('Processing', $progressLabels);
+        self::assertSame($progressUpdates, array_values(array_unique($progressUpdates)));
     }
 
     private function assertGeneratedFile(ExportRecord $export, string $format, int $expectedRows): void

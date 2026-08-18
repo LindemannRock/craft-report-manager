@@ -61,6 +61,9 @@ final class StubQueuedExportProvider extends BaseQueuedExportProvider
      */
     public static array $permissions = [];
 
+    /** @var int[] Progress percentages emitted during generation. */
+    public static array $progressUpdates = [];
+
     /**
      * Extra key added to every normalized payload to prove the normalize hook
      * actually ran. Tests assert this key survives onto the persisted record.
@@ -98,6 +101,10 @@ final class StubQueuedExportProvider extends BaseQueuedExportProvider
     {
         self::$generateCalls[] = $payload;
 
+        foreach (self::$progressUpdates as $progress) {
+            $context->updateProgress($progress);
+        }
+
         if (self::$nextResult instanceof \Throwable) {
             throw self::$nextResult;
         }
@@ -122,5 +129,6 @@ final class StubQueuedExportProvider extends BaseQueuedExportProvider
         self::$nextResult = null;
         self::$generateCalls = [];
         self::$permissions = [];
+        self::$progressUpdates = [];
     }
 }
