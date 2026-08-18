@@ -19,8 +19,10 @@ use lindemannrock\base\helpers\ExportHelper;
 use lindemannrock\base\helpers\SafeSegmentHelper;
 use lindemannrock\base\helpers\StorageVolumeHelper;
 use lindemannrock\logginglibrary\traits\LoggingTrait;
+use lindemannrock\reportmanager\datasources\DataSourceInterface;
 use lindemannrock\reportmanager\export\QueuedExportContext;
 use lindemannrock\reportmanager\export\QueuedExportResult;
+use lindemannrock\reportmanager\export\StreamedExportWriter;
 use lindemannrock\reportmanager\records\ExportRecord;
 use lindemannrock\reportmanager\ReportManager;
 use yii\db\Expression;
@@ -37,6 +39,13 @@ use yii\db\Expression;
 class ExportService extends Component
 {
     use LoggingTrait;
+
+    /**
+     * Hydrated Craft/Formie elements are substantially heavier than export
+     * rows, so keep the runtime batch bounded even when a legacy setting still
+     * contains the old 10,000-record default.
+     */
+    private const SAFE_MAX_BATCH_SIZE = 1000;
 
     /**
      * @var string Base path for export files (local storage)
@@ -548,27 +557,20 @@ class ExportService extends Component
                 $options['siteIds'] = $siteIds;
             }
 
-            // Get export data
+            // Stream export data in bounded batches.
             $fieldHandles = $export->getFieldHandlesUsedArray();
-            $exportData = $dataSource->exportToArray($export->entityId, $fieldHandles, $options);
-
-            // Ensure export directory exists (for local storage)
-            if (!$this->_useVolume) {
-                FileHelper::createDirectory($this->exportBasePath);
-            }
-
-            // Generate file based on format
-            $result = match ($export->format) {
-                'csv' => $this->generateCsvFile($export, $exportData),
-                'json' => $this->generateJsonFile($export, $exportData),
-                'xlsx' => $this->generateXlsxFile($export, $exportData),
-                default => throw new \Exception("Unsupported export format: {$export->format}"),
-            };
+            $result = $this->generateStreamedEntityFile(
+                $export,
+                $dataSource,
+                $export->entityId,
+                $fieldHandles,
+                $options,
+            );
 
             // Update export record
             $export->filePath = $result['path'];
             $export->fileSize = $result['size'];
-            $export->recordCount = count($exportData['rows']);
+            $export->recordCount = $result['recordCount'];
             $export->status = ExportRecord::STATUS_COMPLETED;
             $export->progress = 100;
             $export->completedAt = new DateTime();
@@ -686,6 +688,298 @@ class ExportService extends Component
 
             return false;
         }
+    }
+
+    /**
+     * Generate one standard data-source export without retaining every row.
+     *
+     * @param ExportRecord $export Export record
+     * @param DataSourceInterface $dataSource Data source
+     * @param int $entityId Entity ID
+     * @param string[] $fieldHandles Selected field handles
+     * @param array $options Query options
+     * @return array{path: string, size: int, recordCount: int}
+     */
+    private function generateStreamedEntityFile(
+        ExportRecord $export,
+        DataSourceInterface $dataSource,
+        int $entityId,
+        array $fieldHandles,
+        array $options,
+    ): array {
+        $writer = null;
+
+        try {
+            $recordCount = $this->forEachExportBatch(
+                $dataSource,
+                $entityId,
+                $fieldHandles,
+                $options,
+                function(array $headers, array $rows) use (&$writer, $export): void {
+                    if ($writer === null) {
+                        $writer = $this->createStreamedWriter($export, $headers);
+                    }
+
+                    $writer->writeRows($rows);
+                },
+            );
+
+            if (!$writer instanceof StreamedExportWriter) {
+                throw new \RuntimeException('The export data source did not provide column headers.');
+            }
+
+            $tempPath = $writer->finish();
+
+            try {
+                $file = $this->_writeExportTempFile($export, $tempPath);
+            } finally {
+                @unlink($tempPath);
+            }
+
+            return [
+                'path' => $file['path'],
+                'size' => $file['size'],
+                'recordCount' => $recordCount,
+            ];
+        } finally {
+            $writer?->abort();
+        }
+    }
+
+    /**
+     * Generate a combined export while retaining only one source batch and its
+     * aligned output rows at a time.
+     *
+     * @param ExportRecord $export Export record
+     * @param DataSourceInterface $dataSource Data source
+     * @param int[] $entityIds Entity IDs
+     * @param string[] $fieldHandles Selected field handles
+     * @param array $options Query options
+     * @param array<string, string> $labels Data-source UI labels
+     * @return array{path: string, size: int, recordCount: int}
+     */
+    private function generateStreamedCombinedFile(
+        ExportRecord $export,
+        DataSourceInterface $dataSource,
+        array $entityIds,
+        array $fieldHandles,
+        array $options,
+        array $labels,
+    ): array {
+        $allHeaders = [$labels['combinedPrimaryColumnLabel'] ?? Craft::t('report-manager', 'Item Name')];
+        $entityNames = [];
+
+        foreach ($entityIds as $entityId) {
+            $entity = $dataSource->getEntity($entityId);
+            $entityNames[$entityId] = $entity['name'] ?? ($labels['entitySingular'] ?? Craft::t('report-manager', 'Item')) . " {$entityId}";
+            $fields = $dataSource->getEntityFields($entityId);
+
+            if ($fieldHandles !== []) {
+                $fields = array_filter(
+                    $fields,
+                    static fn(array $field): bool => in_array($field['handle'], $fieldHandles, true),
+                );
+            }
+
+            foreach ($fields as $field) {
+                $label = (string)$field['label'];
+                if (!in_array($label, $allHeaders, true)) {
+                    $allHeaders[] = $label;
+                }
+            }
+        }
+
+        $writer = $this->createStreamedWriter($export, $allHeaders);
+        $recordCount = 0;
+
+        try {
+            foreach ($entityIds as $entityId) {
+                $entityName = $entityNames[$entityId];
+                $recordCount += $this->forEachExportBatch(
+                    $dataSource,
+                    $entityId,
+                    $fieldHandles,
+                    $options,
+                    function(array $headers, array $rows) use ($writer, $allHeaders, $entityName): void {
+                        $headerPositions = [];
+                        foreach ($headers as $index => $header) {
+                            $position = array_search($header, $allHeaders, true);
+                            if ($position !== false) {
+                                $headerPositions[$index] = $position;
+                            }
+                        }
+
+                        $combinedRows = [];
+                        foreach ($rows as $row) {
+                            $combinedRow = array_fill(0, count($allHeaders), '');
+                            $combinedRow[0] = $entityName;
+
+                            foreach ($headerPositions as $sourceIndex => $targetIndex) {
+                                if (array_key_exists($sourceIndex, $row)) {
+                                    $combinedRow[$targetIndex] = $row[$sourceIndex];
+                                }
+                            }
+
+                            $combinedRows[] = $combinedRow;
+                        }
+
+                        $writer->writeRows($combinedRows);
+                    },
+                );
+            }
+
+            $tempPath = $writer->finish();
+
+            try {
+                $file = $this->_writeExportTempFile($export, $tempPath);
+            } finally {
+                @unlink($tempPath);
+            }
+
+            return [
+                'path' => $file['path'],
+                'size' => $file['size'],
+                'recordCount' => $recordCount,
+            ];
+        } finally {
+            $writer->abort();
+        }
+    }
+
+    /**
+     * Read and release one bounded data-source batch at a time.
+     *
+     * The `limit`/`offset` options already belong to the data-source contract.
+     * Third-party sources that return more rows than requested fail with a
+     * controlled error instead of producing duplicate output.
+     *
+     * @param DataSourceInterface $dataSource Data source
+     * @param int $entityId Entity ID
+     * @param string[] $fieldHandles Selected field handles
+     * @param array $options Query options
+     * @param callable(string[], array<int, array<int, mixed>>): void $consumer
+     * @return int Number of rows written
+     */
+    private function forEachExportBatch(
+        DataSourceInterface $dataSource,
+        int $entityId,
+        array $fieldHandles,
+        array $options,
+        callable $consumer,
+    ): int {
+        $settings = ReportManager::getInstance()->getSettings();
+        $batchSize = max(1, min($settings->maxExportBatchSize, self::SAFE_MAX_BATCH_SIZE));
+        $total = max(0, $dataSource->getRecordCount($entityId, $options));
+        $offset = 0;
+        $recordCount = 0;
+        $expectedHeaders = null;
+
+        do {
+            $batchOptions = array_merge($options, [
+                'limit' => $batchSize,
+                'offset' => $offset,
+            ]);
+            $data = $dataSource->exportToArray($entityId, $fieldHandles, $batchOptions);
+            $headers = array_values(array_map('strval', is_array($data['headers'] ?? null) ? $data['headers'] : []));
+            $rows = is_array($data['rows'] ?? null) ? array_values($data['rows']) : [];
+            $batchCount = count($rows);
+
+            if ($batchCount > $batchSize) {
+                throw new \RuntimeException(sprintf(
+                    'Data source "%s" returned %d rows for an export batch limited to %d.',
+                    $dataSource::handle(),
+                    $batchCount,
+                    $batchSize,
+                ));
+            }
+
+            if ($expectedHeaders === null) {
+                $expectedHeaders = $headers;
+            } elseif ($headers !== $expectedHeaders) {
+                throw new \RuntimeException('Export columns changed between data-source batches.');
+            }
+
+            $consumer($headers, $rows);
+
+            $recordCount += $batchCount;
+
+            unset($data, $rows);
+            gc_collect_cycles();
+
+            if ($total === 0 || $batchCount === 0) {
+                break;
+            }
+
+            $offset += $batchSize;
+        } while ($offset < $total);
+
+        return $recordCount;
+    }
+
+    /**
+     * Create a disk-backed writer using the export's configured format.
+     *
+     * @param ExportRecord $export Export record
+     * @param string[] $headers Export column labels
+     */
+    private function createStreamedWriter(ExportRecord $export, array $headers): StreamedExportWriter
+    {
+        $settings = ReportManager::getInstance()->getSettings();
+
+        return new StreamedExportWriter($export->format, $headers, [
+            'delimiter' => $settings->csvDelimiter,
+            'enclosure' => $settings->csvEnclosure,
+            'includeBom' => $settings->csvIncludeBom,
+            'sheetTitle' => $export->entityName ?? 'Export',
+        ]);
+    }
+
+    /**
+     * Copy a completed temporary file into local or volume storage.
+     *
+     * @param ExportRecord $export Export record
+     * @param string $tempPath Completed temporary file
+     * @return array{path: string, size: int}
+     */
+    private function _writeExportTempFile(ExportRecord $export, string $tempPath): array
+    {
+        $size = filesize($tempPath);
+
+        if ($size === false) {
+            throw new \RuntimeException('Unable to determine the generated export file size.');
+        }
+
+        if ($this->_useVolume && $this->_volumeFs !== null) {
+            $volumePath = $this->_volumeSubPath . '/' . $export->filename;
+            $stream = fopen($tempPath, 'rb');
+
+            if ($stream === false) {
+                throw new \RuntimeException('Unable to open the generated export file for storage.');
+            }
+
+            try {
+                $this->_volumeFs->writeFileFromStream($volumePath, $stream);
+            } finally {
+                fclose($stream);
+            }
+
+            return [
+                'path' => $volumePath,
+                'size' => $size,
+            ];
+        }
+
+        FileHelper::createDirectory($this->exportBasePath);
+        $localPath = $this->exportBasePath . $export->filename;
+
+        if (!copy($tempPath, $localPath)) {
+            throw new \RuntimeException("Unable to store the generated export file at {$localPath}.");
+        }
+
+        return [
+            'path' => $localPath,
+            'size' => $size,
+        ];
     }
 
     /**
@@ -1025,6 +1319,11 @@ class ExportService extends Component
             : null;
         $export->dateFieldUsed = $options['dateField'] ?? null;
 
+        // Field handles
+        if (!empty($options['fieldHandles'])) {
+            $export->setFieldHandlesUsedArray($options['fieldHandles']);
+        }
+
         // Site IDs filter
         if (!empty($options['siteIds']) && is_array($options['siteIds'])) {
             $export->setSiteIdsUsedArray($options['siteIds']);
@@ -1101,83 +1400,19 @@ class ExportService extends Component
                 $options['siteIds'] = $siteIds;
             }
 
-            // Collect all unique headers and data from all selected entities.
-            $allHeaders = [$labels['combinedPrimaryColumnLabel'] ?? Craft::t('report-manager', 'Item Name')];
-            $allRows = [];
-            $entityFields = [];
-
-            // First pass: collect all unique field headers
-            foreach ($entityIds as $entityId) {
-                $entity = $dataSource->getEntity($entityId);
-                $entityName = $entity['name'] ?? ($labels['entitySingular'] ?? Craft::t('report-manager', 'Item')) . " {$entityId}";
-
-                $fields = $dataSource->getEntityFields($entityId);
-                $entityFields[$entityId] = [
-                    'name' => $entityName,
-                    'fields' => $fields,
-                ];
-
-                foreach ($fields as $field) {
-                    if (!in_array($field['label'], $allHeaders, true)) {
-                        $allHeaders[] = $field['label'];
-                    }
-                }
-            }
-
-            // Second pass: collect data with proper column alignment
-            foreach ($entityIds as $entityId) {
-                $entityName = $entityFields[$entityId]['name'];
-                $fields = $entityFields[$entityId]['fields'];
-
-                // Create a map of field handle to header position
-                $fieldToHeader = [];
-                foreach ($fields as $field) {
-                    $fieldToHeader[$field['handle']] = $field['label'];
-                }
-
-                // Get export data for this entity
-                $exportData = $dataSource->exportToArray($entityId, [], $options);
-
-                // Map each row to the combined headers
-                foreach ($exportData['rows'] as $row) {
-                    $combinedRow = array_fill(0, count($allHeaders), '');
-                    $combinedRow[0] = $entityName;
-
-                    // Map values to correct header positions
-                    foreach ($exportData['headers'] as $index => $header) {
-                        $headerPosition = array_search($header, $allHeaders, true);
-
-                        if ($headerPosition !== false && isset($row[$index])) {
-                            $combinedRow[$headerPosition] = $row[$index];
-                        }
-                    }
-
-                    $allRows[] = $combinedRow;
-                }
-            }
-
-            $combinedData = [
-                'headers' => $allHeaders,
-                'rows' => $allRows,
-            ];
-
-            // Ensure export directory exists (for local storage)
-            if (!$this->_useVolume) {
-                FileHelper::createDirectory($this->exportBasePath);
-            }
-
-            // Generate file based on format
-            $result = match ($export->format) {
-                'csv' => $this->generateCsvFile($export, $combinedData),
-                'json' => $this->generateJsonFile($export, $combinedData),
-                'xlsx' => $this->generateXlsxFile($export, $combinedData),
-                default => throw new \Exception("Unsupported export format: {$export->format}"),
-            };
+            $result = $this->generateStreamedCombinedFile(
+                $export,
+                $dataSource,
+                $entityIds,
+                $export->getFieldHandlesUsedArray(),
+                $options,
+                $labels,
+            );
 
             // Update export record
             $export->filePath = $result['path'];
             $export->fileSize = $result['size'];
-            $export->recordCount = count($allRows);
+            $export->recordCount = $result['recordCount'];
             $export->status = ExportRecord::STATUS_COMPLETED;
             $export->progress = 100;
             $export->completedAt = new DateTime();

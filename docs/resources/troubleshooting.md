@@ -12,6 +12,19 @@ Common issues and how to resolve them. If something isn't covered here, check th
 
 **Fix:** Run a persistent queue worker — a `queue/listen` daemon or a cron-driven `queue/run`. See [Craft's queue documentation](https://craftcms.com/docs/5.x/system/queue.html). Until the queue runs, every export (manual or scheduled) sits at **Pending**.
 
+## A large export fails with an "Allowed memory size exhausted" error
+
+**Quick checks:**
+
+1. Confirm Report Manager is version 5.5.2 or later. Earlier versions assembled the complete result and output file in PHP memory.
+2. Check **Settings → Export → Maximum Export Batch Size**. Report Manager applies a 1,000-record safety ceiling; lower the setting to `500`, `250`, or `100` when each record contains especially heavy fields.
+3. If you use a registered custom data source, confirm its `exportToArray()` implementation honors the supplied `limit` and `offset` options.
+4. Retry the failed queue job after updating the plugin or batch setting.
+
+**Fix:** Upgrade Report Manager and rerun the export. Standard Craft Entries, Craft Categories, Formie, and compatible custom-source exports are read in bounded groups and written incrementally for CSV, JSON, and XLSX files. This applies to both separate and combined exports, so raising PHP's memory limit should not be necessary.
+
+Queued export providers have a separate contract: a provider that builds and returns a complete in-memory table or workbook remains responsible for bounding its own data preparation.
+
 ## Scheduled reports aren't generating
 
 **Quick checks:**

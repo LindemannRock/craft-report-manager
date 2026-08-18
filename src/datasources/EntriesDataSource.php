@@ -211,7 +211,10 @@ class EntriesDataSource extends BaseDataSource
         $query = Entry::find()
             ->sectionId($entityId)
             ->status(null)
-            ->orderBy(['dateCreated' => SORT_DESC]);
+            ->orderBy([
+                'dateCreated' => SORT_DESC,
+                'elements.id' => SORT_DESC,
+            ]);
 
         $this->applyQueryOptions($query, $options);
 

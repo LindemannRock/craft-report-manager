@@ -32,7 +32,8 @@
         "php": "^8.2",
         "craftcms/cms": "^5.0.0",
         "lindemannrock/craft-plugin-base": "^5.0",
-        "lindemannrock/craft-logging-library": "^5.0"
+        "lindemannrock/craft-logging-library": "^5.0",
+        "openspout/openspout": "^4.28.5"
     },
     "require-dev": {
         "craftcms/ecs": "dev-main",

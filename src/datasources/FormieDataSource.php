@@ -258,7 +258,10 @@ class FormieDataSource extends BaseDataSource
             ->formId($entityId)
             ->isIncomplete(false)
             ->isSpam(false)
-            ->orderBy(['dateCreated' => SORT_DESC]);
+            ->orderBy([
+                'dateCreated' => SORT_DESC,
+                'elements.id' => SORT_DESC,
+            ]);
 
         // Apply site filter
         if (!empty($options['siteIds']) && is_array($options['siteIds'])) {

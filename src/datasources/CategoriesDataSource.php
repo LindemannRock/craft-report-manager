@@ -187,7 +187,10 @@ class CategoriesDataSource extends BaseDataSource
         $query = Category::find()
             ->groupId($entityId)
             ->status(null)
-            ->orderBy(['lft' => SORT_ASC]);
+            ->orderBy([
+                'lft' => SORT_ASC,
+                'elements.id' => SORT_ASC,
+            ]);
 
         $this->applyQueryOptions($query, $options);
 

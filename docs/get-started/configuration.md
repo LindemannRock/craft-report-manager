@@ -23,7 +23,7 @@ return [
     // Applies to all environments
     '*' => [
         'defaultExportFormat' => 'csv',
-        'maxExportBatchSize' => 10000,
+        'maxExportBatchSize' => 500,
         'exportRetention' => 30,
         'autoCleanupExports' => true,
     ],
@@ -72,13 +72,15 @@ By default exports are written to the local filesystem. Set a volume UID to stor
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
 | `defaultExportFormat` | `string` | `'csv'` | Pre-selected format for new reports. One of `csv`, `xlsx`, `json`. |
-| `maxExportBatchSize` | `int` | `10000` | Maximum records per export batch. Range: 100–100000. |
+| `maxExportBatchSize` | `int` | `10000` | Configured ceiling for records loaded per standard export batch. Range: 100–100000; Report Manager applies a runtime safety ceiling of 1,000. |
 | `csvDelimiter` | `string` | `','` | Single character used as the CSV field delimiter. |
 | `csvEnclosure` | `string` | `'"'` | Single character used to enclose CSV field values. |
 | `csvIncludeBom` | `bool` | `true` | Prepend a UTF-8 BOM to CSV files for Excel compatibility. |
 
 > [!NOTE]
 > Which formats appear in the format dropdowns is controlled by the **Interface** settings (CSV / JSON / Excel toggles). `defaultExportFormat` must be one of the formats you've enabled.
+
+Standard CSV, JSON, and XLSX exports are generated incrementally for both separate and combined exports. Report Manager never hydrates more than 1,000 source records at once, even when an older installation retains the original `10000` setting. Set `maxExportBatchSize` lower when records contain unusually heavy fields. Registered custom data sources must honor the `limit` and `offset` options supplied to `exportToArray()`.
 
 ## Cleanup & Retention
 

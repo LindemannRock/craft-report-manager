@@ -49,12 +49,12 @@ class OrdersDataSource extends BaseDataSource
 
     public function getRecords(int $entityId, array $options = []): array
     {
-        // Return the records to export
+        // Apply $options['limit'] and $options['offset'] with stable ordering
     }
 
     public function exportToArray(int $entityId, array $fieldHandles = [], array $options = []): array
     {
-        // Return rows shaped for export
+        // Return only the requested window of rows, plus stable headers
     }
 }
 ```
@@ -88,7 +88,7 @@ class OrdersDataSource extends BaseDataSource
 | `getRecordCount(int $entityId, array $options = [])` | `int` | Record count |
 | `getAnalytics(int $entityId, string $dateRange = 'last30days')` | `array` | Analytics data |
 | `getTrendData(int $entityId, string $dateRange = 'last30days')` | `array` | Trend data for charts |
-| `exportToArray(int $entityId, array $fieldHandles = [], array $options = [])` | `array` | Rows shaped for export |
+| `exportToArray(int $entityId, array $fieldHandles = [], array $options = [])` | `array` | Rows shaped for export; must honor `limit` and `offset` with stable ordering |
 | `getSettingsHtml()` | `?string` | Optional per-source settings UI |
 
 ### Capability flags
@@ -107,6 +107,12 @@ class OrdersDataSource extends BaseDataSource
 ```
 
 Override `capabilities()` to turn off anything your source doesn't support — the report UI adapts accordingly.
+
+## Bounded export contract
+
+Report Manager generates standard CSV, JSON, and XLSX files incrementally. It calls `getRecordCount()` once, then repeatedly calls `exportToArray()` with `limit` and `offset` options. Custom sources must apply both options using a deterministic order and return no more than the requested limit. The `headers` array must remain identical for every window of the same export.
+
+This contract applies to separate and combined reports. A source that returns more rows than requested fails with a controlled error so Report Manager cannot silently duplicate data or retain an unbounded result.
 
 ## Registering the Source
 

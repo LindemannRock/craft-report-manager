@@ -155,7 +155,8 @@ interface DataSourceInterface
      *
      * @param int $entityId The entity ID
      * @param array $fieldHandles Field handles to include (empty = all)
-     * @param array $options Query options
+     * @param array $options Query options. Implementations must honor limit and
+     * offset with stable ordering so large exports can be read incrementally.
      * @return array Array of export rows with headers
      */
     public function exportToArray(int $entityId, array $fieldHandles = [], array $options = []): array;
