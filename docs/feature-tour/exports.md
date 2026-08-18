@@ -50,4 +50,6 @@ Open any export to see its **detail page**: status, data source, entity, format,
 
 ## Retention & Cleanup
 
-Generated files don't accumulate forever. With **Auto Cleanup Exports** enabled, a daily queue job deletes exports older than the **Export Retention (Days)** value — removing both the file and its record together. Set retention to `0` to keep everything. Configure both in **Settings → Export** (see [Configuration](../get-started/configuration.md#cleanup--retention)).
+Generated files don't accumulate forever. With **Auto Cleanup Exports** enabled, Report Manager maintains one daily cleanup chain in Craft's queue. Each successful occurrence deletes exports older than the **Export Retention (Days)** value — removing both the file and its record together — and then schedules the next daily occurrence. Set retention to `0` to keep everything. Configure both options in **Settings → Export** (see [Configuration](../get-started/configuration.md#cleanup--retention)).
+
+The intended run remains the next daily boundary in Craft's configured timezone. Queue backends that limit long delays receive bounded handoff jobs of no more than 900 seconds until the target is close enough; those handoffs only carry the schedule forward and never delete exports. Native database queues and other backends without that limit keep the full delay. This scheduling behavior does not change where generated files are stored or how retention is calculated.

@@ -36,6 +36,13 @@ class CleanupExportsJob extends BaseJob implements RetryableJobInterface
     public ?string $nextRunTime = null;
 
     /**
+     * Stable owner identity for the recurring cleanup family.
+     *
+     * @since 5.6.0
+     */
+    public string $recurringOwner = '';
+
+    /**
      * @inheritdoc
      */
     public function canRetry($attempt, $error): bool
@@ -58,20 +65,18 @@ class CleanupExportsJob extends BaseJob implements RetryableJobInterface
     public function execute($queue): void
     {
         $plugin = ReportManager::getInstance();
-        $settings = $plugin->getSettings();
 
-        if (!$settings->autoCleanupExports || $settings->exportRetention <= 0) {
-            $this->setProgress($queue, 1, Craft::t('report-manager', 'Export cleanup disabled'));
-            return;
-        }
-
-        $this->setProgress($queue, 0.1, Craft::t('report-manager', 'Cleaning up old exports'));
-        $deletedCount = $plugin->exports->cleanupOldExports();
-        $this->setProgress($queue, 1, Craft::t('report-manager', 'Cleaned up {count} export(s)', [
-            'count' => $deletedCount,
-        ]));
-
-        $plugin->scheduleNextExportCleanupJob();
+        $plugin->exportCleanupScheduler->runOccurrence(
+            $this->reschedule,
+            function() use ($plugin, $queue): void {
+                $this->setProgress($queue, 0.1, Craft::t('report-manager', 'Cleaning up old exports'));
+                $deletedCount = $plugin->exports->cleanupOldExports();
+                $this->setProgress($queue, 1, Craft::t('report-manager', 'Cleaned up {count} export(s)', [
+                    'count' => $deletedCount,
+                ]));
+            },
+            fn() => $this->setProgress($queue, 1, Craft::t('report-manager', 'Export cleanup disabled')),
+        );
     }
 
     /**

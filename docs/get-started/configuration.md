@@ -87,7 +87,9 @@ By default exports are written to the local filesystem. Set a volume UID to stor
 | `exportRetention` | `int` | `30` | Days to keep generated export files and records. Set to `0` to keep forever. |
 | `autoCleanupExports` | `bool` | `true` | When enabled, a daily queue job deletes exports older than `exportRetention` days. |
 
-When `autoCleanupExports` is on and `exportRetention` is greater than `0`, a recurring `CleanupExportsJob` deletes both the generated files and their export records. Setting retention to `0` keeps everything regardless of the cleanup toggle.
+Automatic cleanup is active only when `autoCleanupExports` is `true` and `exportRetention` is greater than `0`. Report Manager keeps one recurring daily cleanup chain in Craft's queue. Disabling the toggle or changing retention to `0` cancels that cleanup family; re-enabling it creates one new daily chain. Changing one positive retention value to another keeps the existing schedule and applies the new retention when cleanup runs.
+
+The daily target is calculated in Craft's configured timezone. Delay-limited queue backends use one or more handoffs capped at 900 seconds; intermediate handoffs do not run cleanup. Native database queues and unknown non-SQS backends retain the complete delay. These queue details affect scheduling only — export storage paths, asset volumes, file formats, and retention semantics stay the same.
 
 ## General
 

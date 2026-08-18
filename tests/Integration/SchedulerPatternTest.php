@@ -11,117 +11,17 @@ declare(strict_types=1);
 namespace lindemannrock\reportmanager\tests\Integration;
 
 use Craft;
-use lindemannrock\base\helpers\DateFormatHelper;
-use lindemannrock\base\helpers\ScheduleHelper;
-use lindemannrock\reportmanager\jobs\CleanupExportsJob;
 use lindemannrock\reportmanager\jobs\ProcessScheduledReportJob;
 use lindemannrock\reportmanager\records\ReportRecord;
-use lindemannrock\reportmanager\ReportManager;
 use lindemannrock\reportmanager\tests\TestCase;
 
 /**
- * Pins Report Manager's scheduler-pattern integration with base helpers.
+ * Pins Report Manager's independent per-report scheduling behavior.
  *
  * @since 5.4.0
  */
 final class SchedulerPatternTest extends TestCase
 {
-    protected function setUp(): void
-    {
-        parent::setUp();
-        $this->deleteReportManagerQueueRows();
-    }
-
-    protected function tearDown(): void
-    {
-        $this->deleteReportManagerQueueRows();
-        parent::tearDown();
-    }
-
-    public function testCleanupRescheduleDoesNotSelfBlockOnExistingCleanupRow(): void
-    {
-        Craft::$app->getQueue()->delay(300)->push(new CleanupExportsJob([
-            'reschedule' => true,
-        ]));
-        $this->assertSame(1, $this->countQueueRows('CleanupExportsJob'));
-
-        ReportManager::getInstance()->scheduleNextExportCleanupJob();
-
-        $this->assertSame(2, $this->countQueueRows('CleanupExportsJob'));
-    }
-
-    public function testCleanupBootstrapDoesNotDuplicateExistingDelayedCleanupRow(): void
-    {
-        $settings = $this->settings();
-        $originalAutoCleanupExports = $settings->autoCleanupExports;
-        $originalExportRetention = $settings->exportRetention;
-
-        $settings->autoCleanupExports = true;
-        $settings->exportRetention = 30;
-
-        try {
-            Craft::$app->getQueue()->delay(300)->push(new CleanupExportsJob([
-                'reschedule' => true,
-            ]));
-            $this->assertSame(1, $this->countQueueRows('CleanupExportsJob'));
-
-            ReportManager::getInstance()->scheduleExportCleanupJob();
-
-            $this->assertSame(1, $this->countQueueRows('CleanupExportsJob'));
-        } finally {
-            $settings->autoCleanupExports = $originalAutoCleanupExports;
-            $settings->exportRetention = $originalExportRetention;
-        }
-    }
-
-    public function testCleanupBootstrapUsesCanonicalDailyRun(): void
-    {
-        $settings = $this->settings();
-        $originalAutoCleanupExports = $settings->autoCleanupExports;
-        $originalExportRetention = $settings->exportRetention;
-
-        $settings->autoCleanupExports = true;
-        $settings->exportRetention = 30;
-
-        try {
-            ReportManager::getInstance()->scheduleExportCleanupJob();
-
-            $row = $this->latestQueueRow('CleanupExportsJob');
-            $this->assertNotNull($row);
-            $this->assertStringContainsString($this->expectedDailyRunTime(), (string) $row['description']);
-        } finally {
-            $settings->autoCleanupExports = $originalAutoCleanupExports;
-            $settings->exportRetention = $originalExportRetention;
-        }
-    }
-
-    public function testCleanupBootstrapCollapsesDuplicatePendingRows(): void
-    {
-        $settings = $this->settings();
-        $originalAutoCleanupExports = $settings->autoCleanupExports;
-        $originalExportRetention = $settings->exportRetention;
-
-        $settings->autoCleanupExports = true;
-        $settings->exportRetention = 30;
-
-        try {
-            Craft::$app->getQueue()->delay(300)->push(new CleanupExportsJob([
-                'reschedule' => true,
-            ]));
-            Craft::$app->getQueue()->delay(600)->push(new CleanupExportsJob([
-                'reschedule' => true,
-            ]));
-            $this->assertSame(2, $this->countQueueRows('CleanupExportsJob'));
-
-            ReportManager::getInstance()->scheduleExportCleanupJob();
-
-            $this->assertSame(1, $this->countQueueRows('CleanupExportsJob'));
-        } finally {
-            $settings->autoCleanupExports = $originalAutoCleanupExports;
-            $settings->exportRetention = $originalExportRetention;
-        }
-    }
-
     public function testScheduledReportGuardIgnoresFailedExistingReportRow(): void
     {
         $settings = $this->settings();
@@ -273,24 +173,11 @@ final class SchedulerPatternTest extends TestCase
 
     private function countQueueRows(string $jobClass): int
     {
-        return (int) (new \craft\db\Query())
+        return (int)(new \craft\db\Query())
             ->from('{{%queue}}')
             ->where(['like', 'job', 'reportmanager'])
             ->andWhere(['like', 'job', $jobClass])
             ->count();
-    }
-
-    private function latestQueueRow(string $jobClass): ?array
-    {
-        $row = (new \craft\db\Query())
-            ->select(['id', 'description'])
-            ->from('{{%queue}}')
-            ->where(['like', 'job', 'reportmanager'])
-            ->andWhere(['like', 'job', $jobClass])
-            ->orderBy(['id' => SORT_DESC])
-            ->one();
-
-        return is_array($row) ? $row : null;
     }
 
     private function countScheduledReportQueueRows(int $reportId): int
@@ -315,20 +202,6 @@ final class SchedulerPatternTest extends TestCase
             ->one();
 
         return is_array($row) ? $row : null;
-    }
-
-    private function expectedDailyRunTime(): string
-    {
-        $nextRun = ScheduleHelper::calculateNext('daily');
-        $this->assertNotNull($nextRun);
-
-        return DateFormatHelper::formatCompactDatetimeFromSettings(
-            $nextRun,
-            $this->settings(),
-            null,
-            false,
-            pluginHandle: 'report-manager',
-        );
     }
 
     private function scheduledReportQueueToken(int $reportId): string
@@ -357,24 +230,5 @@ final class SchedulerPatternTest extends TestCase
         $this->assertTrue($report->save(false));
 
         return $report;
-    }
-
-    private function deleteReportManagerQueueRows(): void
-    {
-        Craft::$app->getDb()->createCommand()
-            ->delete('{{%queue}}', [
-                'and',
-                ['like', 'job', 'reportmanager'],
-                [
-                    'or',
-                    ['like', 'job', 'CleanupExportsJob'],
-                    ['like', 'job', 'ProcessScheduledReportJob'],
-                ],
-            ])
-            ->execute();
-
-        Craft::$app->getDb()->createCommand()
-            ->delete(ReportRecord::tableName(), ['like', 'handle', self::MARKER])
-            ->execute();
     }
 }

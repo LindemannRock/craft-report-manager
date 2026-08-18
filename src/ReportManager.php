@@ -18,15 +18,12 @@ use craft\web\twig\variables\Cp;
 use craft\web\UrlManager;
 use lindemannrock\base\helpers\ColorHelper;
 use lindemannrock\base\helpers\CpNavHelper;
-use lindemannrock\base\helpers\DateFormatHelper;
 use lindemannrock\base\helpers\PluginHelper;
-use lindemannrock\base\helpers\RecurringQueueHelper;
-use lindemannrock\base\helpers\ScheduleHelper;
 use lindemannrock\logginglibrary\LoggingLibrary;
 use lindemannrock\logginglibrary\traits\LoggingTrait;
-use lindemannrock\reportmanager\jobs\CleanupExportsJob;
 use lindemannrock\reportmanager\models\Settings;
 use lindemannrock\reportmanager\services\DataSourcesService;
+use lindemannrock\reportmanager\services\ExportCleanupScheduler;
 use lindemannrock\reportmanager\services\ExportService;
 use lindemannrock\reportmanager\services\QueuedExportProvidersService;
 use lindemannrock\reportmanager\services\ReportsService;
@@ -41,6 +38,7 @@ use yii\base\Event;
  * @property DataSourcesService $dataSources
  * @property ReportsService $reports
  * @property ExportService $exports
+ * @property ExportCleanupScheduler $exportCleanupScheduler
  * @property QueuedExportProvidersService $queuedExportProviders
  * @property Settings $settings
  * @method Settings getSettings()
@@ -88,6 +86,7 @@ class ReportManager extends Plugin
                 'dataSources' => DataSourcesService::class,
                 'reports' => ReportsService::class,
                 'exports' => ExportService::class,
+                'exportCleanupScheduler' => ExportCleanupScheduler::class,
                 'queuedExportProviders' => QueuedExportProvidersService::class,
             ],
         ];
@@ -151,7 +150,7 @@ class ReportManager extends Plugin
         // Schedule recurring jobs (only on non-console requests to avoid running during migrations)
         if (!Craft::$app->getRequest()->getIsConsoleRequest()) {
             $this->scheduleReportJobs();
-            $this->scheduleExportCleanupJob();
+            $this->exportCleanupScheduler->synchronize();
         }
 
         Craft::info(
@@ -440,62 +439,14 @@ class ReportManager extends Plugin
     {
         $settings = $this->getSettings();
 
-        if (!$settings->autoCleanupExports || $settings->exportRetention <= 0) {
-            return;
-        }
-
-        $nextRun ??= ScheduleHelper::calculateNext('daily');
-
-        if ($nextRun === null) {
-            return;
-        }
-
-        $delay = max(0, $nextRun->getTimestamp() - DateFormatHelper::now()->getTimestamp());
-
-        if ($delay <= 0) {
-            return;
-        }
-
-        $nextRunTime = DateFormatHelper::formatCompactDatetimeFromSettings(
-            $nextRun,
-            $settings,
-            null,
-            false,
-            pluginHandle: 'report-manager',
-        );
-
-        $jobFactory = static fn(): CleanupExportsJob => new CleanupExportsJob([
-            'reschedule' => true,
-            'nextRunTime' => $nextRunTime,
-        ]);
-
         if ($checkExisting) {
-            $result = RecurringQueueHelper::ensurePending(
-                pluginToken: 'reportmanager',
-                jobClass: CleanupExportsJob::class,
-                delay: $delay,
-                jobFactory: $jobFactory,
-            );
+            $this->exportCleanupScheduler->synchronize($settings, $nextRun);
+            return;
+        }
 
-            if ($result->wasCreated()) {
-                $this->logInfo('Scheduled export cleanup job', [
-                    'delay_seconds' => $delay,
-                    'next_run' => $nextRunTime,
-                ]);
-            }
-
-            if ($result->duplicatesDeleted > 0) {
-                $this->logInfo('Collapsed duplicate export cleanup jobs', [
-                    'duplicates_deleted' => $result->duplicatesDeleted,
-                ]);
-            }
-        } else {
-            Craft::$app->getQueue()->delay($delay)->push($jobFactory());
-
-            $this->logInfo('Scheduled export cleanup job', [
-                'delay_seconds' => $delay,
-                'next_run' => $nextRunTime,
-            ]);
+        $nextRun ??= $this->exportCleanupScheduler->getNextRun($settings);
+        if ($nextRun !== null) {
+            $this->exportCleanupScheduler->scheduleSuccessor($settings, $nextRun);
         }
     }
 
@@ -506,7 +457,11 @@ class ReportManager extends Plugin
      */
     public function scheduleNextExportCleanupJob(): void
     {
-        $this->scheduleExportCleanupJob(ScheduleHelper::calculateNext('daily'), false);
+        $settings = $this->getSettings();
+        $nextRun = $this->exportCleanupScheduler->getNextRun($settings);
+        if ($nextRun !== null) {
+            $this->exportCleanupScheduler->scheduleSuccessor($settings, $nextRun);
+        }
     }
 
     /**
@@ -516,6 +471,6 @@ class ReportManager extends Plugin
      */
     public function deleteExportCleanupJobs(): int
     {
-        return RecurringQueueHelper::deletePending('reportmanager', CleanupExportsJob::class);
+        return $this->exportCleanupScheduler->cancel();
     }
 }

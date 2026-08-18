@@ -10,6 +10,7 @@ namespace lindemannrock\reportmanager\controllers;
 
 use Craft;
 use craft\web\Controller;
+use lindemannrock\base\helpers\PluginHelper;
 use lindemannrock\base\helpers\SettingsPostHelper;
 use lindemannrock\reportmanager\models\Settings;
 use lindemannrock\reportmanager\ReportManager;
@@ -129,7 +130,7 @@ class SettingsController extends Controller
             Craft::$app->getRequest()->getBodyParam('section', 'general'),
         );
         $scheduledReportsWereEnabled = $settings->enableScheduledReports;
-        $exportCleanupWasEnabled = $settings->autoCleanupExports && $settings->exportRetention > 0;
+        $exportCleanupWasEnabled = $plugin->exportCleanupScheduler->isEnabled($plugin->getSettings());
 
         $result = SettingsPostHelper::apply(
             model: $settings,
@@ -169,13 +170,9 @@ class SettingsController extends Controller
         }
 
         if ($section === 'export') {
-            $exportCleanupIsEnabled = $settings->autoCleanupExports && $settings->exportRetention > 0;
-
-            if ($exportCleanupWasEnabled && !$exportCleanupIsEnabled) {
-                $plugin->deleteExportCleanupJobs();
-            } elseif ($exportCleanupIsEnabled) {
-                $plugin->scheduleExportCleanupJob();
-            }
+            $savedSettings = Settings::loadFromDatabase();
+            PluginHelper::applyConfigOverridesToSettings($savedSettings, 'report-manager');
+            $plugin->exportCleanupScheduler->replaceIfChanged($savedSettings, $exportCleanupWasEnabled);
         }
 
         Craft::$app->getSession()->setNotice(Craft::t('report-manager', 'Settings saved.'));
