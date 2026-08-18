@@ -15,6 +15,7 @@ use craft\helpers\DateTimeHelper;
 use craft\helpers\Db;
 use craft\helpers\FileHelper;
 use DateTime;
+use lindemannrock\base\helpers\DateRangeHelper;
 use lindemannrock\base\helpers\ExportHelper;
 use lindemannrock\base\helpers\SafeSegmentHelper;
 use lindemannrock\base\helpers\StorageVolumeHelper;
@@ -24,6 +25,7 @@ use lindemannrock\reportmanager\export\QueuedExportContext;
 use lindemannrock\reportmanager\export\QueuedExportResult;
 use lindemannrock\reportmanager\export\StreamedExportWriter;
 use lindemannrock\reportmanager\records\ExportRecord;
+use lindemannrock\reportmanager\records\ReportRecord;
 use lindemannrock\reportmanager\ReportManager;
 use yii\db\Expression;
 
@@ -420,11 +422,10 @@ class ExportService extends Component
         }
 
         // Generate filename
-        $timestamp = (new DateTime())->format('Y-m-d_H-i-s');
-        $dataSourcePart = SafeSegmentHelper::filenamePart($dataSource, 'export');
-        $entityHandle = SafeSegmentHelper::filenamePart((string)($entity['handle'] ?? 'export'), 'export');
-        $extension = SafeSegmentHelper::filenamePart($format, 'csv');
-        $export->filename = "{$dataSourcePart}_{$entityHandle}_{$timestamp}.{$extension}";
+        $export->filename = $this->createStandardExportFilename(
+            $export,
+            (string)($entity['handle'] ?? 'export'),
+        );
 
         // Set file path based on storage type
         if ($this->_useVolume) {
@@ -1330,10 +1331,7 @@ class ExportService extends Component
         }
 
         // Generate filename
-        $timestamp = (new DateTime())->format('Y-m-d_H-i-s');
-        $dataSourcePart = SafeSegmentHelper::filenamePart($dataSource, 'export');
-        $extension = SafeSegmentHelper::filenamePart($format, 'csv');
-        $export->filename = "{$dataSourcePart}_combined_{$timestamp}.{$extension}";
+        $export->filename = $this->createStandardExportFilename($export, 'combined');
 
         // Set file path based on storage type
         if ($this->_useVolume) {
@@ -1656,6 +1654,67 @@ class ExportService extends Component
         }
 
         return $filename;
+    }
+
+    /**
+     * Build a descriptive filename for a standard data-source export.
+     *
+     * Saved reports use their unique handle as the prefix. Ad-hoc exports fall
+     * back to the data-source handle. The scope is an entity handle or the
+     * literal `combined`, followed by the configured date range when present.
+     */
+    private function createStandardExportFilename(ExportRecord $export, string $scope): string
+    {
+        $report = $export->reportId !== null ? ReportRecord::findOne($export->reportId) : null;
+        $prefix = $report?->handle ?: $export->dataSource;
+        $parts = [$scope];
+        $dateRangePart = $this->getDateRangeFilenamePart($export);
+
+        if ($dateRangePart !== null) {
+            $parts[] = $dateRangePart;
+        }
+
+        return ExportHelper::filename($prefix, $parts, $export->format);
+    }
+
+    /**
+     * Convert the export's date selection into a stable filename segment.
+     */
+    private function getDateRangeFilenamePart(ExportRecord $export): ?string
+    {
+        $dateRange = trim((string)$export->dateRangeUsed);
+
+        if ($dateRange === '') {
+            return null;
+        }
+
+        if ($dateRange === 'custom') {
+            $startDate = DateTimeHelper::toDateTime($export->dateStartUsed);
+            $endDate = DateTimeHelper::toDateTime($export->dateEndUsed);
+            $start = $startDate !== false ? $startDate->format('Y-m-d') : null;
+            $end = $endDate !== false ? $endDate->format('Y-m-d') : null;
+
+            if ($start !== null && $end !== null) {
+                return "{$start}-to-{$end}";
+            }
+
+            if ($start !== null) {
+                return "from-{$start}";
+            }
+
+            if ($end !== null) {
+                return "through-{$end}";
+            }
+
+            return 'custom';
+        }
+
+        $dateRange = DateRangeHelper::normalize($dateRange, $dateRange);
+        $dateRange = preg_replace('/([a-z])([A-Z])/', '$1-$2', $dateRange) ?? $dateRange;
+        $dateRange = preg_replace('/([A-Za-z])(\d)/', '$1-$2', $dateRange) ?? $dateRange;
+        $dateRange = preg_replace('/(\d)([A-Za-z])/', '$1-$2', $dateRange) ?? $dateRange;
+
+        return SafeSegmentHelper::filenamePart($dateRange, 'range');
     }
 
     /**

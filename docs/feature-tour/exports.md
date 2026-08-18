@@ -7,7 +7,7 @@ An **export** is a single generated file produced from a report (or a scheduled 
 | Format | Notes |
 |--------|-------|
 | **CSV** | Configurable delimiter, enclosure, and an optional UTF-8 BOM for Excel compatibility. |
-| **Excel (XLSX)** | Native spreadsheet output. Combined exports become a multi-sheet workbook. |
+| **Excel (XLSX)** | Native spreadsheet output. Combined exports include a source column that identifies each contributing entity. |
 | **JSON** | Structured output for programmatic consumption. |
 
 Which formats are offered is controlled by the CSV / JSON / Excel toggles in **Settings → Interface**. The pre-selected format for new reports is set by **Default Export Format** in **Settings → Export**.
@@ -36,6 +36,25 @@ Exports run through Craft's **queue**, not inline — so large exports don't tie
 ## Where Files Are Stored
 
 Exports are written either to the **local filesystem** (default: `@storage/report-manager/exports`) or to a **Craft asset volume**. Choose in **Settings → Export**. See [Configuration](../get-started/configuration.md#export-storage) for the storage rules.
+
+## How Files Are Named
+
+Files generated from a saved report begin with that report's unique handle, followed by the exported entity (or `combined`), the date-range selection, and the generation timestamp:
+
+```text
+{report-handle}-{entity-or-combined}-{date-range}-{YYYY-MM-DD-HHmmss}.{format}
+```
+
+For example:
+
+```text
+fpl-ar-combined-2024-07-25-to-2026-08-18-2026-08-18-150512.xlsx
+fpl-en-combined-last-12-months-2026-08-18-143918.xlsx
+```
+
+Custom ranges include their exact available boundaries: `2024-07-25-to-2026-08-18`, `from-2024-07-25`, or `through-2026-08-18`. Named ranges use readable stable names such as `last-30-days`, `this-month`, `last-quarter`, or `all`.
+
+Ad-hoc exports have no report handle, so they use the data-source handle as their prefix. Queued export providers continue to own their filenames and may supply a custom name.
 
 ## Viewing & Downloading
 
