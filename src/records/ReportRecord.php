@@ -10,6 +10,8 @@ namespace lindemannrock\reportmanager\records;
 
 use Craft;
 use craft\db\ActiveRecord;
+use craft\helpers\DateTimeHelper;
+use DateTime;
 use lindemannrock\base\helpers\ScheduleHelper;
 use lindemannrock\base\helpers\SlugHandleHelper;
 use lindemannrock\reportmanager\ReportManager;
@@ -257,6 +259,33 @@ class ReportRecord extends ActiveRecord
     public function isCombined(): bool
     {
         return $this->exportMode === 'combined';
+    }
+
+    /**
+     * Get the custom start date in Craft's configured timezone for display.
+     *
+     * @since 5.6.0
+     */
+    public function getCustomDateStartForDisplay(): ?DateTime
+    {
+        return $this->normalizeStoredDateForDisplay($this->customDateStart);
+    }
+
+    /**
+     * Get the custom end date in Craft's configured timezone for display.
+     *
+     * @since 5.6.0
+     */
+    public function getCustomDateEndForDisplay(): ?DateTime
+    {
+        return $this->normalizeStoredDateForDisplay($this->customDateEnd);
+    }
+
+    private function normalizeStoredDateForDisplay(mixed $value): ?DateTime
+    {
+        $date = DateTimeHelper::toDateTime($value);
+
+        return $date !== false ? $date : null;
     }
 
     /**

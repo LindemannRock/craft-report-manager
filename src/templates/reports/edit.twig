@@ -216,7 +216,7 @@
             label: 'Start Date'|t('report-manager'),
             id: 'customDateStart',
             name: 'customDateStart',
-            value: report.customDateStart,
+            value: report.customDateStartForDisplay,
             errors: report.getErrors('customDateStart'),
             fieldId: 'customDateStart-field',
             fieldClass: report.dateRange == 'custom' ? '' : 'hidden'
@@ -226,7 +226,7 @@
             label: 'End Date'|t('report-manager'),
             id: 'customDateEnd',
             name: 'customDateEnd',
-            value: report.customDateEnd,
+            value: report.customDateEndForDisplay,
             errors: report.getErrors('customDateEnd'),
             fieldId: 'customDateEnd-field',
             fieldClass: report.dateRange == 'custom' ? '' : 'hidden'
@@ -416,7 +416,7 @@ function appendEntityLabel($label, entity, labels) {
     var recordCount = entity.recordCount ?? entity.submissionCount ?? 0;
     var recordLabel = entity.recordLabel || getDataSourceLabel(labels, 'recordPlural', '{{ 'records'|t('report-manager')|e('js') }}');
 
-    $label.text(entity.name + ' - (' + recordCount + ' ' + recordLabel + ')');
+    $label.text(entity.name + ' - (' + Craft.formatNumber(recordCount) + ' ' + recordLabel + ')');
 }
 
 // Load entities when data source changes

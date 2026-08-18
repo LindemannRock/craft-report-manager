@@ -60,7 +60,7 @@
                             <label>
                                 <input type="checkbox" name="entityIds[]" value="{{ entity.id }}">
                                 <strong>{{ entity.name }}</strong>
-                                <span class="light">({{ recordCount }} {{ recordLabel }})</span>
+                                <span class="light">({{ recordCount|number }} {{ recordLabel }})</span>
                             </label>
                         </div>
                     {% else %}
@@ -170,7 +170,7 @@ function appendEntityLabel($label, entity, labels) {
     $label.append(' ');
     $label.append($('<strong>').text(entity.name));
     $label.append(' ');
-    $label.append($('<span class="light">').text('(' + recordCount + ' ' + recordLabel + ')'));
+    $label.append($('<span class="light">').text('(' + Craft.formatNumber(recordCount) + ' ' + recordLabel + ')'));
 }
 
 // Update selected count
