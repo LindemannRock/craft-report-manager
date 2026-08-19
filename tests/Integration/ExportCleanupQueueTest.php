@@ -23,6 +23,7 @@ use lindemannrock\base\queue\DeferredQueueJob;
 use lindemannrock\base\queue\PortableQueueScheduler;
 use lindemannrock\reportmanager\jobs\CleanupExportsJob;
 use lindemannrock\reportmanager\jobs\ProcessScheduledReportJob;
+use lindemannrock\reportmanager\ReportManager;
 use lindemannrock\reportmanager\services\ExportCleanupScheduler;
 use lindemannrock\reportmanager\services\ExportService;
 use lindemannrock\reportmanager\tests\Support\IsolatedQueue;
@@ -371,6 +372,78 @@ final class ExportCleanupQueueTest extends TestCase
         );
     }
 
+    public function testBootstrapLifecycleContentionIsNonfatalAndLeavesRowsUnchanged(): void
+    {
+        $this->enableCleanup();
+        $legacy = $this->serializeJob(new CleanupExportsJob(['reschedule' => true]));
+        $this->insertPayload($legacy, delay: 100);
+        $this->insertPayload($legacy, delay: 200);
+        $before = $this->queueFingerprints();
+        $mutex = new SelectiveCleanupMutex([ExportCleanupScheduler::LIFECYCLE_MUTEX]);
+        $original = Craft::$app->getMutex();
+        $logOffset = count(Craft::getLogger()->messages);
+        Craft::$app->set('mutex', $mutex);
+
+        try {
+            $this->exportCleanupScheduler->synchronizeOnBootstrap($this->settings());
+        } finally {
+            Craft::$app->set('mutex', $original);
+        }
+
+        self::assertSame($before, $this->queueFingerprints());
+        self::assertSame([ExportCleanupScheduler::LIFECYCLE_MUTEX], $mutex->acquisitions);
+        self::assertSame([0], $mutex->timeouts);
+        self::assertSame([], $mutex->releases);
+        $this->assertBootstrapWarningLogged($logOffset, 'lifecycle');
+    }
+
+    public function testBootstrapPortableContentionIsNonfatalAndReleasesLifecycleWithoutInspectingRows(): void
+    {
+        $this->enableCleanup();
+        $legacy = $this->serializeJob(new CleanupExportsJob(['reschedule' => true]));
+        $this->insertPayload($legacy, delay: 100);
+        $this->insertPayload($legacy, delay: 200);
+        $before = $this->queueFingerprints();
+        $mutex = new SelectiveCleanupMutex([ExportCleanupScheduler::PORTABLE_MUTEX]);
+        $original = Craft::$app->getMutex();
+        $logOffset = count(Craft::getLogger()->messages);
+        Craft::$app->set('mutex', $mutex);
+
+        try {
+            $this->exportCleanupScheduler->synchronizeOnBootstrap($this->settings());
+        } finally {
+            Craft::$app->set('mutex', $original);
+        }
+
+        self::assertSame($before, $this->queueFingerprints());
+        self::assertSame([
+            ExportCleanupScheduler::LIFECYCLE_MUTEX,
+            ExportCleanupScheduler::PORTABLE_MUTEX,
+        ], $mutex->acquisitions);
+        self::assertSame([0, 0], $mutex->timeouts);
+        self::assertSame([ExportCleanupScheduler::LIFECYCLE_MUTEX], $mutex->releases);
+        self::assertFalse($mutex->holds(ExportCleanupScheduler::LIFECYCLE_MUTEX));
+        $this->assertBootstrapWarningLogged($logOffset, 'portable');
+    }
+
+    public function testLaterBootstrapReconcilesAfterContentionClears(): void
+    {
+        $this->enableCleanup();
+        $mutex = new SelectiveCleanupMutex([ExportCleanupScheduler::LIFECYCLE_MUTEX]);
+        $original = Craft::$app->getMutex();
+        Craft::$app->set('mutex', $mutex);
+
+        try {
+            $this->exportCleanupScheduler->synchronizeOnBootstrap($this->settings());
+        } finally {
+            Craft::$app->set('mutex', $original);
+        }
+
+        self::assertSame(0, $this->countOwnerRows());
+        $this->exportCleanupScheduler->synchronizeOnBootstrap($this->settings());
+        self::assertSame(1, $this->countOwnerRows());
+    }
+
     public function testDisabledBootstrapCancelsUnderLifecycleThenPortableLocks(): void
     {
         $this->pushOwnedJob($this->recurringJob('owner'), 300);
@@ -380,7 +453,7 @@ final class ExportCleanupQueueTest extends TestCase
         $this->settings()->autoCleanupExports = false;
 
         try {
-            $this->exportCleanupScheduler->synchronize($this->settings());
+            $this->exportCleanupScheduler->synchronizeOnBootstrap($this->settings());
         } finally {
             Craft::$app->set('mutex', $original);
         }
@@ -394,6 +467,26 @@ final class ExportCleanupQueueTest extends TestCase
             ExportCleanupScheduler::PORTABLE_MUTEX,
             ExportCleanupScheduler::LIFECYCLE_MUTEX,
         ], $mutex->releases);
+        self::assertSame([0, 0], $mutex->timeouts);
+    }
+
+    public function testDisabledBootstrapRetriesCancellationAfterContentionClears(): void
+    {
+        $this->pushOwnedJob($this->recurringJob('owner'), 300);
+        $this->settings()->autoCleanupExports = false;
+        $mutex = new SelectiveCleanupMutex([ExportCleanupScheduler::PORTABLE_MUTEX]);
+        $original = Craft::$app->getMutex();
+        Craft::$app->set('mutex', $mutex);
+
+        try {
+            $this->exportCleanupScheduler->synchronizeOnBootstrap($this->settings());
+        } finally {
+            Craft::$app->set('mutex', $original);
+        }
+
+        self::assertSame(1, $this->countOwnerRows());
+        $this->exportCleanupScheduler->synchronizeOnBootstrap($this->settings());
+        self::assertSame(0, $this->countOwnerRows());
     }
 
     public function testIncompleteCancellationRemainsObservable(): void
@@ -415,6 +508,47 @@ final class ExportCleanupQueueTest extends TestCase
         }
 
         self::assertSame(1, $this->countOwnerRows());
+    }
+
+    public function testBootstrapCancellationFailureAfterLockAcquisitionPropagates(): void
+    {
+        $this->pushOwnedJob($this->recurringJob('bootstrap-cancellation-failure'), 300);
+        $this->settings()->autoCleanupExports = false;
+        $db = Craft::$app->getDb();
+        $originalCommandClass = $db->commandClass;
+        $db->commandClass = FailingCleanupDeleteCommand::class;
+        FailingCleanupDeleteCommand::$failQueueDelete = true;
+
+        try {
+            $this->exportCleanupScheduler->synchronizeOnBootstrap($this->settings());
+            self::fail('Expected bootstrap cancellation failure to remain observable.');
+        } catch (\RuntimeException $exception) {
+            self::assertSame('Export-cleanup queue cancellation was incomplete.', $exception->getMessage());
+        } finally {
+            FailingCleanupDeleteCommand::$failQueueDelete = false;
+            $db->commandClass = $originalCommandClass;
+        }
+
+        self::assertSame(1, $this->countOwnerRows());
+    }
+
+    public function testBootstrapInspectionFailureAfterLockAcquisitionPropagates(): void
+    {
+        $this->enableCleanup();
+        $db = Craft::$app->getDb();
+        $originalCommandClass = $db->commandClass;
+        $db->commandClass = FailingCleanupDeleteCommand::class;
+        FailingCleanupDeleteCommand::$failQueueInspection = true;
+
+        try {
+            $this->exportCleanupScheduler->synchronizeOnBootstrap($this->settings());
+            self::fail('Expected bootstrap inspection failure to remain observable.');
+        } catch (\RuntimeException $exception) {
+            self::assertSame('Export cleanup inspection failed.', $exception->getMessage());
+        } finally {
+            FailingCleanupDeleteCommand::$failQueueInspection = false;
+            $db->commandClass = $originalCommandClass;
+        }
     }
 
     public function testPortableLockFailureLeavesRowsUninspectedAndUnchanged(): void
@@ -440,6 +574,107 @@ final class ExportCleanupQueueTest extends TestCase
             ExportCleanupScheduler::LIFECYCLE_MUTEX,
             ExportCleanupScheduler::PORTABLE_MUTEX,
         ], $mutex->acquisitions);
+        self::assertSame([5, 5], $mutex->timeouts);
+    }
+
+    public function testExplicitSynchronizationRemainsStrictOnLifecycleContention(): void
+    {
+        $this->enableCleanup();
+        $mutex = new SelectiveCleanupMutex([ExportCleanupScheduler::LIFECYCLE_MUTEX]);
+        $original = Craft::$app->getMutex();
+        Craft::$app->set('mutex', $mutex);
+
+        try {
+            $this->exportCleanupScheduler->synchronize($this->settings());
+            self::fail('Expected lifecycle lock failure.');
+        } catch (\RuntimeException $exception) {
+            self::assertSame('Unable to acquire the export-cleanup lifecycle lock.', $exception->getMessage());
+        } finally {
+            Craft::$app->set('mutex', $original);
+        }
+
+        self::assertSame([5], $mutex->timeouts);
+    }
+
+    #[DataProvider('strictLockContentionProvider')]
+    public function testScheduleExportCleanupCompatibilityPathRemainsStrict(
+        string $lockName,
+        string $expectedMessage,
+    ): void {
+        $this->enableCleanup();
+        $mutex = new SelectiveCleanupMutex([$lockName]);
+        $original = Craft::$app->getMutex();
+        Craft::$app->set('mutex', $mutex);
+
+        try {
+            ReportManager::$plugin->scheduleExportCleanupJob(checkExisting: true);
+            self::fail('Expected compatibility scheduling lock failure.');
+        } catch (\RuntimeException $exception) {
+            self::assertSame($expectedMessage, $exception->getMessage());
+        } finally {
+            Craft::$app->set('mutex', $original);
+        }
+
+        self::assertContains(5, $mutex->timeouts);
+    }
+
+    #[DataProvider('strictLockContentionProvider')]
+    public function testSettingsReplacementRemainsStrictDuringLockContention(
+        string $lockName,
+        string $expectedMessage,
+    ): void {
+        $this->enableCleanup();
+        $mutex = new SelectiveCleanupMutex([$lockName]);
+        $original = Craft::$app->getMutex();
+        Craft::$app->set('mutex', $mutex);
+
+        try {
+            $this->exportCleanupScheduler->replaceIfChanged($this->settings(), false);
+            self::fail('Expected settings replacement lock failure.');
+        } catch (\RuntimeException $exception) {
+            self::assertSame($expectedMessage, $exception->getMessage());
+        } finally {
+            Craft::$app->set('mutex', $original);
+        }
+
+        self::assertSame(0, $this->countOwnerRows());
+        self::assertContains(5, $mutex->timeouts);
+    }
+
+    #[DataProvider('strictLockContentionProvider')]
+    public function testExplicitCancellationRemainsStrictDuringLockContention(
+        string $lockName,
+        string $expectedMessage,
+    ): void {
+        $this->pushOwnedJob($this->recurringJob('strict-cancellation'), 300);
+        $mutex = new SelectiveCleanupMutex([$lockName]);
+        $original = Craft::$app->getMutex();
+        Craft::$app->set('mutex', $mutex);
+
+        try {
+            $this->exportCleanupScheduler->cancel();
+            self::fail('Expected explicit cancellation lock failure.');
+        } catch (\RuntimeException $exception) {
+            self::assertSame($expectedMessage, $exception->getMessage());
+        } finally {
+            Craft::$app->set('mutex', $original);
+        }
+
+        self::assertSame(1, $this->countOwnerRows());
+        self::assertContains(5, $mutex->timeouts);
+    }
+
+    /** @return iterable<string, array{string, string}> */
+    public static function strictLockContentionProvider(): iterable
+    {
+        yield 'lifecycle lock' => [
+            ExportCleanupScheduler::LIFECYCLE_MUTEX,
+            'Unable to acquire the export-cleanup lifecycle lock.',
+        ];
+        yield 'portable lock' => [
+            ExportCleanupScheduler::PORTABLE_MUTEX,
+            'Unable to acquire the export-cleanup portable lock.',
+        ];
     }
 
     public function testCanonicalTargetDoesNotShiftWhileWaitingForThePortableLock(): void
@@ -454,7 +689,7 @@ final class ExportCleanupQueueTest extends TestCase
         Craft::$app->set('mutex', $mutex);
 
         try {
-            $this->exportCleanupScheduler->synchronize($this->settings());
+            $this->exportCleanupScheduler->synchronizeOnBootstrap($this->settings());
         } finally {
             Craft::$app->set('mutex', $original);
         }
@@ -462,6 +697,7 @@ final class ExportCleanupQueueTest extends TestCase
         $handoff = $this->unserializeJob($this->onlyOwnerRow());
         self::assertInstanceOf(DeferredQueueJob::class, $handoff);
         self::assertSame($target->getTimestamp(), $handoff->targetTimestamp);
+        self::assertSame([0, 0], $mutex->timeouts);
     }
 
     public function testDeferredContinuationUsesTheCleanupPortableMutex(): void
@@ -567,6 +803,32 @@ final class ExportCleanupQueueTest extends TestCase
 
         self::assertSame(1, $exports->cleanupCalls);
         self::assertSame(1, $this->countOwnerRows());
+    }
+
+    public function testCleanupRetainsLifecycleOwnershipThroughoutExecution(): void
+    {
+        $mutex = new SelectiveCleanupMutex([]);
+        $exports = new RecordingExportService();
+        $exports->beforeCleanup = static function() use ($mutex): void {
+            self::assertTrue($mutex->holds(ExportCleanupScheduler::LIFECYCLE_MUTEX));
+            self::assertFalse($mutex->holds(ExportCleanupScheduler::PORTABLE_MUTEX));
+        };
+        $this->swapPluginComponent('report-manager', 'exports', $exports);
+        $this->enableCleanup();
+        $original = Craft::$app->getMutex();
+        Craft::$app->set('mutex', $mutex);
+
+        try {
+            $this->recurringJob('lifecycle-ownership')->execute(Craft::$app->getQueue());
+        } finally {
+            Craft::$app->set('mutex', $original);
+        }
+
+        self::assertSame(1, $exports->cleanupCalls);
+        self::assertSame([
+            ExportCleanupScheduler::PORTABLE_MUTEX,
+            ExportCleanupScheduler::LIFECYCLE_MUTEX,
+        ], $mutex->releases);
     }
 
     public function testReservedLegacyCleanupFinishesIntoOnePortableSuccessor(): void
@@ -688,6 +950,32 @@ final class ExportCleanupQueueTest extends TestCase
             self::assertSame('Export cleanup proxy failure.', $exception->getMessage());
         }
         self::assertSame(1, $this->countOwnerRows());
+    }
+
+    public function testBootstrapPushFailureAfterLockAcquisitionPropagates(): void
+    {
+        $this->enableCleanup();
+        $this->installPortableQueue(true);
+        self::assertNotNull($this->proxyQueue);
+        $this->proxyQueue->failPushes = true;
+
+        try {
+            $this->exportCleanupScheduler->synchronizeOnBootstrap($this->settings());
+            self::fail('Expected bootstrap proxy push failure.');
+        } catch (\RuntimeException $exception) {
+            self::assertSame('Export cleanup proxy failure.', $exception->getMessage());
+        }
+
+        self::assertSame(1, $this->countOwnerRows());
+    }
+
+    public function testPluginBootstrapUsesOnlyTheOpportunisticReconciliationEntryPoint(): void
+    {
+        $source = file_get_contents(dirname(__DIR__, 2) . '/src/ReportManager.php');
+        self::assertIsString($source);
+
+        self::assertSame(1, substr_count($source, '$this->exportCleanupScheduler->synchronizeOnBootstrap();'));
+        self::assertSame(1, substr_count($source, '$this->exportCleanupScheduler->synchronize($settings, $nextRun);'));
     }
 
     public function testRuntimeHasNoCloudDependencyOrFilesystemPortabilityClaim(): void
@@ -849,6 +1137,40 @@ final class ExportCleanupQueueTest extends TestCase
         return (int)Craft::$app->getDb()->getLastInsertID();
     }
 
+    /** @return list<array<string, int|string|null>> */
+    private function queueFingerprints(): array
+    {
+        $rows = (new Query())
+            ->from('{{%queue}}')
+            ->select(['id', 'job', 'timePushed', 'delay', 'priority', 'ttr', 'timeUpdated', 'fail'])
+            ->orderBy(['id' => SORT_ASC])
+            ->all();
+
+        return array_map(static fn(array $row): array => [
+            'id' => (int)$row['id'],
+            'payloadHash' => hash('sha256', (string)$row['job']),
+            'timePushed' => (int)$row['timePushed'],
+            'delay' => (int)$row['delay'],
+            'priority' => (int)$row['priority'],
+            'ttr' => (int)$row['ttr'],
+            'timeUpdated' => $row['timeUpdated'] === null ? null : (int)$row['timeUpdated'],
+            'fail' => (int)$row['fail'],
+        ], $rows);
+    }
+
+    private function assertBootstrapWarningLogged(int $offset, string $lock): void
+    {
+        $messages = array_slice(Craft::getLogger()->messages, $offset);
+        $matching = array_filter(
+            $messages,
+            static fn(array $message): bool => ($message[2] ?? null) === 'report-manager'
+                && str_contains((string)($message[0] ?? ''), "the $lock lock is busy")
+                && str_contains((string)($message[0] ?? ''), 'a later request will retry'),
+        );
+
+        self::assertNotEmpty($matching);
+    }
+
     /** @return list<int> */
     private function proxyDelays(): array
     {
@@ -906,6 +1228,7 @@ final class RecordingUnknownQueue extends YiiQueue
 final class FailingCleanupDeleteCommand extends CraftCommand
 {
     public static bool $failQueueDelete = false;
+    public static bool $failQueueInspection = false;
 
     public function execute()
     {
@@ -915,6 +1238,15 @@ final class FailingCleanupDeleteCommand extends CraftCommand
 
         return parent::execute();
     }
+
+    protected function queryInternal($method, $fetchMode = null)
+    {
+        if (self::$failQueueInspection && str_contains($this->getRawSql(), 'FROM `queue`')) {
+            throw new \RuntimeException('Export cleanup inspection failed.');
+        }
+
+        return parent::queryInternal($method, $fetchMode);
+    }
 }
 
 /** Export seam that never reads or deletes generated export records or files. */
@@ -923,10 +1255,13 @@ final class RecordingExportService extends ExportService
     public int $cleanupCalls = 0;
     public int $deletedCount = 0;
     public ?\Throwable $failure = null;
+    public ?\Closure $beforeCleanup = null;
 
     public function cleanupOldExports(): int
     {
         $this->cleanupCalls++;
+        ($this->beforeCleanup ?? static function(): void {
+        })();
         if ($this->failure !== null) {
             throw $this->failure;
         }
@@ -942,6 +1277,10 @@ final class SelectiveCleanupMutex extends Mutex
     public array $acquisitions = [];
     /** @var list<string> */
     public array $releases = [];
+    /** @var list<int> */
+    public array $timeouts = [];
+    /** @var list<string> */
+    private array $heldNames = [];
 
     /** @param list<string> $failedNames */
     public function __construct(
@@ -955,18 +1294,34 @@ final class SelectiveCleanupMutex extends Mutex
     protected function acquireLock($name, $timeout = 0): bool
     {
         $this->acquisitions[] = (string)$name;
+        $this->timeouts[] = (int)$timeout;
         if ($name === ExportCleanupScheduler::PORTABLE_MUTEX && $this->portableTimestamp !== null) {
             DateTimeHelper::resume();
             DateTimeHelper::pause(new \DateTime('@' . $this->portableTimestamp));
         }
 
-        return !in_array($name, $this->failedNames, true);
+        if (in_array($name, $this->failedNames, true)) {
+            return false;
+        }
+
+        $this->heldNames[] = (string)$name;
+
+        return true;
     }
 
     protected function releaseLock($name): bool
     {
         $this->releases[] = (string)$name;
+        $this->heldNames = array_values(array_filter(
+            $this->heldNames,
+            static fn(string $heldName): bool => $heldName !== (string)$name,
+        ));
 
         return true;
+    }
+
+    public function holds(string $name): bool
+    {
+        return in_array($name, $this->heldNames, true);
     }
 }

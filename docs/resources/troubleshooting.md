@@ -51,6 +51,8 @@ Craft stores queue job descriptions when rows are queued, so date/time format ch
 
 **Why it happens:** Cleanup runs through a separate recurring queue family from per-report schedules. On delay-limited queue backends, the queue may show a succession of handoffs capped at 900 seconds before the final cleanup consumer is dispatched. Those intermediate jobs do not delete exports. A successful cleanup creates one successor; a failed cleanup stays observable and does not schedule another occurrence until normal bootstrap or a settings transition repairs the family.
 
+A long-running cleanup can still own its lifecycle lock when another web or Control Panel request starts. Report Manager does not wait for that lock during ordinary bootstrap: it logs a warning, leaves every cleanup queue row untouched, and lets the request continue. A later request retries reconciliation automatically, so the warning alone does not mean cleanup failed or require manual queue changes.
+
 Turning cleanup off, or setting retention to `0`, cancels cleanup consumers and handoffs without changing report schedules. Re-enable cleanup with a positive retention value to create one daily chain. Do not delete queue rows manually as routine maintenance; use the settings transition so only Report Manager's cleanup family is affected.
 
 ## The Formie data source doesn't appear

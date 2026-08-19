@@ -29,6 +29,8 @@ use yii\db\Expression;
  */
 final class ExportCleanupScheduler extends Component
 {
+    private const BOOTSTRAP_MUTEX_TIMEOUT = 0;
+
     public const PLUGIN_TOKEN = 'reportmanager';
     public const RECURRING_OWNER = 'report-manager:export-cleanup:daily';
     public const LIFECYCLE_MUTEX = 'report-manager:export-cleanup:schedule';
@@ -36,20 +38,22 @@ final class ExportCleanupScheduler extends Component
 
     public int $mutexTimeout = 5;
 
-    /** Synchronize the cleanup family during plugin bootstrap. */
+    /** Synchronize the cleanup family for explicit and compatibility callers. */
     public function synchronize(?Settings $settings = null, ?DateTime $nextRun = null): void
     {
         $settings ??= ReportManager::$plugin->getSettings();
         $nextRun ??= $this->getNextRun($settings);
 
-        $this->withQueueMutationLocks(function() use ($settings, $nextRun): void {
-            if (!$this->isEnabled($settings) || $nextRun === null) {
-                $this->cancelLocked();
-                return;
-            }
+        $this->withQueueMutationLocks(fn() => $this->synchronizeLocked($settings, $nextRun));
+    }
 
-            $this->queueAtLocked($settings, $nextRun, true);
-        });
+    /** Reconcile during bootstrap without blocking an ordinary request on active cleanup work. */
+    public function synchronizeOnBootstrap(?Settings $settings = null, ?DateTime $nextRun = null): void
+    {
+        $settings ??= ReportManager::$plugin->getSettings();
+        $nextRun ??= $this->getNextRun($settings);
+
+        $this->withBootstrapQueueMutationLocks(fn() => $this->synchronizeLocked($settings, $nextRun));
     }
 
     /** Replace the cleanup family only when its effective policy changed. */
@@ -142,6 +146,16 @@ final class ExportCleanupScheduler extends Component
             false,
             pluginHandle: 'report-manager',
         );
+    }
+
+    private function synchronizeLocked(Settings $settings, ?DateTime $nextRun): void
+    {
+        if (!$this->isEnabled($settings) || $nextRun === null) {
+            $this->cancelLocked();
+            return;
+        }
+
+        $this->queueAtLocked($settings, $nextRun, true);
     }
 
     private function queueAtLocked(Settings $settings, DateTime $nextRun, bool $preserveHealthyLegacy): void
@@ -377,5 +391,38 @@ final class ExportCleanupScheduler extends Component
     private function withQueueMutationLocks(callable $callback): mixed
     {
         return $this->withLifecycleLock(fn() => $this->withPortableLock($callback));
+    }
+
+    /** @param callable(): void $callback */
+    private function withBootstrapQueueMutationLocks(callable $callback): void
+    {
+        $mutex = Craft::$app->getMutex();
+        if (!$mutex->acquire(self::LIFECYCLE_MUTEX, self::BOOTSTRAP_MUTEX_TIMEOUT)) {
+            $this->logSkippedBootstrapReconciliation('lifecycle');
+            return;
+        }
+
+        try {
+            if (!$mutex->acquire(self::PORTABLE_MUTEX, self::BOOTSTRAP_MUTEX_TIMEOUT)) {
+                $this->logSkippedBootstrapReconciliation('portable');
+                return;
+            }
+
+            try {
+                $callback();
+            } finally {
+                $mutex->release(self::PORTABLE_MUTEX);
+            }
+        } finally {
+            $mutex->release(self::LIFECYCLE_MUTEX);
+        }
+    }
+
+    private function logSkippedBootstrapReconciliation(string $lock): void
+    {
+        Craft::warning(
+            "Skipped export-cleanup bootstrap reconciliation because the $lock lock is busy; a later request will retry.",
+            'report-manager',
+        );
     }
 }

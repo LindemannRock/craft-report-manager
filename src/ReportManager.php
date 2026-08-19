@@ -150,7 +150,7 @@ class ReportManager extends Plugin
         // Schedule recurring jobs (only on non-console requests to avoid running during migrations)
         if (!Craft::$app->getRequest()->getIsConsoleRequest()) {
             $this->scheduleReportJobs();
-            $this->exportCleanupScheduler->synchronize();
+            $this->exportCleanupScheduler->synchronizeOnBootstrap();
         }
 
         Craft::info(
