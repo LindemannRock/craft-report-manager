@@ -212,6 +212,7 @@ return [
     'Custom Export Path' => 'Caminho de exportação personalizado',
     'The custom path where exports should be stored (only used when no volume is selected).' => 'O caminho personalizado onde as exportações devem ser armazenadas (usado apenas quando nenhum volume está selecionado).',
     'Export Location:' => 'Local de exportação:',
+    'This host has an ephemeral filesystem. Files in the effective local storage path may be lost during deployments, restarts, or environment replacement. Select a Craft volume backed by durable remote storage. On Craft Cloud, use a Cloud filesystem.' => 'Este anfitrião tem um sistema de ficheiros efémero. Os ficheiros no caminho de armazenamento local efetivo podem perder-se durante implementações, reinícios ou substituições do ambiente. Selecione um volume do Craft suportado por armazenamento remoto persistente. No Craft Cloud, utilize um sistema de ficheiros Cloud.',
     'Use Craft path aliases only: <code>@storage/report-manager/exports</code> (recommended) or <code>@root/exports/report-manager</code>. Paths must be outside webroot for security.' => 'Use apenas aliases de caminho do Craft: <code>@storage/report-manager/exports</code> (recomendado) ou <code>@root/exports/report-manager</code>. Os caminhos devem estar fora do webroot por segurança.',
     'CSV Settings' => 'Definições CSV',
     'CSV Delimiter' => 'Delimitador CSV',

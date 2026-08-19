@@ -61,6 +61,12 @@ By default exports are written to the local filesystem. Set a volume UID to stor
 > [!IMPORTANT]
 > `exportPath` must use a Craft path alias (`@storage` or `@root` only) and must resolve **outside** the webroot. Paths that resolve to the webroot, the project root, or contain `..` are rejected.
 
+Craft Cloud's application filesystem is ephemeral. On Craft Cloud, a custom/local path and a Craft volume backed by a local filesystem are unsafe for persistent exports, even when the path is outside `@webroot`. Select a volume using Craft Cloud's **Cloud** filesystem type. See Craft's [local filesystem migration guidance](https://craftcms.com/docs/cloud/assets.html#local).
+
+The Export settings warning uses the effective values after `config/report-manager.php` overrides, including an overridden volume UID or an override that selects the local path. It appears only on an ephemeral host when current behavior will use local storage. Missing or validation-invalid volumes and filesystem exceptions that currently fall back locally therefore warn; unavailable filesystems remain a separate failure state and are not classified as durable.
+
+A valid, successfully resolved non-local filesystem suppresses only this local-storage warning. That does not certify a third-party filesystem as fully compatible with Craft Cloud. The warning is informational and never rejects, rewrites, clears, disables, or persists a setting, and it does not change export generation, streaming, temporary staging, formats, queueing, download, cleanup, or retention behavior.
+
 ```php
 'exportPath' => '@storage/report-manager/exports', // recommended
 // or

@@ -49,6 +49,8 @@ Go to **Report Manager → Settings → Export**. By default, exports are writte
 > [!IMPORTANT]
 > Export paths must resolve outside the webroot. Use the `@storage` or `@root` aliases — a path that resolves to the webroot is rejected for security.
 
+On Craft Cloud, the application filesystem is ephemeral, so neither a custom/local path nor a Craft volume backed by a local filesystem is durable export storage. Select a volume using Craft Cloud's **Cloud** filesystem type. Report Manager's colored settings warning is informational and does not alter export behavior. See Craft's [local filesystem guidance](https://craftcms.com/docs/cloud/assets.html#local) and [Configuration](configuration.md#export-storage) for the complete warning rules.
+
 See [Configuration](configuration.md) for storage, format, and cleanup options.
 
 ### 2. Make Sure the Queue Runs

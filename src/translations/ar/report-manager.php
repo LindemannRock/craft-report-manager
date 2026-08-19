@@ -212,6 +212,7 @@ return [
     'Custom Export Path' => 'مسار التصدير المخصص',
     'The custom path where exports should be stored (only used when no volume is selected).' => 'المسار المخصص الذي يجب تخزين التصديرات فيه (يُستخدم فقط عند عدم تحديد وحدة تخزين).',
     'Export Location:' => 'موقع التصدير:',
+    'This host has an ephemeral filesystem. Files in the effective local storage path may be lost during deployments, restarts, or environment replacement. Select a Craft volume backed by durable remote storage. On Craft Cloud, use a Cloud filesystem.' => 'يحتوي هذا المضيف على نظام ملفات مؤقت. قد تُفقد الملفات الموجودة في مسار التخزين المحلي الفعلي أثناء عمليات النشر أو إعادة التشغيل أو استبدال البيئة. حدّد وحدة تخزين Craft مدعومة بتخزين بعيد دائم. على Craft Cloud، استخدم نظام ملفات Cloud.',
     'Use Craft path aliases only: <code>@storage/report-manager/exports</code> (recommended) or <code>@root/exports/report-manager</code>. Paths must be outside webroot for security.' => 'استخدم مستعارات مسارات Craft فقط: <code>@storage/report-manager/exports</code> (موصى به) أو <code>@root/exports/report-manager</code>. يجب أن تكون المسارات خارج webroot لأسباب أمنية.',
     'CSV Settings' => 'إعدادات CSV',
     'CSV Delimiter' => 'محدد حقول CSV',

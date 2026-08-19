@@ -37,6 +37,8 @@ Exports run through Craft's **queue**, not inline — so large exports don't tie
 
 Exports are written either to the **local filesystem** (default: `@storage/report-manager/exports`) or to a **Craft asset volume**. Choose in **Settings → Export**. See [Configuration](../get-started/configuration.md#export-storage) for the storage rules.
 
+Craft Cloud's application filesystem is ephemeral, so its local paths—and volumes backed by local filesystems—are not durable export storage. Use a volume with Craft Cloud's **Cloud** filesystem type; see Craft's [local filesystem guidance](https://craftcms.com/docs/cloud/assets.html#local). The Export settings page evaluates config-file overrides before showing its colored warning. A valid non-local filesystem suppresses only that warning, not a compatibility certification, and the notice never changes how exports are generated, streamed, queued, formatted, retained, or downloaded. Invalid local fallbacks and unavailable-volume failures remain separate runtime conditions.
+
 ## How Files Are Named
 
 Files generated from a saved report begin with that report's unique handle, followed by the exported entity (or `combined`), the date-range selection, and the generation timestamp:
@@ -63,7 +65,7 @@ There are two ways into the generated files:
 - **Per report** — open a report and use the **Generated Files** tab, or **View Generated** from the Reports list. This lists just that report's exports.
 - **Dashboard** — **Report Manager → Dashboard** shows every export across all reports, filterable by status, trigger type (manual / scheduled / API), and format.
 
-![An export detail page showing status, file details, and the date range used](images/exports-detail.webp)
+![An export detail page showing status, file details, and the date range used](../images/exports-detail.webp)
 
 Open any export to see its **detail page**: status, data source, entity, format, the date range used, file details (filename, records, size), timing (triggered by, created, started, completed), plus any warnings or error message. While an export is still pending or processing, the detail page shows a live progress bar that refreshes automatically. **Download** is available once the file is completed and present.
 

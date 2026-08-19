@@ -84,6 +84,14 @@ Turning cleanup off, or setting retention to `0`, cancels cleanup consumers and 
 
 **Why it happens:** Export paths are validated for security. A path that resolves into the webroot, to the project root, or contains `..` is rejected. To store exports elsewhere, select an asset volume instead.
 
+## Craft Cloud warns about local export storage
+
+Craft Cloud's application filesystem is ephemeral, so exports written to a custom/local path may disappear during deployments, restarts, or environment replacement. A selected Craft volume is also unsafe for persistent Cloud exports when its underlying filesystem is local. Choose a volume using Craft Cloud's **Cloud** filesystem type and review Craft's [local filesystem migration guidance](https://craftcms.com/docs/cloud/assets.html#local).
+
+The warning follows the effective `exportPath` and `exportVolumeUid` after `config/report-manager.php` overrides. Check the config file when CP fields are disabled or differ from their stored values. Successfully resolving a valid non-local filesystem suppresses this warning only and does not certify third-party Craft Cloud compatibility.
+
+The warning is informational and does not modify settings or runtime export behavior. Missing or validation-invalid volumes and supported filesystem exceptions retain the current local fallback and warn. A filesystem that remains unavailable is a separate failure, not durable storage; check Report Manager's logs and the failed export record for its actual error.
+
 ## A user can't see the reports or can't download
 
 **Quick checks:**

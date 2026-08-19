@@ -13,6 +13,7 @@ use craft\web\Controller;
 use lindemannrock\base\helpers\PluginHelper;
 use lindemannrock\base\helpers\SettingsPostHelper;
 use lindemannrock\reportmanager\models\Settings;
+use lindemannrock\reportmanager\presenters\StorageWarningPresentation;
 use lindemannrock\reportmanager\ReportManager;
 use yii\web\Response;
 
@@ -111,6 +112,7 @@ class SettingsController extends Controller
         return $this->renderTemplate('report-manager/settings/export', [
             'settings' => $settings,
             'selectedTab' => 'export',
+            'storageWarning' => StorageWarningPresentation::forSettings($settings),
         ]);
     }
 
@@ -145,20 +147,34 @@ class SettingsController extends Controller
         if ($result->hasErrors || !$settings->validate($attributesToValidate)) {
             Craft::$app->getSession()->setError(Craft::t('report-manager', 'Could not save settings.'));
 
-            return $this->renderTemplate('report-manager/settings/' . $section, [
+            $templateVariables = [
                 'settings' => $settings,
                 'selectedTab' => $section,
-            ]);
+            ];
+            if ($section === 'export') {
+                $effectiveSettings = clone $settings;
+                PluginHelper::applyConfigOverridesToSettings($effectiveSettings, 'report-manager');
+                $templateVariables['storageWarning'] = StorageWarningPresentation::forSettings($effectiveSettings);
+            }
+
+            return $this->renderTemplate('report-manager/settings/' . $section, $templateVariables);
         }
 
         // Save to database
         if (!$settings->saveToDatabase($attributesToValidate)) {
             Craft::$app->getSession()->setError(Craft::t('report-manager', 'Could not save settings.'));
 
-            return $this->renderTemplate('report-manager/settings/' . $section, [
+            $templateVariables = [
                 'settings' => $settings,
                 'selectedTab' => $section,
-            ]);
+            ];
+            if ($section === 'export') {
+                $effectiveSettings = clone $settings;
+                PluginHelper::applyConfigOverridesToSettings($effectiveSettings, 'report-manager');
+                $templateVariables['storageWarning'] = StorageWarningPresentation::forSettings($effectiveSettings);
+            }
+
+            return $this->renderTemplate('report-manager/settings/' . $section, $templateVariables);
         }
 
         if ($section === 'scheduling') {

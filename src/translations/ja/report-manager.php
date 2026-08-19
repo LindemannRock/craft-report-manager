@@ -212,6 +212,7 @@ return [
     'Custom Export Path' => 'カスタムエクスポートパス',
     'The custom path where exports should be stored (only used when no volume is selected).' => 'エクスポートを保存するカスタムパス（ボリュームが選択されていない場合のみ使用）。',
     'Export Location:' => 'エクスポートの保存先 :',
+    'This host has an ephemeral filesystem. Files in the effective local storage path may be lost during deployments, restarts, or environment replacement. Select a Craft volume backed by durable remote storage. On Craft Cloud, use a Cloud filesystem.' => 'このホストにはエフェメラルなファイルシステムがあります。有効なローカルストレージパス内のファイルは、デプロイ、再起動、または環境の置き換え時に失われる可能性があります。永続的なリモートストレージを使用する Craft ボリュームを選択してください。Craft Cloud では Cloud ファイルシステムを使用してください。',
     'Use Craft path aliases only: <code>@storage/report-manager/exports</code> (recommended) or <code>@root/exports/report-manager</code>. Paths must be outside webroot for security.' => 'Craft のパスエイリアスのみを使用してください: <code>@storage/report-manager/exports</code>（推奨）または <code>@root/exports/report-manager</code>。セキュリティのため、パスは webroot の外に置く必要があります。',
     'CSV Settings' => 'CSV 設定',
     'CSV Delimiter' => 'CSV デリミタ',

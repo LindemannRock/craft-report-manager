@@ -212,6 +212,7 @@ return [
     'Custom Export Path' => 'Aangepast exportpad',
     'The custom path where exports should be stored (only used when no volume is selected).' => 'Het aangepaste pad waar exports worden opgeslagen (alleen gebruikt wanneer er geen volume is geselecteerd).',
     'Export Location:' => 'Exportlocatie:',
+    'This host has an ephemeral filesystem. Files in the effective local storage path may be lost during deployments, restarts, or environment replacement. Select a Craft volume backed by durable remote storage. On Craft Cloud, use a Cloud filesystem.' => 'Deze host heeft een vluchtig bestandssysteem. Bestanden in het effectieve lokale opslagpad kunnen verloren gaan tijdens implementaties, herstarts of vervanging van de omgeving. Selecteer een Craft-volume met duurzame externe opslag. Gebruik op Craft Cloud een Cloud-bestandssysteem.',
     'Use Craft path aliases only: <code>@storage/report-manager/exports</code> (recommended) or <code>@root/exports/report-manager</code>. Paths must be outside webroot for security.' => 'Gebruik alleen Craft-padaliassen: <code>@storage/report-manager/exports</code> (aanbevolen) of <code>@root/exports/report-manager</code>. Paden moeten buiten de webroot liggen voor de beveiliging.',
     'CSV Settings' => 'CSV-instellingen',
     'CSV Delimiter' => 'CSV-scheidingsteken',
