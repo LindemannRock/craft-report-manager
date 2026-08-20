@@ -1101,31 +1101,132 @@ class ExportService extends Component
             throw new \Exception('Workbook export result did not include any sheets');
         }
 
-        $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
-        $usedTitles = [];
+        $spreadsheet = null;
+        $tempFile = null;
+        $operationFailure = null;
+        $fileResult = null;
+        $cleanupFailures = [];
 
-        foreach ($sheets as $index => $sheetData) {
-            $sheet = $index === 0 ? $spreadsheet->getActiveSheet() : $spreadsheet->createSheet($index);
-            $title = $this->sanitizeSheetTitle($sheetData['name'], $usedTitles);
-            $usedTitles[] = $title;
-            $sheet->setTitle($title);
-            $this->writeWorksheet(
-                $sheet,
-                $sheetData['headers'],
-                $sheetData['rows']
-            );
+        try {
+            $spreadsheet = $this->createProviderWorkbookSpreadsheet();
+            $usedTitles = [];
+
+            foreach ($sheets as $index => $sheetData) {
+                $sheet = $index === 0 ? $spreadsheet->getActiveSheet() : $spreadsheet->createSheet($index);
+                $title = $this->sanitizeSheetTitle($sheetData['name'], $usedTitles);
+                $usedTitles[] = $title;
+                $sheet->setTitle($title);
+                $this->writeWorksheet(
+                    $sheet,
+                    $sheetData['headers'],
+                    $sheetData['rows']
+                );
+            }
+
+            $tempFile = $this->allocateProviderWorkbookTempFile();
+            if ($tempFile === false) {
+                throw new \RuntimeException('Unable to create a temporary provider workbook file.');
+            }
+
+            $writer = $this->createProviderWorkbookWriter($spreadsheet);
+            $this->saveProviderWorkbook($writer, $tempFile);
+
+            $content = $this->readProviderWorkbookTempFile($tempFile);
+            if ($content === false) {
+                throw new \RuntimeException('Unable to read the temporary provider workbook file.');
+            }
+
+            $fileResult = $this->writeProviderWorkbookFile($export, $content);
+        } catch (\Throwable $exception) {
+            $operationFailure = $exception;
+        } finally {
+            if (is_string($tempFile)) {
+                try {
+                    $this->removeProviderWorkbookTempFile($tempFile);
+                } catch (\Throwable $exception) {
+                    $cleanupFailures[] = $exception;
+                }
+            }
+
+            if ($spreadsheet !== null) {
+                try {
+                    $spreadsheet->disconnectWorksheets();
+                } catch (\Throwable $exception) {
+                    $cleanupFailures[] = $exception;
+                }
+            }
+
+            foreach ($cleanupFailures as $cleanupFailure) {
+                try {
+                    $this->logWarning('Failed to clean up provider workbook staging', [
+                        'exportId' => $export->id,
+                        'error' => $cleanupFailure->getMessage(),
+                    ]);
+                } catch (\Throwable) {
+                    // Cleanup reporting must not replace the operational failure.
+                }
+            }
         }
 
-        $tempFile = tempnam(sys_get_temp_dir(), 'xlsx_');
-        $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
+        if ($operationFailure !== null) {
+            throw $operationFailure;
+        }
+
+        if ($cleanupFailures !== []) {
+            throw $cleanupFailures[0];
+        }
+
+        return $fileResult;
+    }
+
+    /** Create the spreadsheet used for one provider workbook. */
+    protected function createProviderWorkbookSpreadsheet(): \PhpOffice\PhpSpreadsheet\Spreadsheet
+    {
+        return new \PhpOffice\PhpSpreadsheet\Spreadsheet();
+    }
+
+    /** Allocate the exact temporary file owned by one provider workbook generation. */
+    protected function allocateProviderWorkbookTempFile(): string|false
+    {
+        return tempnam(sys_get_temp_dir(), 'xlsx_');
+    }
+
+    /** Create the XLSX writer for one provider workbook. */
+    protected function createProviderWorkbookWriter(
+        \PhpOffice\PhpSpreadsheet\Spreadsheet $spreadsheet,
+    ): \PhpOffice\PhpSpreadsheet\Writer\IWriter {
+        return new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
+    }
+
+    /** Save one provider workbook to its owned temporary file. */
+    protected function saveProviderWorkbook(
+        \PhpOffice\PhpSpreadsheet\Writer\IWriter $writer,
+        string $tempFile,
+    ): void {
         $writer->save($tempFile);
+    }
 
-        $content = file_get_contents($tempFile);
-        unlink($tempFile);
+    /** Read one completed provider workbook temporary file. */
+    protected function readProviderWorkbookTempFile(string $tempFile): string|false
+    {
+        return file_get_contents($tempFile);
+    }
 
-        $spreadsheet->disconnectWorksheets();
-        unset($spreadsheet);
+    /** Remove only the exact temporary file owned by one provider workbook generation. */
+    protected function removeProviderWorkbookTempFile(string $tempFile): void
+    {
+        if (!file_exists($tempFile)) {
+            return;
+        }
 
+        if (!FileHelper::unlink($tempFile)) {
+            throw new \RuntimeException("Unable to remove the temporary provider workbook file at {$tempFile}.");
+        }
+    }
+
+    /** Write completed provider workbook content through its recorded storage authority. */
+    protected function writeProviderWorkbookFile(ExportRecord $export, string $content): array
+    {
         return $this->_writeExportFile($export, $content);
     }
 
