@@ -1606,6 +1606,7 @@ class ExportService extends Component
      *
      * @param ExportRecord[] $exports Export records
      * @return array<int, array{available: bool, state: string, error: string|null, location: string}>
+     * @since 5.6.0
      */
     public function getFilePresentationMap(array $exports): array
     {
@@ -1622,6 +1623,7 @@ class ExportService extends Component
      * Get one export's record-specific storage presentation.
      *
      * @return array{available: bool, state: string, error: string|null, location: string}
+     * @since 5.6.0
      */
     public function getFilePresentation(ExportRecord $export): array
     {
@@ -1681,11 +1683,24 @@ class ExportService extends Component
         }
     }
 
+    /**
+     * Check whether an export is assigned to Craft volume storage.
+     *
+     * @param ExportRecord $export Export record
+     * @return bool
+     * @since 5.6.0
+     */
     public function isStoredOnVolume(ExportRecord $export): bool
     {
         return $export->storageType === ExportStorage::TYPE_VOLUME;
     }
 
+    /**
+     * Get the last storage operation error.
+     *
+     * @return string|null
+     * @since 5.6.0
+     */
     public function getLastStorageError(): ?string
     {
         return $this->_lastStorageError;
