@@ -55,6 +55,19 @@ A long-running cleanup can still own its lifecycle lock when another web or Cont
 
 Turning cleanup off, or setting retention to `0`, cancels cleanup consumers and handoffs without changing report schedules. Re-enable cleanup with a positive retention value to create one daily chain. Do not delete queue rows manually as routine maintenance; use the settings transition so only Report Manager's cleanup family is affected.
 
+## An export cannot be deleted
+
+**Quick checks:**
+
+1. Read the error returned by the single or bulk delete action. A storage-permission or availability error is retryable.
+2. Confirm the export's recorded local path or recorded Craft volume still exists and is writable. The volume currently selected in settings may be different and is not used for this export.
+3. For a volume export, verify the recorded volume UID, filesystem credentials, configured subpath, and provider availability.
+4. Retry the same export after restoring access. Do not remove its database row manually.
+
+**Why it happens:** Report Manager deletes only the exact location captured by the export record. It removes the database record only after the exact local file or volume object was deleted, or after that same authoritative location confirmed the file was already absent. Read-only storage, permission failures, unavailable providers, failed existence checks, failed local deletion, and other uncertain outcomes leave `storageType`, `storageVolumeUid`, and `filePath` unchanged so the operation can be retried safely.
+
+Bulk deletion can complete some selected exports while preserving others. Its response reports the deleted and failed counts; every failed row remains listed and retryable. Retention uses the same rule and counts only complete file-and-record deletions.
+
 ## The Formie data source doesn't appear
 
 **Quick checks:**

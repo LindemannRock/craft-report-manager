@@ -120,6 +120,7 @@ return [
     'Combined export generated successfully.' => 'Kombinerad export genererades utan problem.',
     'Combined export queued for generation.' => 'Kombinerad export köades för generering.',
     'Could not delete export.' => 'Det gick inte att ta bort exporten.',
+    'The export file could not be deleted from its recorded storage. Check the storage permissions and availability, then try again.' => 'Exportfilen kunde inte tas bort från den registrerade lagringsplatsen. Kontrollera lagringsbehörigheterna och tillgängligheten och försök igen.',
     'Could not delete report.' => 'Det gick inte att ta bort rapporten.',
     'Could not generate export.' => 'Det gick inte att generera exporten.',
     'No items selected for combined export' => 'Inga objekt valda för kombinerad export',

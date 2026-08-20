@@ -120,6 +120,7 @@ return [
     'Combined export generated successfully.' => 'Export combiné généré avec succès.',
     'Combined export queued for generation.' => 'Export combiné mis en file d\'attente pour génération.',
     'Could not delete export.' => 'Impossible de supprimer l\'export.',
+    'The export file could not be deleted from its recorded storage. Check the storage permissions and availability, then try again.' => 'Le fichier d\'export n\'a pas pu être supprimé de son stockage enregistré. Vérifiez les autorisations et la disponibilité du stockage, puis réessayez.',
     'Could not delete report.' => 'Impossible de supprimer le rapport.',
     'Could not generate export.' => 'Impossible de générer l\'export.',
     'No items selected for combined export' => 'Aucun élément sélectionné pour l’export combiné',

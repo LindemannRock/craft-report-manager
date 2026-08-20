@@ -120,6 +120,7 @@ return [
     'Combined export generated successfully.' => '結合エクスポートを正常に生成しました。',
     'Combined export queued for generation.' => '結合エクスポートを生成キューに追加しました。',
     'Could not delete export.' => 'エクスポートを削除できませんでした。',
+    'The export file could not be deleted from its recorded storage. Check the storage permissions and availability, then try again.' => 'エクスポートファイルを記録済みのストレージから削除できませんでした。ストレージの権限と可用性を確認してから、もう一度お試しください。',
     'Could not delete report.' => 'レポートを削除できませんでした。',
     'Could not generate export.' => 'エクスポートを生成できませんでした。',
     'No items selected for combined export' => '結合エクスポート用の項目が選択されていません',

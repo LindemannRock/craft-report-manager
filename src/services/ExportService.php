@@ -1462,17 +1462,15 @@ class ExportService extends Component
      */
     public function deleteExport(int $id): bool
     {
+        $this->_lastStorageError = null;
         $export = $this->getExportById($id);
 
         if (!$export) {
             return false;
         }
 
-        // Delete the file if it exists
-        if (!empty($export->filePath)) {
-            if (!$this->_deleteExportFile($export)) {
-                return false;
-            }
+        if (!$this->_deleteExportFile($export)) {
+            return false;
         }
 
         if (!$export->delete()) {
@@ -1497,26 +1495,43 @@ class ExportService extends Component
     {
         try {
             $storage = $this->_requireStorageForExport($export);
+            if ($export->filePath === '') {
+                $this->_lastStorageError = ExportStorage::deletionFailedMessage();
+                return false;
+            }
+
             if ($storage->isVolume()) {
                 $filesystem = $storage->filesystem();
                 if ($filesystem->fileExists($export->filePath)) {
                     $filesystem->deleteFile($export->filePath);
                 }
-            } else {
-                if (file_exists($export->filePath)) {
-                    unlink($export->filePath);
-                }
+
+                return true;
             }
+
+            if (!file_exists($export->filePath)) {
+                return true;
+            }
+
+            if (!@unlink($export->filePath)) {
+                $this->_lastStorageError = ExportStorage::deletionFailedMessage();
+                $this->logWarning('Failed to delete export file', [
+                    'path' => $export->filePath,
+                    'error' => 'Local unlink returned false.',
+                ]);
+                return false;
+            }
+
             return true;
         } catch (\Throwable $e) {
             $this->_lastStorageError = $e instanceof ExportStorageUnavailableException
                 ? $e->getMessage()
-                : ExportStorage::unavailableMessage();
+                : ExportStorage::deletionFailedMessage();
             $this->logWarning('Failed to delete export file', [
                 'path' => $export->filePath,
                 'error' => $e->getMessage(),
             ]);
-            return !$e instanceof ExportStorageUnavailableException || !ExportStorage::forRecord($export)->isUnresolved();
+            return false;
         }
     }
 

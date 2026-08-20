@@ -152,4 +152,12 @@ final class ExportStorage
             'This export was created before its storage location was recorded. Verify and assign its exact storage volume before downloading or deleting it.',
         );
     }
+
+    public static function deletionFailedMessage(): string
+    {
+        return Craft::t(
+            'report-manager',
+            'The export file could not be deleted from its recorded storage. Check the storage permissions and availability, then try again.',
+        );
+    }
 }

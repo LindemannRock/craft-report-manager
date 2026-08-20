@@ -120,6 +120,7 @@ return [
     'Combined export generated successfully.' => 'Esportazione combinata generata con successo.',
     'Combined export queued for generation.' => 'Esportazione combinata inserita in coda per la generazione.',
     'Could not delete export.' => 'Impossibile eliminare l\'esportazione.',
+    'The export file could not be deleted from its recorded storage. Check the storage permissions and availability, then try again.' => 'Non è stato possibile eliminare il file di esportazione dalla posizione di archiviazione registrata. Verificare le autorizzazioni e la disponibilità dello spazio di archiviazione, quindi riprovare.',
     'Could not delete report.' => 'Impossibile eliminare il report.',
     'Could not generate export.' => 'Impossibile generare l\'esportazione.',
     'No items selected for combined export' => 'Nessun elemento selezionato per l’esportazione combinata',

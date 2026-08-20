@@ -120,6 +120,7 @@ return [
     'Combined export generated successfully.' => 'Gecombineerde export succesvol gegenereerd.',
     'Combined export queued for generation.' => 'Gecombineerde export in de wachtrij geplaatst voor generatie.',
     'Could not delete export.' => 'Export kon niet worden verwijderd.',
+    'The export file could not be deleted from its recorded storage. Check the storage permissions and availability, then try again.' => 'Het exportbestand kon niet uit de vastgelegde opslag worden verwijderd. Controleer de opslagmachtigingen en beschikbaarheid en probeer het opnieuw.',
     'Could not delete report.' => 'Rapport kon niet worden verwijderd.',
     'Could not generate export.' => 'Export kon niet worden gegenereerd.',
     'No items selected for combined export' => 'Geen items geselecteerd voor gecombineerde export',

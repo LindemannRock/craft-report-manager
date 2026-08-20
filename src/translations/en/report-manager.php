@@ -118,6 +118,7 @@ return [
     'Combined export generated successfully.' => 'Combined export generated successfully.',
     'Combined export queued for generation.' => 'Combined export queued for generation.',
     'Could not delete export.' => 'Could not delete export.',
+    'The export file could not be deleted from its recorded storage. Check the storage permissions and availability, then try again.' => 'The export file could not be deleted from its recorded storage. Check the storage permissions and availability, then try again.',
     'Could not delete report.' => 'Could not delete report.',
     'Could not generate export.' => 'Could not generate export.',
     'No items selected for combined export' => 'No items selected for combined export',

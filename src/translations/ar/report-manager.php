@@ -120,6 +120,7 @@ return [
     'Combined export generated successfully.' => 'تم إنشاء التصدير المدمج بنجاح.',
     'Combined export queued for generation.' => 'تمت إضافة التصدير المدمج إلى قائمة الانتظار للإنشاء.',
     'Could not delete export.' => 'تعذّر حذف التصدير.',
+    'The export file could not be deleted from its recorded storage. Check the storage permissions and availability, then try again.' => 'تعذّر حذف ملف التصدير من موقع التخزين المسجّل له. تحقّق من أذونات التخزين ومدى توفّره، ثم أعد المحاولة.',
     'Could not delete report.' => 'تعذّر حذف التقرير.',
     'Could not generate export.' => 'تعذّر إنشاء التصدير.',
     'No items selected for combined export' => 'لم يتم تحديد عناصر للتصدير المدمج',

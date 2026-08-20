@@ -120,6 +120,7 @@ return [
     'Combined export generated successfully.' => 'Kombineret eksport genereret.',
     'Combined export queued for generation.' => 'Kombineret eksport sat i kø til generering.',
     'Could not delete export.' => 'Kunne ikke slette eksporten.',
+    'The export file could not be deleted from its recorded storage. Check the storage permissions and availability, then try again.' => 'Eksportfilen kunne ikke slettes fra den registrerede lagerplacering. Kontrollér lagertilladelserne og tilgængeligheden, og prøv igen.',
     'Could not delete report.' => 'Kunne ikke slette rapporten.',
     'Could not generate export.' => 'Kunne ikke generere eksporten.',
     'No items selected for combined export' => 'Ingen elementer valgt til kombineret eksport',

@@ -273,7 +273,7 @@ final class ExportStorageResolutionTest extends TestCase
         self::assertSame([], array_values(array_diff(scandir($decoy) ?: [], ['.', '..'])));
     }
 
-    public function testThrowingDeleteUsesTheWrapperWithoutLocalFallbackAndLeavesPr14PolicyUntouched(): void
+    public function testThrowingDeleteUsesTheWrapperWithoutLocalFallbackAndPreservesTheRecord(): void
     {
         $this->installStubProviderService();
         $decoy = $this->createTrackedTempDirectory('report-delete-decoy-');
@@ -294,9 +294,9 @@ final class ExportStorageResolutionTest extends TestCase
         $export->status = ExportRecord::STATUS_COMPLETED;
         self::assertTrue($export->save());
 
-        self::assertTrue($this->exports->deleteExport((int)$export->id));
-        self::assertNull(ExportRecord::findOne($export->id));
-        self::assertSame(self::ERROR, $this->exports->getStorageError());
+        self::assertFalse($this->exports->deleteExport((int)$export->id));
+        self::assertNotNull(ExportRecord::findOne($export->id));
+        self::assertSame(ExportStorage::deletionFailedMessage(), $this->exports->getStorageError());
         self::assertSame([], array_values(array_diff(scandir($decoy) ?: [], ['.', '..'])));
     }
 

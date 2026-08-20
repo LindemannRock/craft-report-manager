@@ -517,16 +517,27 @@ class ExportsController extends Controller
 
         $plugin = ReportManager::getInstance();
         $deleted = 0;
+        $failedIds = [];
+        $errors = [];
 
         foreach ($exportIds as $exportId) {
-            if ($plugin->exports->deleteExport((int) $exportId)) {
+            $exportId = (int) $exportId;
+            if ($plugin->exports->deleteExport($exportId)) {
                 $deleted++;
+                continue;
             }
+
+            $failedIds[] = $exportId;
+            $errors[] = $plugin->exports->getLastStorageError()
+                ?? Craft::t('report-manager', 'Could not delete export.');
         }
 
         return $this->asJson([
-            'success' => true,
+            'success' => $failedIds === [],
             'deleted' => $deleted,
+            'failed' => count($failedIds),
+            'failedIds' => $failedIds,
+            'error' => $errors[0] ?? null,
         ]);
     }
 
