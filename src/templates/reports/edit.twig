@@ -176,7 +176,7 @@
             {% include 'report-manager/reports/_partials/generated-files' with {
                 report: report,
                 exports: generatedExports,
-                exportFileExists: generatedExportFileExists,
+                exportStorage: generatedExportStorage,
                 totalCount: generatedExportsTotalCount,
                 canDownload: currentUser.can('reportManager:downloadExports'),
             } only %}

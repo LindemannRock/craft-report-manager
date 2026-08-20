@@ -143,6 +143,8 @@ final class ExportVolumeSubpathTest extends TestCase
         $provider = $this->exports->createQueuedExport(StubQueuedExportProvider::handle(), 'csv');
 
         foreach ([$manual, $scheduled, $combined, $provider] as $export) {
+            self::assertSame('volume', $export->storageType);
+            self::assertSame(self::VOLUME_UID, $export->storageVolumeUid);
             self::assertStringStartsWith('report-manager/exports/', $export->filePath);
             self::assertStringNotContainsString(self::VOLUME_SUBPATH, $export->filePath);
         }
@@ -154,6 +156,8 @@ final class ExportVolumeSubpathTest extends TestCase
         $fresh = ExportRecord::findOne($export->id);
         self::assertNotNull($fresh);
         self::assertSame(ExportRecord::STATUS_COMPLETED, $fresh->status);
+        self::assertSame('volume', $fresh->storageType);
+        self::assertSame(self::VOLUME_UID, $fresh->storageVolumeUid);
         self::assertStringStartsWith('report-manager/exports/', $fresh->filePath);
         self::assertStringNotContainsString(self::VOLUME_SUBPATH, $fresh->filePath);
 

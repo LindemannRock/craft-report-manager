@@ -18,6 +18,7 @@ use craft\models\Volume;
 use lindemannrock\base\helpers\StorageVolumeHelper;
 use lindemannrock\reportmanager\exceptions\ExportStorageUnavailableException;
 use lindemannrock\reportmanager\models\Settings;
+use lindemannrock\reportmanager\records\ExportRecord;
 use Throwable;
 
 /**
@@ -30,6 +31,7 @@ final class ExportStorage
     public const TYPE_LOCAL = 'local';
     public const TYPE_VOLUME = 'volume';
     public const TYPE_UNAVAILABLE = 'unavailable';
+    public const TYPE_UNRESOLVED = 'unresolved';
     public const EXPORT_SUBPATH = 'report-manager/exports';
 
     private function __construct(
@@ -51,6 +53,27 @@ final class ExportStorage
             return new self(self::TYPE_LOCAL, localPath: $localPath);
         }
 
+        return self::forVolumeUid($volumeUid);
+    }
+
+    public static function forRecord(ExportRecord $export): self
+    {
+        if ($export->storageType === self::TYPE_LOCAL) {
+            return new self(
+                self::TYPE_LOCAL,
+                localPath: rtrim(dirname($export->filePath), DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR,
+            );
+        }
+
+        if ($export->storageType === self::TYPE_VOLUME && trim((string)$export->storageVolumeUid) !== '') {
+            return self::forVolumeUid(trim((string)$export->storageVolumeUid));
+        }
+
+        return new self(self::TYPE_UNRESOLVED);
+    }
+
+    private static function forVolumeUid(string $volumeUid): self
+    {
         try {
             $validationErrors = StorageVolumeHelper::validateVolume($volumeUid);
             if ($validationErrors !== []) {
@@ -92,6 +115,11 @@ final class ExportStorage
         return $this->type === self::TYPE_UNAVAILABLE;
     }
 
+    public function isUnresolved(): bool
+    {
+        return $this->type === self::TYPE_UNRESOLVED;
+    }
+
     public function filesystem(): BaseFsInterface
     {
         if ($this->volume instanceof Volume) {
@@ -104,7 +132,7 @@ final class ExportStorage
     public function unavailableException(?Throwable $cause = null): ExportStorageUnavailableException
     {
         return new ExportStorageUnavailableException(
-            self::unavailableMessage(),
+            $this->isUnresolved() ? self::unresolvedMessage() : self::unavailableMessage(),
             previous: $cause ?? $this->cause,
         );
     }
@@ -114,6 +142,14 @@ final class ExportStorage
         return Craft::t(
             'report-manager',
             'The configured export volume is unavailable. Check its volume and filesystem configuration, then try again.',
+        );
+    }
+
+    public static function unresolvedMessage(): string
+    {
+        return Craft::t(
+            'report-manager',
+            'This export was created before its storage location was recorded. Verify and assign its exact storage volume before downloading or deleting it.',
         );
     }
 }

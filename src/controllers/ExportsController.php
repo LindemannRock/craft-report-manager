@@ -120,15 +120,25 @@ class ExportsController extends Controller
         ]);
 
         $exportStats = $plugin->exports->getExportStats();
-        $exportFileExists = $plugin->exports->getFileAvailabilityMap($result['exports']);
-        $storageError = $plugin->exports->getStorageError();
+        $exportStorage = $plugin->exports->getFilePresentationMap($result['exports']);
+        $storageError = null;
+        foreach ($exportStorage as $storagePresentation) {
+            if ($storagePresentation['state'] === 'unavailable') {
+                $storageError = $storagePresentation['error'];
+                break;
+            }
+        }
 
         $userComponent = Craft::$app->getUser();
 
         return $this->renderTemplate('report-manager/exports/index', [
             'settings' => $settings,
             'exports' => $result['exports'],
-            'exportFileExists' => $exportFileExists,
+            'exportStorage' => $exportStorage,
+            'hasUnresolvedStorage' => array_filter(
+                $exportStorage,
+                static fn(array $item): bool => $item['state'] === 'unresolved',
+            ) !== [],
             'storageError' => $storageError,
             'exportStats' => $exportStats,
             'statusFilter' => $statusFilter,
@@ -165,13 +175,9 @@ class ExportsController extends Controller
         }
 
         $report = $export->reportId !== null ? ReportRecord::findOne($export->reportId) : null;
-        $storageError = null;
-        try {
-            $fileAvailable = $export->isCompleted() && $plugin->exports->fileExists($export);
-        } catch (ExportStorageUnavailableException $exception) {
-            $fileAvailable = false;
-            $storageError = $exception->getMessage();
-        }
+        $storagePresentation = $plugin->exports->getFilePresentation($export);
+        $fileAvailable = $storagePresentation['available'];
+        $storageError = $storagePresentation['error'];
         $dataSources = $plugin->dataSources->getAvailableDataSources();
 
         return $this->renderTemplate('report-manager/exports/view', [
@@ -180,6 +186,7 @@ class ExportsController extends Controller
             'report' => $report,
             'fileAvailable' => $fileAvailable,
             'storageError' => $storageError,
+            'storagePresentation' => $storagePresentation,
             'dataSources' => $dataSources,
         ]);
     }
@@ -400,7 +407,7 @@ class ExportsController extends Controller
                 default => 'application/octet-stream',
             };
 
-            if ($plugin->exports->isUsingVolume()) {
+            if ($plugin->exports->isStoredOnVolume($export)) {
                 $content = $plugin->exports->getFileContent($export);
                 if ($content === null) {
                     throw new NotFoundHttpException(Craft::t('report-manager', 'Export file not found'));
@@ -440,7 +447,8 @@ class ExportsController extends Controller
         if (!$plugin->exports->deleteExport($exportId)) {
             return $this->asJson([
                 'success' => false,
-                'error' => Craft::t('report-manager', 'Could not delete export.'),
+                'error' => $plugin->exports->getLastStorageError()
+                    ?? Craft::t('report-manager', 'Could not delete export.'),
             ]);
         }
 
@@ -470,15 +478,9 @@ class ExportsController extends Controller
 
         $this->requireExportAccess($export, 'status', 'reportManager:manageExports');
 
-        $storageError = null;
-        $fileAvailable = false;
-        if ($export->isCompleted()) {
-            try {
-                $fileAvailable = $plugin->exports->fileExists($export);
-            } catch (ExportStorageUnavailableException $exception) {
-                $storageError = $exception->getMessage();
-            }
-        }
+        $storagePresentation = $plugin->exports->getFilePresentation($export);
+        $storageError = $storagePresentation['error'];
+        $fileAvailable = $storagePresentation['available'];
 
         return $this->asJson([
             'success' => true,

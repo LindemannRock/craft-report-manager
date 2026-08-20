@@ -197,6 +197,8 @@ class Install extends Migration
             'format' => $this->string(16)->notNull(),
             'filename' => $this->string(255)->notNull(),
             'filePath' => $this->text()->notNull(),
+            'storageType' => $this->string(16)->null(),
+            'storageVolumeUid' => $this->string(36)->null(),
             'fileSize' => $this->bigInteger()->notNull()->defaultValue(0),
             'recordCount' => $this->integer()->notNull()->defaultValue(0),
             // Status

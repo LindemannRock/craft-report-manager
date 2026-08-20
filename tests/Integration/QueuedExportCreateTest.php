@@ -36,6 +36,8 @@ final class QueuedExportCreateTest extends TestCase
     public function testCreateQueuedExportPersistsNormalizedPayloadAndProviderMetadata(): void
     {
         $this->installStubProviderService();
+        $this->settings()->exportVolumeUid = '';
+        $this->settings()->exportPath = $this->createTrackedTempDirectory('report-create-local-');
         StubQueuedExportProvider::$permissions = [
             'status' => '__rm_test_perm_status',
             'download' => '__rm_test_perm_download',
@@ -48,6 +50,9 @@ final class QueuedExportCreateTest extends TestCase
         );
 
         self::assertSame(ExportRecord::STATUS_PENDING, $export->status);
+        self::assertSame('local', $export->storageType);
+        self::assertNull($export->storageVolumeUid);
+        self::assertStringStartsWith('/', $export->filePath);
         self::assertSame(StubQueuedExportProvider::handle(), $export->providerHandle);
         self::assertSame(0, $export->entityId);
         self::assertTrue($export->isProviderExport());

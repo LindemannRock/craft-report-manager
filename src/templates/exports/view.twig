@@ -5,7 +5,9 @@
 {% set exportMetadata = export.getMetadataArray() %}
 {% set exportWarnings = export.getWarningsArray() %}
 {% set progressMessage = exportMetadata.progressMessage ?? null %}
-{% set isMissingFile = export.isCompleted() and not fileAvailable %}
+{% set isMissingFile = export.isCompleted() and storagePresentation.state == 'missing' %}
+{% set isUnresolvedStorage = storagePresentation.state == 'unresolved' %}
+{% set isUnavailableStorage = storagePresentation.state == 'unavailable' %}
 {% set crumbs = [
     { label: reportHelper.fullName, url: url('report-manager') },
 ] %}
@@ -48,8 +50,8 @@
                     <th style="width: 200px;">{{ 'Status'|t('report-manager') }}</th>
                     <td>
                         {% include 'lindemannrock-base/_components/badge' with {
-                            label: isMissingFile ? 'Missing file'|t('report-manager') : export.statusLabel,
-                            value: isMissingFile ? 'missing' : export.status,
+                            label: isUnresolvedStorage ? 'Unresolved storage'|t('report-manager') : (isUnavailableStorage ? 'Storage unavailable'|t('report-manager') : (isMissingFile ? 'Missing file'|t('report-manager') : export.statusLabel)),
+                            value: isUnresolvedStorage or isUnavailableStorage ? 'failed' : (isMissingFile ? 'missing' : export.status),
                             colorSet: 'exportStatus',
                         } only %}
                         {% if export.isProcessing %}
@@ -113,6 +115,16 @@
                     <th>{{ 'File Size'|t('report-manager') }}</th>
                     <td>{{ export.formattedFileSize }}</td>
                 </tr>
+                <tr>
+                    <th>{{ 'Export Storage'|t('report-manager') }}</th>
+                    <td><code>{{ storagePresentation.location }}</code></td>
+                </tr>
+                {% if isUnresolvedStorage %}
+                    <tr>
+                        <th>{{ 'Availability'|t('report-manager') }}</th>
+                        <td><span class="warning">{{ storagePresentation.error }}</span></td>
+                    </tr>
+                {% endif %}
                 {% if isMissingFile %}
                     <tr>
                         <th>{{ 'Availability'|t('report-manager') }}</th>

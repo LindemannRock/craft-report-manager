@@ -187,11 +187,12 @@ final class ExportStorageResolutionTest extends TestCase
             'path' => $root,
         ]);
         $volume = $this->remoteVolume($filesystem);
-        $this->installVolumes(null, $volume, $volume, $volume, $volume);
+        $this->installVolumes($volume);
         $this->settings()->exportVolumeUid = self::VOLUME_UID;
         $this->settings()->exportPath = $decoy;
 
         $export = $this->exports->createQueuedExport(StubQueuedExportProvider::handle(), 'csv');
+        $this->installVolumes(null);
         self::assertFalse($this->exports->generateQueuedExport($export));
         $failed = ExportRecord::findOne($export->id);
         self::assertNotNull($failed);
@@ -200,6 +201,7 @@ final class ExportStorageResolutionTest extends TestCase
         self::assertSame(self::VOLUME_UID, $this->settings()->exportVolumeUid);
         self::assertSame([], array_values(array_diff(scandir($decoy) ?: [], ['.', '..'])));
 
+        $this->installVolumes($volume);
         self::assertTrue($this->exports->generateQueuedExport($failed));
         $recovered = ExportRecord::findOne($export->id);
         self::assertNotNull($recovered);
@@ -302,6 +304,8 @@ final class ExportStorageResolutionTest extends TestCase
     {
         $export = new ExportRecord();
         $export->filePath = $path;
+        $export->storageType = ExportStorage::TYPE_VOLUME;
+        $export->storageVolumeUid = self::VOLUME_UID;
         $export->filename = basename($path);
         $export->status = ExportRecord::STATUS_COMPLETED;
         $export->format = 'csv';

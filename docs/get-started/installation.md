@@ -38,6 +38,12 @@ ddev craft plugin/install logging-library
 
 Or via the Control Panel: **Settings → Plugins → Logging Library → Install**
 
+## Existing Pre-Release Installations
+
+If your installation already has Report Manager export rows from a build that predates per-export storage identity, update the existing table with the additive one-off SQL procedure in [Upgrading pre-release export storage records](../resources/troubleshooting.md#upgrading-pre-release-export-storage-records). Back up and inventory the table first; do not uninstall or reinstall the plugin, reset the database, or bulk-assign relative paths to the currently selected volume.
+
+This pre-release correction adds nullable identity columns directly to the fresh-install schema. It intentionally has no migration class and keeps schema version `1.0.0`.
+
 ## Post-Install Setup
 
 After installing, complete these steps to get Report Manager working:

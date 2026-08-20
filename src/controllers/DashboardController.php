@@ -113,14 +113,14 @@ class DashboardController extends Controller
         $totalCount = $result['totalCount'];
         $totalPages = $result['totalPages'];
         $offset = $result['offset'];
-        $exportFileExists = $plugin->exports->getFileAvailabilityMap($exports);
+        $exportStorage = $plugin->exports->getFilePresentationMap($exports);
 
         $userComponent = Craft::$app->getUser();
 
         return $this->renderTemplate('report-manager/dashboard/index', [
             'settings' => $settings,
             'exports' => $exports,
-            'exportFileExists' => $exportFileExists,
+            'exportStorage' => $exportStorage,
             'statusFilter' => $statusFilter,
             'typeFilter' => $typeFilter,
             'formatFilter' => $formatFilter,

@@ -223,7 +223,7 @@ class ReportsController extends Controller
             $generatedExports = $generatedExportsResult['exports'];
             $generatedExportsTotalCount = $generatedExportsResult['totalCount'];
         }
-        $generatedExportFileExists = $plugin->exports->getFileAvailabilityMap($generatedExports);
+        $generatedExportStorage = $plugin->exports->getFilePresentationMap($generatedExports);
 
         // Build site options
         $siteOptions = [];
@@ -246,7 +246,7 @@ class ReportsController extends Controller
             'dateFieldOptions' => $dateFieldOptions,
             'canAccessGeneratedFiles' => $canAccessGeneratedFiles,
             'generatedExports' => $generatedExports,
-            'generatedExportFileExists' => $generatedExportFileExists,
+            'generatedExportStorage' => $generatedExportStorage,
             'generatedExportsTotalCount' => $generatedExportsTotalCount,
             'siteOptions' => $siteOptions,
             'dateRangeOptions' => $settings->getDateRangeOptions(true),
@@ -590,7 +590,7 @@ class ReportsController extends Controller
             'sort' => $sort,
             'dir' => $dir,
         ]);
-        $exportFileExists = $plugin->exports->getFileAvailabilityMap($result['exports']);
+        $exportStorage = $plugin->exports->getFilePresentationMap($result['exports']);
 
         $userComponent = Craft::$app->getUser();
 
@@ -599,7 +599,7 @@ class ReportsController extends Controller
             'report' => $report,
             'dataSourceLabels' => $plugin->dataSources->getDataSourceLabels($report->dataSource),
             'exports' => $result['exports'],
-            'exportFileExists' => $exportFileExists,
+            'exportStorage' => $exportStorage,
             'sort' => $sort,
             'dir' => $dir,
             'page' => $page,

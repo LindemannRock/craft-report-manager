@@ -29,7 +29,8 @@
                 {% else %}
                     {% set displayName = item.entityName ?? item.filename %}
                 {% endif %}
-                {% set fileAvailable = exportFileExists[item.id] ?? false %}
+                {% set storage = exportStorage[item.id] ?? {available: false, state: 'unresolved'} %}
+                {% set fileAvailable = storage.available %}
                 <div class="generated-file-row" style="display: flex; align-items: center; gap: 16px; padding: 14px 0; border-top: 1px solid var(--hairline-color);">
                     <div class="flex-grow" style="min-width: 0;">
                         <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
@@ -39,11 +40,14 @@
                                 <strong>{{ displayName }}</strong>
                             {% endif %}
                             {% include 'lindemannrock-base/_components/badge' with {
-                                label: item.isCompleted() and not fileAvailable ? 'Missing file'|t('report-manager') : item.statusLabel ~ (item.isProcessing() ? ' (' ~ item.progress ~ '%)' : ''),
-                                value: item.isCompleted() and not fileAvailable ? 'missing' : item.status,
+                                label: storage.state == 'unresolved' ? 'Unresolved storage'|t('report-manager') : (storage.state == 'unavailable' ? 'Storage unavailable'|t('report-manager') : (item.isCompleted() and storage.state == 'missing' ? 'Missing file'|t('report-manager') : item.statusLabel ~ (item.isProcessing() ? ' (' ~ item.progress ~ '%)' : ''))),
+                                value: storage.state in ['unresolved', 'unavailable'] ? 'failed' : (item.isCompleted() and storage.state == 'missing' ? 'missing' : item.status),
                                 colorSet: 'exportStatus',
                             } only %}
                         </div>
+                        {% if storage.error %}
+                            <div class="light" style="margin-top: 4px;">{{ storage.error }}</div>
+                        {% endif %}
                         <div class="light" style="margin-top: 4px;">
                             {{ item.format|upper }}
                             <span aria-hidden="true"> · </span>

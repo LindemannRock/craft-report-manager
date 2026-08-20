@@ -110,6 +110,14 @@
             allowHtml: false,
         } only %}
     {% endif %}
+    {% if hasUnresolvedStorage %}
+        {% include 'lindemannrock-base/_components/info-box' with {
+            message: 'This export was created before its storage location was recorded. Verify and assign its exact storage volume before downloading or deleting it.'|t('report-manager'),
+            type: 'warning',
+            variant: 'colored',
+            allowHtml: false,
+        } only %}
+    {% endif %}
 {% endblock %}
 
 {# ============================================================================
@@ -120,7 +128,8 @@
     {# Name #}
     <td>
         {% set displayName = item.filename ?? ('Export #' ~ item.id) %}
-        {% set fileAvailable = exportFileExists[item.id] ?? false %}
+        {% set storage = exportStorage[item.id] ?? {available: false, state: 'unresolved'} %}
+        {% set fileAvailable = storage.available %}
         {% if item.isCompleted() and canDownload and fileAvailable %}
             <a href="{{ url('report-manager/exports/download/' ~ item.id) }}">
                 <strong>{{ displayName }}</strong>
@@ -135,13 +144,18 @@
 
     {# Status #}
     <td>
-        {% set fileAvailable = exportFileExists[item.id] ?? false %}
-        {% set isMissingFile = item.isCompleted() and not fileAvailable and not storageError %}
+        {% set storage = exportStorage[item.id] ?? {available: false, state: 'unresolved'} %}
+        {% set isMissingFile = item.isCompleted() and storage.state == 'missing' %}
+        {% set isUnresolvedStorage = storage.state == 'unresolved' %}
+        {% set isUnavailableStorage = storage.state == 'unavailable' %}
         {% include 'lindemannrock-base/_components/badge' with {
-            label: isMissingFile ? 'Missing file'|t('report-manager') : item.statusLabel ~ (item.isProcessing() ? ' (' ~ item.progress ~ '%)' : ''),
-            value: isMissingFile ? 'missing' : item.status,
+            label: isUnresolvedStorage ? 'Unresolved storage'|t('report-manager') : (isUnavailableStorage ? 'Storage unavailable'|t('report-manager') : (isMissingFile ? 'Missing file'|t('report-manager') : item.statusLabel ~ (item.isProcessing() ? ' (' ~ item.progress ~ '%)' : ''))),
+            value: isUnresolvedStorage or isUnavailableStorage ? 'failed' : (isMissingFile ? 'missing' : item.status),
             colorSet: 'exportStatus',
         } only %}
+        {% if storage.error %}
+            <div class="light" style="margin-top: 4px;">{{ storage.error }}</div>
+        {% endif %}
     </td>
 
     {# Records #}
@@ -164,7 +178,8 @@
 
 {% block rowActions %}
     {% if showActionsColumn %}
-        {% set fileAvailable = exportFileExists[item.id] ?? false %}
+        {% set storage = exportStorage[item.id] ?? {available: false, state: 'unresolved'} %}
+        {% set fileAvailable = storage.available %}
         {% set displayName = item.entityName ?? ('Export #' ~ item.id) %}
 
         {% set actionItems = [

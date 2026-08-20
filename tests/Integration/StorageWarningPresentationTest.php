@@ -34,6 +34,7 @@ final class StorageWarningPresentationTest extends TestCase
 {
     private const WARNING = 'This host has an ephemeral filesystem. Files in the effective local storage path may be lost during deployments, restarts, or environment replacement. Select a Craft volume backed by durable remote storage. On Craft Cloud, use a Cloud filesystem.';
     private const UNAVAILABLE = 'The configured export volume is unavailable. Check its volume and filesystem configuration, then try again.';
+    private const UNRESOLVED = 'This export was created before its storage location was recorded. Verify and assign its exact storage volume before downloading or deleting it.';
 
     private bool $hadEphemeralSetting;
     private mixed $originalEphemeralSetting;
@@ -274,6 +275,7 @@ final class StorageWarningPresentationTest extends TestCase
             $catalogue = require dirname(__DIR__, 2) . "/src/translations/{$locale}/report-manager.php";
             self::assertArrayHasKey(self::WARNING, $catalogue);
             self::assertArrayHasKey(self::UNAVAILABLE, $catalogue);
+            self::assertArrayHasKey(self::UNRESOLVED, $catalogue);
         }
     }
 
@@ -296,7 +298,10 @@ final class StorageWarningPresentationTest extends TestCase
         $viewTemplate = (string)file_get_contents(dirname(__DIR__, 2) . '/src/templates/exports/view.twig');
 
         self::assertStringContainsString('{% block beforeTable %}', $indexTemplate);
-        self::assertStringContainsString('not storageError', $indexTemplate);
+        self::assertStringContainsString("storage.state == 'missing'", $indexTemplate);
+        self::assertStringContainsString("storage.state == 'unresolved'", $indexTemplate);
+        self::assertStringContainsString("storage.state == 'unavailable'", $indexTemplate);
+        self::assertStringContainsString(self::UNRESOLVED, $indexTemplate);
         self::assertStringContainsString('{% if storageError %}', $viewTemplate);
     }
 

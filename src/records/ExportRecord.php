@@ -36,6 +36,8 @@ use craft\helpers\Json;
  * @property string $format
  * @property string $filename
  * @property string $filePath
+ * @property string|null $storageType
+ * @property string|null $storageVolumeUid
  * @property int $fileSize
  * @property int $recordCount
  * @property string $status

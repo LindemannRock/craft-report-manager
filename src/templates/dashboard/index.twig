@@ -118,7 +118,8 @@
     {# Name #}
     <td data-column="entityName">
         {% set displayName = item.filename ?? ('Export #' ~ item.id) %}
-        {% set fileAvailable = exportFileExists[item.id] ?? false %}
+        {% set storage = exportStorage[item.id] ?? {available: false, state: 'unresolved'} %}
+        {% set fileAvailable = storage.available %}
         {% if item.isCompleted and canDownload and fileAvailable %}
             <a href="{{ url('report-manager/exports/download/' ~ item.id) }}">{{ displayName }}</a>
         {% else %}
@@ -128,13 +129,16 @@
 
     {# Status #}
     <td data-column="status">
-        {% set fileAvailable = exportFileExists[item.id] ?? false %}
-        {% set isMissingFile = item.isCompleted and not fileAvailable %}
+        {% set storage = exportStorage[item.id] ?? {available: false, state: 'unresolved'} %}
+        {% set isMissingFile = item.isCompleted and storage.state == 'missing' %}
         {% include 'lindemannrock-base/_components/badge' with {
-            label: isMissingFile ? 'Missing file'|t('report-manager') : item.statusLabel,
-            value: isMissingFile ? 'missing' : item.status,
+            label: storage.state == 'unresolved' ? 'Unresolved storage'|t('report-manager') : (storage.state == 'unavailable' ? 'Storage unavailable'|t('report-manager') : (isMissingFile ? 'Missing file'|t('report-manager') : item.statusLabel)),
+            value: storage.state in ['unresolved', 'unavailable'] ? 'failed' : (isMissingFile ? 'missing' : item.status),
             colorSet: 'exportStatus',
         } only %}
+        {% if storage.error %}
+            <div class="light" style="margin-top: 4px;">{{ storage.error }}</div>
+        {% endif %}
     </td>
 
     {# Format #}
@@ -180,7 +184,8 @@
    ============================================================================ #}
 
 {% block rowActions %}
-    {% set fileAvailable = exportFileExists[item.id] ?? false %}
+    {% set storage = exportStorage[item.id] ?? {available: false, state: 'unresolved'} %}
+    {% set fileAvailable = storage.available %}
     {% set displayName = item.filename ?: ('Export #' ~ item.id) %}
 
     {% set actionItems = [

@@ -29,12 +29,12 @@ Queued export providers have a separate contract: a provider that builds and ret
 
 **Quick checks:**
 
-1. Is **Settings → Scheduling → Enable Scheduled Reports** turned on? This master switch gates *all* scheduled reports.
+1. Is **Settings → Scheduling → Enable Scheduled Reports** turned on? This master switch gates _all_ scheduled reports.
 2. Does the individual report have its **Schedule** switch on, with a frequency selected?
 3. Is the report **Enabled**?
 4. Is a queue worker running? Scheduled runs are queued jobs too.
 
-**Why it happens:** A report only runs automatically when the global switch *and* the report's own switch are both on, the report is enabled, and the queue is processing. Check the report's **Next Run** time in the Reports list.
+**Why it happens:** A report only runs automatically when the global switch _and_ the report's own switch are both on, the report is enabled, and the queue is processing. Check the report's **Next Run** time in the Reports list.
 
 Report Manager owns one pending queue row per scheduled report. If a deployment or queue restore leaves duplicate pending rows for the same report, the scheduler collapses them automatically the next time it reconciles scheduled reports. Export cleanup uses a separate daily maintenance row and is also de-duplicated automatically.
 
@@ -59,7 +59,7 @@ Turning cleanup off, or setting retention to `0`, cancels cleanup consumers and 
 
 **Quick checks:**
 
-1. Is [Formie](https://verbb.io/craft-plugins/formie) installed *and* enabled (not just required in Composer)?
+1. Is [Formie](https://verbb.io/craft-plugins/formie) installed _and_ enabled (not just required in Composer)?
 2. Re-open **New Report** — the data source list is built from currently available sources.
 
 **Why it happens:** The Formie source reports itself unavailable unless the Formie plugin is enabled. Craft Entries and Craft Categories are always available and need no extra plugin.
@@ -70,13 +70,184 @@ Turning cleanup off, or setting retention to `0`, cancels cleanup consumers and 
 
 1. Is the export **Completed**? Pending/processing/failed exports have nothing to download.
 2. Was the file cleaned up? Exports older than the **Export Retention (Days)** value are deleted by auto-cleanup.
-3. Did the storage location change after the file was generated? Switching between local path and asset volume doesn't move existing files.
+3. Is the page showing **Missing file**, **Storage unavailable**, or **Unresolved storage**? They require different actions.
 
-**Why it happens:** The download action only serves a file that exists on disk (or in the volume). The export detail page shows an availability warning when the record exists but the file is gone.
+**Why it happens:** The download action only serves a completed file that exists in the storage captured when its export record was created. **Missing file** means that resolved location no longer contains the object. **Storage unavailable** means the recorded volume cannot currently resolve or operate. **Unresolved storage** means a legacy row has no proven ownership and is deliberately preserved without probing or guessing.
 
-If the page instead reports that the configured export volume is unavailable, check **Settings → Export → Export Volume** and the selected volume's filesystem configuration. A configured UID is authoritative: missing components, invalid volume configuration, provider errors, read-only credentials, and operational read/write failures stop the operation rather than falling back to `exportPath` or local storage. Report Manager keeps the UID unchanged and resolves it again on later operations, so repairing the same volume restores access without resaving the setting.
+For an unavailable recorded volume, inspect that exact volume UID and its filesystem configuration. Missing components, invalid configuration, provider errors, read-only credentials, and operational failures stop the operation rather than falling back to `exportPath`, local storage, or the volume currently selected in settings. Report Manager resolves the recorded UID again later, so repairing that same volume restores access.
 
-Do not move or delete an older export merely because canonical lookup cannot find it beneath the volume's configured subpath. Report Manager does not guess ownership or scan historical underlying-filesystem prefixes; preserve the record and object for a later storage-affinity correction.
+For unresolved storage, follow the evidence-driven upgrade process below. Do not move or delete the export, guess from current settings, or scan historical underlying-filesystem prefixes.
+
+## Upgrading pre-release export storage records
+
+This procedure is only for an existing pre-release installation whose exports table does not yet contain `storageType` and `storageVolumeUid`. Fresh installs create both nullable columns directly. Report Manager remains at schema version `1.0.0`; there is no migration file.
+
+The upgrade is additive. It must preserve every report, export, setting, queue row, and object. Replace `YOUR_PREFIX_` everywhere with the installation's exact Craft table prefix, including the trailing underscore when one exists. With no prefix, the table is `reportmanager_exports`.
+
+> [!CAUTION]
+> Back up the exact exports table before altering it. Record the database engine, resolved table name, schema, indexes, row count, ordered ID list, and a deterministic SHA-256 fingerprint of all original columns. Keep the backup until owner review. Do not use `DROP`, `TRUNCATE`, `DELETE`, table recreation, plugin reinstall, or a database reset.
+
+### Read-only preflight
+
+MySQL/MariaDB:
+
+```sql
+SELECT VERSION() AS databaseVersion, DATABASE() AS databaseName;
+SHOW COLUMNS FROM `YOUR_PREFIX_reportmanager_exports`;
+SHOW INDEX FROM `YOUR_PREFIX_reportmanager_exports`;
+SELECT COUNT(*) AS rowCount FROM `YOUR_PREFIX_reportmanager_exports`;
+SELECT `id`, `filePath`
+FROM `YOUR_PREFIX_reportmanager_exports`
+ORDER BY `id`;
+SELECT
+    SUM(CASE WHEN `filePath` LIKE '/%' THEN 1 ELSE 0 END) AS unixAbsolute,
+    SUM(CASE WHEN `filePath` NOT LIKE '/%' THEN 1 ELSE 0 END) AS otherPaths
+FROM `YOUR_PREFIX_reportmanager_exports`;
+```
+
+PostgreSQL:
+
+```sql
+SELECT version() AS database_version, current_database() AS database_name;
+SELECT column_name, data_type, character_maximum_length, is_nullable, column_default
+FROM information_schema.columns
+WHERE table_schema = current_schema()
+  AND table_name = 'YOUR_PREFIX_reportmanager_exports'
+ORDER BY ordinal_position;
+SELECT indexname, indexdef
+FROM pg_indexes
+WHERE schemaname = current_schema()
+  AND tablename = 'YOUR_PREFIX_reportmanager_exports'
+ORDER BY indexname;
+SELECT COUNT(*) AS "rowCount" FROM "YOUR_PREFIX_reportmanager_exports";
+SELECT "id", "filePath"
+FROM "YOUR_PREFIX_reportmanager_exports"
+ORDER BY "id";
+SELECT
+    COUNT(*) FILTER (WHERE "filePath" LIKE '/%') AS "unixAbsolute",
+    COUNT(*) FILTER (WHERE "filePath" NOT LIKE '/%') AS "otherPaths"
+FROM "YOUR_PREFIX_reportmanager_exports";
+```
+
+Confirm that neither new column exists. Create a table-only database dump in a non-repository location, then record its SHA-256. For deterministic data preservation, export this original-column query in stable `id` order before and after the upgrade and compare the file hashes byte-for-byte:
+
+```sql
+SELECT `id`, `reportId`, `dataSource`, `entityId`, `entityName`, `combinedEntityIds`,
+       `providerHandle`, `payload`, `metadata`, `warnings`, `dateRangeUsed`,
+       `dateStartUsed`, `dateEndUsed`, `dateFieldUsed`, `fieldHandlesUsed`,
+       `siteIdsUsed`, `format`, `filename`, `filePath`, `fileSize`, `recordCount`,
+       `status`, `progress`, `errorMessage`, `triggeredBy`, `triggeredByUserId`,
+       `startedAt`, `completedAt`, `dateCreated`, `dateUpdated`, `uid`
+FROM `YOUR_PREFIX_reportmanager_exports`
+ORDER BY `id`;
+```
+
+For PostgreSQL, use double quotes around the same identifiers and table name.
+
+### Add the identity columns and classify proven local rows
+
+MySQL/MariaDB:
+
+```sql
+ALTER TABLE `YOUR_PREFIX_reportmanager_exports`
+    ADD COLUMN `storageType` varchar(16) NULL AFTER `filePath`,
+    ADD COLUMN `storageVolumeUid` varchar(36) NULL AFTER `storageType`;
+
+UPDATE `YOUR_PREFIX_reportmanager_exports`
+SET `storageType` = 'local',
+    `storageVolumeUid` = NULL
+WHERE `storageType` IS NULL
+  AND `filePath` LIKE '/%';
+```
+
+PostgreSQL:
+
+```sql
+ALTER TABLE "YOUR_PREFIX_reportmanager_exports"
+    ADD COLUMN "storageType" varchar(16) NULL,
+    ADD COLUMN "storageVolumeUid" varchar(36) NULL;
+
+UPDATE "YOUR_PREFIX_reportmanager_exports"
+SET "storageType" = 'local',
+    "storageVolumeUid" = NULL
+WHERE "storageType" IS NULL
+  AND "filePath" LIKE '/%';
+```
+
+Only add a separate Windows drive-letter or UNC predicate when those paths actually exist and the exact predicate has been independently verified for the database engine. Do not add speculative path rules.
+
+> [!WARNING]
+> Never bulk-assign relative rows to the current volume. A current setting does not prove historical ownership. Do not use the underlying filesystem, scan arbitrary volumes or old prefixes, or move, copy, rewrite, or delete objects.
+
+A relative row can be assigned only when the exact volume UID is known, that volume resolves, Craft's Volume wrapper proves the exact recorded `filePath` exists, and the relationship is unambiguous. Review an evidence table containing row ID, path, candidate UID, wrapper existence result, and the reason before executing an exact-ID update:
+
+```sql
+UPDATE `YOUR_PREFIX_reportmanager_exports`
+SET `storageType` = 'volume',
+    `storageVolumeUid` = 'VERIFIED-VOLUME-UID'
+WHERE `storageType` IS NULL
+  AND `id` IN (REVIEWED_ID_1, REVIEWED_ID_2);
+```
+
+PostgreSQL:
+
+```sql
+UPDATE "YOUR_PREFIX_reportmanager_exports"
+SET "storageType" = 'volume',
+    "storageVolumeUid" = 'VERIFIED-VOLUME-UID'
+WHERE "storageType" IS NULL
+  AND "id" IN (REVIEWED_ID_1, REVIEWED_ID_2);
+```
+
+Rows that cannot meet every condition must keep both columns `NULL`.
+
+### Post-upgrade verification
+
+MySQL/MariaDB:
+
+```sql
+SHOW COLUMNS FROM `YOUR_PREFIX_reportmanager_exports`
+WHERE Field IN ('storageType', 'storageVolumeUid');
+SELECT COUNT(*) AS rowCount FROM `YOUR_PREFIX_reportmanager_exports`;
+SELECT `storageType`, COUNT(*) AS rowCount
+FROM `YOUR_PREFIX_reportmanager_exports`
+GROUP BY `storageType`
+ORDER BY `storageType`;
+SELECT `id`, `filePath`, `storageType`, `storageVolumeUid`
+FROM `YOUR_PREFIX_reportmanager_exports`
+WHERE `storageType` IS NULL
+ORDER BY `id`;
+SELECT `id`, `filePath`, `storageType`, `storageVolumeUid`
+FROM `YOUR_PREFIX_reportmanager_exports`
+ORDER BY `id`;
+```
+
+PostgreSQL:
+
+```sql
+SELECT column_name, data_type, character_maximum_length, is_nullable, column_default
+FROM information_schema.columns
+WHERE table_schema = current_schema()
+  AND table_name = 'YOUR_PREFIX_reportmanager_exports'
+  AND column_name IN ('storageType', 'storageVolumeUid')
+ORDER BY ordinal_position;
+SELECT COUNT(*) AS "rowCount" FROM "YOUR_PREFIX_reportmanager_exports";
+SELECT "storageType", COUNT(*) AS "rowCount"
+FROM "YOUR_PREFIX_reportmanager_exports"
+GROUP BY "storageType"
+ORDER BY "storageType";
+SELECT "id", "filePath", "storageType", "storageVolumeUid"
+FROM "YOUR_PREFIX_reportmanager_exports"
+WHERE "storageType" IS NULL
+ORDER BY "id";
+SELECT "id", "filePath", "storageType", "storageVolumeUid"
+FROM "YOUR_PREFIX_reportmanager_exports"
+ORDER BY "id";
+```
+
+Verify the original row count and ID list are unchanged, every proven absolute row is `local`, ambiguous relative rows remain unresolved, and the ordered original-column export has the same SHA-256 as the preflight file. Recheck exact known objects through Craft's Volume wrapper. Keep the backup until the result is reviewed.
+
+If application code must be rolled back, leave the two nullable columns and their identity data in place. There is intentionally no `DROP COLUMN` rollback.
 
 ## Saving the export path fails with a validation error
 
