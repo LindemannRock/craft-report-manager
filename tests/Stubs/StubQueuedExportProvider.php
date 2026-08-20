@@ -82,7 +82,7 @@ final class StubQueuedExportProvider extends BaseQueuedExportProvider
 
     public static function supportedFormats(): array
     {
-        return ['csv', 'json', 'xlsx'];
+        return ['csv', 'json', 'xlsx', 'zip'];
     }
 
     public function normalizePayload(array $payload): array

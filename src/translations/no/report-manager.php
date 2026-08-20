@@ -213,6 +213,7 @@ return [
     'The custom path where exports should be stored (only used when no volume is selected).' => 'Den egendefinerte stien der eksporter skal lagres (brukes bare når ingen volum er valgt).',
     'Export Location:' => 'Eksportplassering:',
     'This host has an ephemeral filesystem. Files in the effective local storage path may be lost during deployments, restarts, or environment replacement. Select a Craft volume backed by durable remote storage. On Craft Cloud, use a Cloud filesystem.' => 'Denne verten har et flyktig filsystem. Filer i den effektive lokale lagringsbanen kan gå tapt under distribusjoner, omstarter eller utskifting av miljøet. Velg et Craft-volum med varig ekstern lagring. Bruk et Cloud-filsystem på Craft Cloud.',
+    'The configured export volume is unavailable. Check its volume and filesystem configuration, then try again.' => 'Det konfigurerte eksportvolumet er utilgjengelig. Kontroller konfigurasjonen av volumet og filsystemet, og prøv på nytt.',
     'Use Craft path aliases only: <code>@storage/report-manager/exports</code> (recommended) or <code>@root/exports/report-manager</code>. Paths must be outside webroot for security.' => 'Bruk bare Crafts stialiaser: <code>@storage/report-manager/exports</code> (anbefalt) eller <code>@root/exports/report-manager</code>. Stier må ligge utenfor webroot av sikkerhetsgrunner.',
     'CSV Settings' => 'CSV-innstillinger',
     'CSV Delimiter' => 'CSV-skilletegn',

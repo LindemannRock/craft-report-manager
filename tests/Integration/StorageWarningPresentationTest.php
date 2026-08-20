@@ -33,6 +33,7 @@ use RuntimeException;
 final class StorageWarningPresentationTest extends TestCase
 {
     private const WARNING = 'This host has an ephemeral filesystem. Files in the effective local storage path may be lost during deployments, restarts, or environment replacement. Select a Craft volume backed by durable remote storage. On Craft Cloud, use a Cloud filesystem.';
+    private const UNAVAILABLE = 'The configured export volume is unavailable. Check its volume and filesystem configuration, then try again.';
 
     private bool $hadEphemeralSetting;
     private mixed $originalEphemeralSetting;
@@ -130,17 +131,18 @@ final class StorageWarningPresentationTest extends TestCase
         self::assertTrue($presentation->shouldShowWarning());
     }
 
-    public function testEphemeralMissingVolumeFallsBackLocallyAndShowsWarning(): void
+    public function testEphemeralMissingVolumeIsUnavailableWithoutLocalWarning(): void
     {
         $this->installVolumes(null);
 
         $presentation = StorageWarningPresentation::forSettings($this->volumeSettings());
 
-        self::assertSame(StorageWarningPresentation::STATE_LOCAL, $presentation->state);
-        self::assertTrue($presentation->shouldShowWarning());
+        self::assertSame(StorageWarningPresentation::STATE_UNAVAILABLE, $presentation->state);
+        self::assertTrue($presentation->isUnavailable());
+        self::assertFalse($presentation->shouldShowWarning());
     }
 
-    public function testEphemeralInvalidLocalVolumeFallsBackLocallyAndShowsWarning(): void
+    public function testEphemeralInvalidLocalVolumeIsUnavailableWithoutLocalWarning(): void
     {
         $webroot = Craft::getAlias('@webroot');
         self::assertIsString($webroot);
@@ -151,11 +153,12 @@ final class StorageWarningPresentationTest extends TestCase
 
         $presentation = StorageWarningPresentation::forSettings($this->volumeSettings());
 
-        self::assertSame(StorageWarningPresentation::STATE_LOCAL, $presentation->state);
-        self::assertTrue($presentation->shouldShowWarning());
+        self::assertSame(StorageWarningPresentation::STATE_UNAVAILABLE, $presentation->state);
+        self::assertTrue($presentation->isUnavailable());
+        self::assertFalse($presentation->shouldShowWarning());
     }
 
-    public function testEphemeralThrowingFilesystemExceptionFallsBackLocallyAndShowsWarning(): void
+    public function testEphemeralThrowingFilesystemExceptionIsUnavailableWithoutLocalWarning(): void
     {
         $validationVolume = $this->volume($this->nonLocalFilesystem());
         $throwingVolume = $this->createMock(Volume::class);
@@ -164,8 +167,9 @@ final class StorageWarningPresentationTest extends TestCase
 
         $presentation = StorageWarningPresentation::forSettings($this->volumeSettings());
 
-        self::assertSame(StorageWarningPresentation::STATE_LOCAL, $presentation->state);
-        self::assertTrue($presentation->shouldShowWarning());
+        self::assertSame(StorageWarningPresentation::STATE_UNAVAILABLE, $presentation->state);
+        self::assertTrue($presentation->isUnavailable());
+        self::assertFalse($presentation->shouldShowWarning());
     }
 
     public function testEphemeralThrowingFilesystemErrorIsUnavailableAndNotClassifiedAsDurable(): void
@@ -187,6 +191,18 @@ final class StorageWarningPresentationTest extends TestCase
     public function testEphemeralMissingFilesystemIsUnavailableAndNotClassifiedAsDurable(): void
     {
         $this->installVolumes($this->volume(new MissingFs(['handle' => 'warning-missing'])));
+
+        $presentation = StorageWarningPresentation::forSettings($this->volumeSettings());
+
+        self::assertSame(StorageWarningPresentation::STATE_UNAVAILABLE, $presentation->state);
+        self::assertTrue($presentation->isUnavailable());
+        self::assertFalse($presentation->shouldShowWarning());
+    }
+
+    public function testDurableHostStillPresentsUnavailableConfiguredVolume(): void
+    {
+        $_SERVER['CRAFT_EPHEMERAL'] = false;
+        $this->installVolumes(null);
 
         $presentation = StorageWarningPresentation::forSettings($this->volumeSettings());
 
@@ -257,7 +273,31 @@ final class StorageWarningPresentationTest extends TestCase
         foreach (['en', 'de', 'fr', 'nl', 'es', 'ar', 'it', 'pt', 'ja', 'sv', 'da', 'no'] as $locale) {
             $catalogue = require dirname(__DIR__, 2) . "/src/translations/{$locale}/report-manager.php";
             self::assertArrayHasKey(self::WARNING, $catalogue);
+            self::assertArrayHasKey(self::UNAVAILABLE, $catalogue);
         }
+    }
+
+    public function testUnavailableErrorIsSeparateFromTheCloudWarning(): void
+    {
+        $template = (string)file_get_contents(dirname(__DIR__, 2) . '/src/templates/settings/export.twig');
+        $warning = strpos($template, self::WARNING);
+        $unavailable = strpos($template, self::UNAVAILABLE);
+
+        self::assertIsInt($warning);
+        self::assertIsInt($unavailable);
+        self::assertNotSame($warning, $unavailable);
+        self::assertStringContainsString('storageWarning.shouldShowWarning', $template);
+        self::assertStringContainsString('storageWarning.isUnavailable', $template);
+    }
+
+    public function testExportTemplatesSurfaceUnavailableStorageWithoutCallingItAMissingFile(): void
+    {
+        $indexTemplate = (string)file_get_contents(dirname(__DIR__, 2) . '/src/templates/exports/index.twig');
+        $viewTemplate = (string)file_get_contents(dirname(__DIR__, 2) . '/src/templates/exports/view.twig');
+
+        self::assertStringContainsString('{% block beforeTable %}', $indexTemplate);
+        self::assertStringContainsString('not storageError', $indexTemplate);
+        self::assertStringContainsString('{% if storageError %}', $viewTemplate);
     }
 
     private function localSettings(): Settings

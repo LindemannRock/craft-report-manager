@@ -101,6 +101,16 @@
     } : null,
 } %}
 
+{% block beforeTable %}
+    {% if storageError %}
+        {% include 'lindemannrock-base/_components/info-box' with {
+            message: storageError,
+            type: 'error',
+            variant: 'colored',
+            allowHtml: false,
+        } only %}
+    {% endif %}
+{% endblock %}
 
 {# ============================================================================
    CUSTOM TABLE ROW RENDERING
@@ -126,7 +136,7 @@
     {# Status #}
     <td>
         {% set fileAvailable = exportFileExists[item.id] ?? false %}
-        {% set isMissingFile = item.isCompleted() and not fileAvailable %}
+        {% set isMissingFile = item.isCompleted() and not fileAvailable and not storageError %}
         {% include 'lindemannrock-base/_components/badge' with {
             label: isMissingFile ? 'Missing file'|t('report-manager') : item.statusLabel ~ (item.isProcessing() ? ' (' ~ item.progress ~ '%)' : ''),
             value: isMissingFile ? 'missing' : item.status,

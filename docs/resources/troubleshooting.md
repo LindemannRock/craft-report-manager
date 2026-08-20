@@ -74,6 +74,10 @@ Turning cleanup off, or setting retention to `0`, cancels cleanup consumers and 
 
 **Why it happens:** The download action only serves a file that exists on disk (or in the volume). The export detail page shows an availability warning when the record exists but the file is gone.
 
+If the page instead reports that the configured export volume is unavailable, check **Settings → Export → Export Volume** and the selected volume's filesystem configuration. A configured UID is authoritative: missing components, invalid volume configuration, provider errors, read-only credentials, and operational read/write failures stop the operation rather than falling back to `exportPath` or local storage. Report Manager keeps the UID unchanged and resolves it again on later operations, so repairing the same volume restores access without resaving the setting.
+
+Do not move or delete an older export merely because canonical lookup cannot find it beneath the volume's configured subpath. Report Manager does not guess ownership or scan historical underlying-filesystem prefixes; preserve the record and object for a later storage-affinity correction.
+
 ## Saving the export path fails with a validation error
 
 **Quick checks:**
@@ -90,7 +94,7 @@ Craft Cloud's application filesystem is ephemeral, so exports written to a custo
 
 The warning follows the effective `exportPath` and `exportVolumeUid` after `config/report-manager.php` overrides. Check the config file when CP fields are disabled or differ from their stored values. Successfully resolving a valid non-local filesystem suppresses this warning only and does not certify third-party Craft Cloud compatibility.
 
-The warning is informational and does not modify settings or runtime export behavior. Missing or validation-invalid volumes and supported filesystem exceptions retain the current local fallback and warn. A filesystem that remains unavailable is a separate failure, not durable storage; check Report Manager's logs and the failed export record for its actual error.
+The local-storage warning is informational and does not modify settings or runtime export behavior. An unavailable configured volume is reported separately, is not classified as durable or as a local fallback, and fails closed until the same UID resolves again. Check Report Manager's logs and the failed export record for the actionable error. The settings page classifies the configured components without probing provider credentials or performing storage I/O.
 
 ## A user can't see the reports or can't download
 

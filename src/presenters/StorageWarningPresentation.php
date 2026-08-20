@@ -10,15 +10,10 @@ declare(strict_types=1);
 
 namespace lindemannrock\reportmanager\presenters;
 
-use Craft;
 use craft\base\LocalFsInterface;
-use craft\base\MissingComponentInterface;
 use craft\helpers\App;
-use craft\models\Volume;
-use Exception;
-use lindemannrock\base\helpers\StorageVolumeHelper;
 use lindemannrock\reportmanager\models\Settings;
-use Throwable;
+use lindemannrock\reportmanager\storage\ExportStorage;
 
 /**
  * Classifies effective export storage for the Craft Cloud settings warning.
@@ -38,49 +33,17 @@ final class StorageWarningPresentation
 
     public static function forSettings(Settings $settings): self
     {
+        $storage = ExportStorage::forSettings($settings);
+        if ($storage->isUnavailable()) {
+            return new self(self::STATE_UNAVAILABLE);
+        }
+
         if (!App::isEphemeral()) {
             return new self(self::STATE_DURABLE_HOST);
         }
 
-        $volumeUid = trim((string)$settings->exportVolumeUid);
-        if ($volumeUid === '') {
-            return new self(self::STATE_LOCAL);
-        }
-
-        try {
-            $volumeErrors = StorageVolumeHelper::validateVolume($volumeUid);
-        } catch (Throwable) {
-            return new self(self::STATE_UNAVAILABLE);
-        }
-
-        if ($volumeErrors !== []) {
-            return new self(self::STATE_LOCAL);
-        }
-
-        try {
-            $volume = Craft::$app->getVolumes()->getVolumeByUid($volumeUid);
-        } catch (Throwable) {
-            return new self(self::STATE_UNAVAILABLE);
-        }
-
-        if (!$volume instanceof Volume) {
-            return new self(self::STATE_LOCAL);
-        }
-
-        try {
-            $fs = $volume->getFs();
-        } catch (Exception) {
-            return new self(self::STATE_LOCAL);
-        } catch (Throwable) {
-            return new self(self::STATE_UNAVAILABLE);
-        }
-
-        if ($fs instanceof MissingComponentInterface) {
-            return new self(self::STATE_UNAVAILABLE);
-        }
-
         return new self(
-            $fs instanceof LocalFsInterface
+            !$storage->isVolume() || $storage->backingFilesystem instanceof LocalFsInterface
                 ? self::STATE_LOCAL
                 : self::STATE_NON_LOCAL,
         );

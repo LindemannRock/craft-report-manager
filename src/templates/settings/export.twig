@@ -115,6 +115,15 @@
             } only %}
         {% endif %}
 
+        {% if storageWarning.isUnavailable %}
+            {% include 'lindemannrock-base/_components/info-box' with {
+                message: 'The configured export volume is unavailable. Check its volume and filesystem configuration, then try again.'|t('report-manager'),
+                type: 'error',
+                variant: 'colored',
+                allowHtml: false,
+            } only %}
+        {% endif %}
+
         <hr>
 
         <h2>{{ 'CSV Settings'|t('report-manager') }}</h2>

@@ -30,6 +30,15 @@
 {% endblock %}
 
 {% block content %}
+    {% if storageError %}
+        {% include 'lindemannrock-base/_components/info-box' with {
+            message: storageError,
+            type: 'error',
+            variant: 'colored',
+            allowHtml: false,
+        } only %}
+    {% endif %}
+
     <div class="pane">
         <h2>{{ 'Export Information'|t('report-manager') }}</h2>
 

@@ -10,7 +10,6 @@ namespace lindemannrock\reportmanager\services;
 
 use Craft;
 use craft\base\Component;
-use craft\base\FsInterface;
 use craft\helpers\DateTimeHelper;
 use craft\helpers\Db;
 use craft\helpers\FileHelper;
@@ -18,15 +17,16 @@ use DateTime;
 use lindemannrock\base\helpers\DateRangeHelper;
 use lindemannrock\base\helpers\ExportHelper;
 use lindemannrock\base\helpers\SafeSegmentHelper;
-use lindemannrock\base\helpers\StorageVolumeHelper;
 use lindemannrock\logginglibrary\traits\LoggingTrait;
 use lindemannrock\reportmanager\datasources\DataSourceInterface;
+use lindemannrock\reportmanager\exceptions\ExportStorageUnavailableException;
 use lindemannrock\reportmanager\export\QueuedExportContext;
 use lindemannrock\reportmanager\export\QueuedExportResult;
 use lindemannrock\reportmanager\export\StreamedExportWriter;
 use lindemannrock\reportmanager\records\ExportRecord;
 use lindemannrock\reportmanager\records\ReportRecord;
 use lindemannrock\reportmanager\ReportManager;
+use lindemannrock\reportmanager\storage\ExportStorage;
 use yii\db\Expression;
 
 /**
@@ -49,25 +49,7 @@ class ExportService extends Component
      */
     private const SAFE_MAX_BATCH_SIZE = 1000;
 
-    /**
-     * @var string Base path for export files (local storage)
-     */
-    private string $exportBasePath;
-
-    /**
-     * @var bool Whether using volume storage
-     */
-    private bool $_useVolume = false;
-
-    /**
-     * @var FsInterface|null The volume filesystem
-     */
-    private ?FsInterface $_volumeFs = null;
-
-    /**
-     * @var string Volume subpath for exports
-     */
-    private string $_volumeSubPath = 'report-manager/exports';
+    private ?string $_lastStorageError = null;
 
     /**
      * @inheritdoc
@@ -76,49 +58,6 @@ class ExportService extends Component
     {
         parent::init();
         $this->setLoggingHandle(ReportManager::$plugin->id);
-        $this->_initializeStorage();
-    }
-
-    /**
-     * Initialize storage based on settings
-     */
-    private function _initializeStorage(): void
-    {
-        $settings = ReportManager::getInstance()->getSettings();
-
-        // Check if a volume is configured
-        if (!empty($settings->exportVolumeUid)) {
-            $volumeErrors = StorageVolumeHelper::validateVolume($settings->exportVolumeUid);
-            if ($volumeErrors !== []) {
-                $this->logWarning('Export volume failed validation. Falling back to local storage.', [
-                    'exportVolumeUid' => $settings->exportVolumeUid,
-                    'errors' => $volumeErrors,
-                ]);
-            } else {
-                $volume = Craft::$app->getVolumes()->getVolumeByUid($settings->exportVolumeUid);
-                if ($volume) {
-                    try {
-                        $this->_volumeFs = $volume->getFs();
-                        $this->_useVolume = true;
-                        $this->logInfo('Using volume for export storage', ['volume' => $volume->name]);
-                        return;
-                    } catch (\Exception $e) {
-                        $this->logError('Failed to initialize volume filesystem, falling back to local', [
-                            'error' => $e->getMessage(),
-                        ]);
-                    }
-                }
-            }
-        }
-
-        // Fall back to local path
-        $this->_useVolume = false;
-        $this->exportBasePath = $settings->getExportPath();
-
-        // Ensure the path ends with /
-        if (!str_ends_with($this->exportBasePath, '/')) {
-            $this->exportBasePath .= '/';
-        }
     }
 
     /**
@@ -128,10 +67,11 @@ class ExportService extends Component
      */
     public function getExportBasePath(): string
     {
-        if ($this->_useVolume) {
-            return $this->_volumeSubPath;
+        if ($this->isUsingVolume()) {
+            return ExportStorage::EXPORT_SUBPATH;
         }
-        return $this->exportBasePath;
+
+        return $this->_resolveStorage()->localPath ?? '';
     }
 
     /**
@@ -141,7 +81,7 @@ class ExportService extends Component
      */
     public function isUsingVolume(): bool
     {
-        return $this->_useVolume;
+        return trim((string)ReportManager::getInstance()->getSettings()->exportVolumeUid) !== '';
     }
 
     /**
@@ -427,14 +367,7 @@ class ExportService extends Component
             (string)($entity['handle'] ?? 'export'),
         );
 
-        // Set file path based on storage type
-        if ($this->_useVolume) {
-            // For volume storage, store relative path
-            $export->filePath = $this->_volumeSubPath . '/' . $export->filename;
-        } else {
-            // For local storage, store full path
-            $export->filePath = $this->exportBasePath . $export->filename;
-        }
+        $export->filePath = $this->getExportFilePath($export->filename);
 
         $export->save();
 
@@ -529,6 +462,8 @@ class ExportService extends Component
         $export->save();
 
         try {
+            $this->_requireStorage();
+
             // Get data source
             $dataSource = ReportManager::getInstance()->dataSources->getDataSource($export->dataSource);
 
@@ -620,6 +555,8 @@ class ExportService extends Component
         $export->save();
 
         try {
+            $storage = $this->_requireStorage();
+
             if (empty($export->providerHandle)) {
                 throw new \Exception('Export record is missing a queued export provider handle');
             }
@@ -657,8 +594,8 @@ class ExportService extends Component
 
             $result = $provider->generate($export->getPayloadArray(), $context);
 
-            if (!$this->_useVolume) {
-                FileHelper::createDirectory($this->exportBasePath);
+            if (!$storage->isVolume()) {
+                FileHelper::createDirectory($storage->localPath ?? '');
             }
 
             $fileResult = match ($result->getType()) {
@@ -1017,8 +954,10 @@ class ExportService extends Component
             throw new \RuntimeException('Unable to determine the generated export file size.');
         }
 
-        if ($this->_useVolume && $this->_volumeFs !== null) {
-            $volumePath = $this->_volumeSubPath . '/' . $export->filename;
+        $storage = $this->_requireStorage();
+
+        if ($storage->isVolume()) {
+            $volumePath = ExportStorage::EXPORT_SUBPATH . '/' . $export->filename;
             $stream = fopen($tempPath, 'rb');
 
             if ($stream === false) {
@@ -1026,7 +965,9 @@ class ExportService extends Component
             }
 
             try {
-                $this->_volumeFs->writeFileFromStream($volumePath, $stream);
+                $storage->filesystem()->writeFileFromStream($volumePath, $stream);
+            } catch (\Throwable $exception) {
+                throw $this->_storageOperationFailed('write stream', $exception);
             } finally {
                 fclose($stream);
             }
@@ -1037,8 +978,8 @@ class ExportService extends Component
             ];
         }
 
-        FileHelper::createDirectory($this->exportBasePath);
-        $localPath = $this->exportBasePath . $export->filename;
+        $localPath = ($storage->localPath ?? '') . $export->filename;
+        FileHelper::createDirectory(dirname($localPath));
 
         if (!copy($tempPath, $localPath)) {
             throw new \RuntimeException("Unable to store the generated export file at {$localPath}.");
@@ -1326,10 +1267,15 @@ class ExportService extends Component
     {
         $size = strlen($content);
 
-        if ($this->_useVolume && $this->_volumeFs !== null) {
-            // Write to volume
-            $volumePath = $this->_volumeSubPath . '/' . $export->filename;
-            $this->_volumeFs->write($volumePath, $content);
+        $storage = $this->_requireStorage();
+
+        if ($storage->isVolume()) {
+            $volumePath = ExportStorage::EXPORT_SUBPATH . '/' . $export->filename;
+            try {
+                $storage->filesystem()->write($volumePath, $content);
+            } catch (\Throwable $exception) {
+                throw $this->_storageOperationFailed('write', $exception);
+            }
 
             return [
                 'path' => $volumePath,
@@ -1338,7 +1284,7 @@ class ExportService extends Component
         }
 
         // Write to local filesystem
-        $localPath = $this->exportBasePath . $export->filename;
+        $localPath = ($storage->localPath ?? '') . $export->filename;
         FileHelper::writeToFile($localPath, $content);
 
         return [
@@ -1400,14 +1346,7 @@ class ExportService extends Component
         // Generate filename
         $export->filename = $this->createStandardExportFilename($export, 'combined');
 
-        // Set file path based on storage type
-        if ($this->_useVolume) {
-            // For volume storage, store relative path
-            $export->filePath = $this->_volumeSubPath . '/' . $export->filename;
-        } else {
-            // For local storage, store full path
-            $export->filePath = $this->exportBasePath . $export->filename;
-        }
+        $export->filePath = $this->getExportFilePath($export->filename);
 
         $export->save();
 
@@ -1430,6 +1369,8 @@ class ExportService extends Component
         $export->save();
 
         try {
+            $this->_requireStorage();
+
             $dataSource = ReportManager::getInstance()->dataSources->getDataSource($export->dataSource);
 
             if ($dataSource === null) {
@@ -1550,18 +1491,19 @@ class ExportService extends Component
     private function _deleteExportFile(string $filePath): void
     {
         try {
-            if ($this->_useVolume && $this->_volumeFs !== null) {
-                // Delete from volume
-                if ($this->_volumeFs->fileExists($filePath)) {
-                    $this->_volumeFs->deleteFile($filePath);
+            $storage = $this->_requireStorage();
+            if ($storage->isVolume()) {
+                $filesystem = $storage->filesystem();
+                if ($filesystem->fileExists($filePath)) {
+                    $filesystem->deleteFile($filePath);
                 }
             } else {
-                // Delete from local filesystem
                 if (file_exists($filePath)) {
                     unlink($filePath);
                 }
             }
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
+            $this->_lastStorageError = ExportStorage::unavailableMessage();
             $this->logWarning('Failed to delete export file', [
                 'path' => $filePath,
                 'error' => $e->getMessage(),
@@ -1581,23 +1523,25 @@ class ExportService extends Component
             return null;
         }
 
+        $storage = $this->_requireStorage();
+
         try {
-            if ($this->_useVolume && $this->_volumeFs !== null) {
-                // Read from volume
-                if ($this->_volumeFs->fileExists($export->filePath)) {
-                    return $this->_volumeFs->read($export->filePath);
+            if ($storage->isVolume()) {
+                $filesystem = $storage->filesystem();
+                if ($filesystem->fileExists($export->filePath)) {
+                    return $filesystem->read($export->filePath);
                 }
             } else {
-                // Read from local filesystem
                 if (file_exists($export->filePath)) {
                     return file_get_contents($export->filePath);
                 }
             }
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             $this->logError('Failed to read export file', [
                 'path' => $export->filePath,
                 'error' => $e->getMessage(),
             ]);
+            throw $this->_storageOperationFailed('read', $e);
         }
 
         return null;
@@ -1615,13 +1559,15 @@ class ExportService extends Component
             return false;
         }
 
+        $storage = $this->_requireStorage();
+
         try {
-            if ($this->_useVolume && $this->_volumeFs !== null) {
-                return $this->_volumeFs->fileExists($export->filePath);
+            if ($storage->isVolume()) {
+                return $storage->filesystem()->fileExists($export->filePath);
             }
             return file_exists($export->filePath);
-        } catch (\Exception $e) {
-            return false;
+        } catch (\Throwable $e) {
+            throw $this->_storageOperationFailed('check availability', $e);
         }
     }
 
@@ -1637,14 +1583,21 @@ class ExportService extends Component
     public function getFileAvailabilityMap(array $exports): array
     {
         $availability = [];
+        $storageUnavailable = false;
 
         foreach ($exports as $export) {
-            if (!$export->isCompleted()) {
+            if (!$export->isCompleted() || $storageUnavailable) {
                 $availability[$export->id] = false;
                 continue;
             }
 
-            $availability[$export->id] = $this->fileExists($export);
+            try {
+                $availability[$export->id] = $this->fileExists($export);
+            } catch (ExportStorageUnavailableException $exception) {
+                $this->_lastStorageError = $exception->getMessage();
+                $storageUnavailable = true;
+                $availability[$export->id] = false;
+            }
         }
 
         return $availability;
@@ -1804,11 +1757,61 @@ class ExportService extends Component
      */
     private function getExportFilePath(string $filename): string
     {
-        if ($this->_useVolume) {
-            return $this->_volumeSubPath . '/' . $filename;
+        if ($this->isUsingVolume()) {
+            return ExportStorage::EXPORT_SUBPATH . '/' . $filename;
         }
 
-        return $this->exportBasePath . $filename;
+        return ($this->_resolveStorage()->localPath ?? '') . $filename;
+    }
+
+    /**
+     * Return the latest actionable storage error, rechecking configured availability.
+     *
+     * @since 5.6.0
+     */
+    public function getStorageError(): ?string
+    {
+        if ($this->_lastStorageError !== null) {
+            return $this->_lastStorageError;
+        }
+
+        $storage = $this->_resolveStorage();
+
+        return $storage->isUnavailable() ? $this->_lastStorageError : null;
+    }
+
+    private function _resolveStorage(): ExportStorage
+    {
+        $storage = ExportStorage::forSettings(ReportManager::getInstance()->getSettings());
+        $this->_lastStorageError = $storage->isUnavailable()
+            ? ExportStorage::unavailableMessage()
+            : null;
+
+        return $storage;
+    }
+
+    private function _requireStorage(): ExportStorage
+    {
+        $storage = $this->_resolveStorage();
+        if ($storage->isUnavailable()) {
+            throw $storage->unavailableException();
+        }
+
+        return $storage;
+    }
+
+    private function _storageOperationFailed(string $operation, \Throwable $exception): ExportStorageUnavailableException
+    {
+        $this->_lastStorageError = ExportStorage::unavailableMessage();
+        $this->logError('Export storage operation failed', [
+            'operation' => $operation,
+            'error' => $exception->getMessage(),
+        ]);
+
+        return new ExportStorageUnavailableException(
+            $this->_lastStorageError,
+            previous: $exception,
+        );
     }
 
     /**

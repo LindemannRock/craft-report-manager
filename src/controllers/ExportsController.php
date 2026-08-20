@@ -11,7 +11,9 @@ namespace lindemannrock\reportmanager\controllers;
 use Craft;
 use craft\helpers\DateTimeHelper;
 use craft\web\Controller;
+use craft\web\ServiceUnavailableHttpException;
 use lindemannrock\base\helpers\ExportHelper;
+use lindemannrock\reportmanager\exceptions\ExportStorageUnavailableException;
 use lindemannrock\reportmanager\jobs\GenerateExportJob;
 use lindemannrock\reportmanager\records\ExportRecord;
 use lindemannrock\reportmanager\records\ReportRecord;
@@ -119,6 +121,7 @@ class ExportsController extends Controller
 
         $exportStats = $plugin->exports->getExportStats();
         $exportFileExists = $plugin->exports->getFileAvailabilityMap($result['exports']);
+        $storageError = $plugin->exports->getStorageError();
 
         $userComponent = Craft::$app->getUser();
 
@@ -126,6 +129,7 @@ class ExportsController extends Controller
             'settings' => $settings,
             'exports' => $result['exports'],
             'exportFileExists' => $exportFileExists,
+            'storageError' => $storageError,
             'exportStats' => $exportStats,
             'statusFilter' => $statusFilter,
             'formatFilter' => $formatFilter,
@@ -161,7 +165,13 @@ class ExportsController extends Controller
         }
 
         $report = $export->reportId !== null ? ReportRecord::findOne($export->reportId) : null;
-        $fileAvailable = $export->isCompleted() && $plugin->exports->fileExists($export);
+        $storageError = null;
+        try {
+            $fileAvailable = $export->isCompleted() && $plugin->exports->fileExists($export);
+        } catch (ExportStorageUnavailableException $exception) {
+            $fileAvailable = false;
+            $storageError = $exception->getMessage();
+        }
         $dataSources = $plugin->dataSources->getAvailableDataSources();
 
         return $this->renderTemplate('report-manager/exports/view', [
@@ -169,6 +179,7 @@ class ExportsController extends Controller
             'export' => $export,
             'report' => $report,
             'fileAvailable' => $fileAvailable,
+            'storageError' => $storageError,
             'dataSources' => $dataSources,
         ]);
     }
@@ -376,40 +387,40 @@ class ExportsController extends Controller
             throw new NotFoundHttpException(Craft::t('report-manager', 'Export is not ready for download'));
         }
 
-        // Check if file exists (supports both local and volume storage)
-        if (!$plugin->exports->fileExists($export)) {
-            throw new NotFoundHttpException(Craft::t('report-manager', 'Export file not found'));
-        }
-
-        // Determine content type
-        $contentType = match ($export->format) {
-            'csv' => 'text/csv',
-            'json' => 'application/json',
-            'xlsx' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-            'zip' => 'application/zip',
-            default => 'application/octet-stream',
-        };
-
-        // For volume storage, get file content and send as data
-        if ($plugin->exports->isUsingVolume()) {
-            $content = $plugin->exports->getFileContent($export);
-            if ($content === null) {
+        try {
+            if (!$plugin->exports->fileExists($export)) {
                 throw new NotFoundHttpException(Craft::t('report-manager', 'Export file not found'));
             }
 
-            return Craft::$app->getResponse()->sendContentAsFile(
-                $content,
+            $contentType = match ($export->format) {
+                'csv' => 'text/csv',
+                'json' => 'application/json',
+                'xlsx' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                'zip' => 'application/zip',
+                default => 'application/octet-stream',
+            };
+
+            if ($plugin->exports->isUsingVolume()) {
+                $content = $plugin->exports->getFileContent($export);
+                if ($content === null) {
+                    throw new NotFoundHttpException(Craft::t('report-manager', 'Export file not found'));
+                }
+
+                return Craft::$app->getResponse()->sendContentAsFile(
+                    $content,
+                    $export->filename,
+                    ['mimeType' => $contentType]
+                );
+            }
+
+            return Craft::$app->getResponse()->sendFile(
+                $export->filePath,
                 $export->filename,
                 ['mimeType' => $contentType]
             );
+        } catch (ExportStorageUnavailableException $exception) {
+            throw new ServiceUnavailableHttpException($exception->getMessage(), 0, $exception);
         }
-
-        // For local storage, send file directly
-        return Craft::$app->getResponse()->sendFile(
-            $export->filePath,
-            $export->filename,
-            ['mimeType' => $contentType]
-        );
     }
 
     /**
@@ -459,15 +470,27 @@ class ExportsController extends Controller
 
         $this->requireExportAccess($export, 'status', 'reportManager:manageExports');
 
+        $storageError = null;
+        $fileAvailable = false;
+        if ($export->isCompleted()) {
+            try {
+                $fileAvailable = $plugin->exports->fileExists($export);
+            } catch (ExportStorageUnavailableException $exception) {
+                $storageError = $exception->getMessage();
+            }
+        }
+
         return $this->asJson([
             'success' => true,
             'status' => $export->status,
             'progress' => $export->progress,
             'progressMessage' => $export->getMetadataArray()['progressMessage'] ?? null,
-            'errorMessage' => $export->errorMessage,
+            'errorMessage' => $export->errorMessage ?? $storageError,
             'warnings' => $export->getWarningsArray(),
             'isCompleted' => $export->isCompleted(),
-            'downloadUrl' => $export->isCompleted() ? $plugin->exports->getDownloadUrl($export) : null,
+            'downloadUrl' => $export->isCompleted() && $fileAvailable
+                ? $plugin->exports->getDownloadUrl($export)
+                : null,
         ]);
     }
 

@@ -211,6 +211,7 @@ return [
     'The custom path where exports should be stored (only used when no volume is selected).' => 'The custom path where exports should be stored (only used when no volume is selected).',
     'Export Location:' => 'Export Location:',
     'This host has an ephemeral filesystem. Files in the effective local storage path may be lost during deployments, restarts, or environment replacement. Select a Craft volume backed by durable remote storage. On Craft Cloud, use a Cloud filesystem.' => 'This host has an ephemeral filesystem. Files in the effective local storage path may be lost during deployments, restarts, or environment replacement. Select a Craft volume backed by durable remote storage. On Craft Cloud, use a Cloud filesystem.',
+    'The configured export volume is unavailable. Check its volume and filesystem configuration, then try again.' => 'The configured export volume is unavailable. Check its volume and filesystem configuration, then try again.',
     'Use Craft path aliases only: <code>@storage/report-manager/exports</code> (recommended) or <code>@root/exports/report-manager</code>. Paths must be outside webroot for security.' => 'Use Craft path aliases only: <code>@storage/report-manager/exports</code> (recommended) or <code>@root/exports/report-manager</code>. Paths must be outside webroot for security.',
     'CSV Settings' => 'CSV Settings',
     'CSV Delimiter' => 'CSV Delimiter',
