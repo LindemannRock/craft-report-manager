@@ -117,13 +117,6 @@ return [
          */
         // 'defaultSchedule' => 'daily2am',
 
-        /**
-         * Minimum interval between scheduled report checks (in minutes)
-         * Default: 60 (1 hour)
-         */
-        // 'schedulingInterval' => 60,
-
-
         // ========================================
         // INTERFACE SETTINGS
         // ========================================
@@ -186,7 +179,7 @@ return [
     // Dev environment settings
     'dev' => [
         'logLevel' => 'debug',
-        // 'exportRetentionDays' => 7,  // Keep fewer files in dev
+        // 'exportRetention' => 7,  // Keep fewer files in dev
     ],
 
     // Staging environment settings
