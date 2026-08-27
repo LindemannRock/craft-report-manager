@@ -13,6 +13,7 @@ use craft\base\Component;
 use craft\helpers\DateTimeHelper;
 use craft\helpers\Db;
 use craft\helpers\FileHelper;
+use craft\helpers\StringHelper;
 use DateTime;
 use lindemannrock\base\helpers\DateRangeHelper;
 use lindemannrock\base\helpers\ExportHelper;
@@ -48,6 +49,9 @@ class ExportService extends Component
      * contains the old 10,000-record default.
      */
     private const SAFE_MAX_BATCH_SIZE = 1000;
+
+    /** Maximum portable filesystem basename length in bytes. */
+    private const MAX_OBJECT_BASENAME_BYTES = 255;
 
     private ?string $_lastStorageError = null;
 
@@ -357,7 +361,7 @@ class ExportService extends Component
         );
 
         $storage = $this->_captureStorageIdentity($export);
-        $export->filePath = $this->getExportFilePath($export->filename, $storage);
+        $this->prepareExportFilePath($export, $storage);
 
         $export->save();
 
@@ -430,7 +434,7 @@ class ExportService extends Component
         $export->triggeredByUserId = $options['triggeredByUserId'] ?? Craft::$app->getUser()->getId();
         $export->reportId = $options['reportId'] ?? null;
         $storage = $this->_captureStorageIdentity($export);
-        $export->filePath = $this->getExportFilePath($filename, $storage);
+        $this->prepareExportFilePath($export, $storage);
         $export->save();
 
         return $export;
@@ -447,6 +451,7 @@ class ExportService extends Component
     public function generateExport(ExportRecord $export, ?callable $progressCallback = null): bool
     {
         $this->normalizeStoredDateSelection($export);
+        $preserveCompletedPath = $export->isCompleted();
 
         // Update status to processing
         $export->status = ExportRecord::STATUS_PROCESSING;
@@ -455,7 +460,9 @@ class ExportService extends Component
         $export->save();
 
         try {
-            $this->_requireStorageForExport($export);
+            $storage = $this->_requireStorageForExport($export);
+            $this->prepareExportFilePath($export, $storage, $preserveCompletedPath);
+            $export->save(false, ['uid', 'filePath']);
 
             // Get data source
             $dataSource = ReportManager::getInstance()->dataSources->getDataSource($export->dataSource);
@@ -542,6 +549,7 @@ class ExportService extends Component
      */
     public function generateQueuedExport(ExportRecord $export, ?callable $progressCallback = null): bool
     {
+        $preserveCompletedPath = $export->isCompleted();
         $export->status = ExportRecord::STATUS_PROCESSING;
         $export->startedAt = new DateTime();
         $export->progress = max(1, (int) $export->progress);
@@ -572,7 +580,7 @@ class ExportService extends Component
 
             $export->format = $format;
             $export->filename = $this->ensureFilenameExtension($export->filename, $format);
-            $export->filePath = $this->getExportFilePath($export->filename, $storage);
+            $this->prepareExportFilePath($export, $storage, $preserveCompletedPath);
             $export->save();
 
             $context = new QueuedExportContext(
@@ -652,6 +660,19 @@ class ExportService extends Component
         ?callable $progressCallback = null,
     ): array {
         $writer = null;
+        $fields = $dataSource->getEntityFields($entityId);
+
+        if ($fieldHandles !== []) {
+            $fields = array_filter(
+                $fields,
+                static fn(array $field): bool => in_array($field['handle'], $fieldHandles, true),
+            );
+        }
+
+        $headerIdentifiers = array_values(array_map(
+            static fn(array $field): string => (string)$field['handle'],
+            $fields,
+        ));
 
         try {
             $recordCount = $this->forEachExportBatch(
@@ -659,9 +680,12 @@ class ExportService extends Component
                 $entityId,
                 $fieldHandles,
                 $options,
-                function(array $headers, array $rows) use (&$writer, $export): void {
+                function(array $headers, array $rows) use (&$writer, $export, $headerIdentifiers): void {
                     if ($writer === null) {
-                        $writer = $this->createStreamedWriter($export, $headers);
+                        $writer = $this->createStreamedWriter(
+                            $export,
+                            $this->normalizeOutputHeaders($headers, $headerIdentifiers),
+                        );
                     }
 
                     $writer->writeRows($rows);
@@ -718,8 +742,12 @@ class ExportService extends Component
         array $labels,
         ?callable $progressCallback = null,
     ): array {
-        $allHeaders = [$labels['combinedPrimaryColumnLabel'] ?? Craft::t('report-manager', 'Item Name')];
+        $primaryHeader = $labels['combinedPrimaryColumnLabel'] ?? Craft::t('report-manager', 'Item Name');
         $entityNames = [];
+        $columnDescriptors = [];
+        $descriptorIndexes = [];
+        $entityHeaderPlans = [];
+        $entityTargetPositions = [];
 
         foreach ($entityIds as $entityId) {
             $entity = $dataSource->getEntity($entityId);
@@ -733,12 +761,41 @@ class ExportService extends Component
                 );
             }
 
+            $fields = array_values($fields);
+            $entityHeaderPlans[$entityId] = [
+                'headers' => [],
+                'descriptorKeys' => [],
+            ];
+
             foreach ($fields as $field) {
                 $label = (string)$field['label'];
-                if (!in_array($label, $allHeaders, true)) {
-                    $allHeaders[] = $label;
+                $handle = (string)$field['handle'];
+                $descriptorKey = $this->outputColumnDescriptorKey($label, $handle);
+                $entityHeaderPlans[$entityId]['headers'][] = $label;
+                $entityHeaderPlans[$entityId]['descriptorKeys'][] = $descriptorKey;
+
+                if (!isset($descriptorIndexes[$descriptorKey])) {
+                    $descriptorIndexes[$descriptorKey] = count($columnDescriptors);
+                    $columnDescriptors[] = [
+                        'label' => $label,
+                        'handle' => $handle,
+                    ];
                 }
             }
+        }
+
+        $normalizedHeaders = $this->normalizeOutputHeaders(
+            array_column($columnDescriptors, 'label'),
+            array_column($columnDescriptors, 'handle'),
+            [$primaryHeader],
+        );
+        $allHeaders = array_merge([$primaryHeader], $normalizedHeaders);
+
+        foreach ($entityHeaderPlans as $entityId => $headerPlan) {
+            $entityTargetPositions[$entityId] = array_map(
+                static fn(string $descriptorKey): int => $descriptorIndexes[$descriptorKey] + 1,
+                $headerPlan['descriptorKeys'],
+            );
         }
 
         $writer = $this->createStreamedWriter($export, $allHeaders);
@@ -748,18 +805,25 @@ class ExportService extends Component
             $entityCount = count($entityIds);
             foreach ($entityIds as $entityIndex => $entityId) {
                 $entityName = $entityNames[$entityId];
+                $headerPlan = $entityHeaderPlans[$entityId];
+                $targetPositions = $entityTargetPositions[$entityId];
                 $recordCount += $this->forEachExportBatch(
                     $dataSource,
                     $entityId,
                     $fieldHandles,
                     $options,
-                    function(array $headers, array $rows) use ($writer, $allHeaders, $entityName): void {
-                        $headerPositions = [];
-                        foreach ($headers as $index => $header) {
-                            $position = array_search($header, $allHeaders, true);
-                            if ($position !== false) {
-                                $headerPositions[$index] = $position;
-                            }
+                    function(array $headers, array $rows) use (
+                        $writer,
+                        $allHeaders,
+                        $entityName,
+                        $headerPlan,
+                        $targetPositions,
+                    ): void {
+                        if ($headers !== $headerPlan['headers']) {
+                            throw new \RuntimeException(Craft::t(
+                                'report-manager',
+                                'Export columns did not match the data source field contract.',
+                            ));
                         }
 
                         $combinedRows = [];
@@ -767,7 +831,7 @@ class ExportService extends Component
                             $combinedRow = array_fill(0, count($allHeaders), '');
                             $combinedRow[0] = $entityName;
 
-                            foreach ($headerPositions as $sourceIndex => $targetIndex) {
+                            foreach ($targetPositions as $sourceIndex => $targetIndex) {
                                 if (array_key_exists($sourceIndex, $row)) {
                                     $combinedRow[$targetIndex] = $row[$sourceIndex];
                                 }
@@ -1065,6 +1129,7 @@ class ExportService extends Component
     private function generateProviderTableFile(ExportRecord $export, QueuedExportResult $result): array
     {
         $data = $result->getTableData();
+        $data['headers'] = $this->normalizeOutputHeaders($data['headers']);
 
         return match ($export->format) {
             'csv' => $this->generateCsvFile($export, $data),
@@ -1430,7 +1495,7 @@ class ExportService extends Component
         $export->filename = $this->createStandardExportFilename($export, 'combined');
 
         $storage = $this->_captureStorageIdentity($export);
-        $export->filePath = $this->getExportFilePath($export->filename, $storage);
+        $this->prepareExportFilePath($export, $storage);
 
         $export->save();
 
@@ -1448,6 +1513,7 @@ class ExportService extends Component
     public function generateCombinedExport(ExportRecord $export, ?callable $progressCallback = null): bool
     {
         $this->normalizeStoredDateSelection($export);
+        $preserveCompletedPath = $export->isCompleted();
 
         $export->status = ExportRecord::STATUS_PROCESSING;
         $export->startedAt = new DateTime();
@@ -1455,7 +1521,9 @@ class ExportService extends Component
         $export->save();
 
         try {
-            $this->_requireStorageForExport($export);
+            $storage = $this->_requireStorageForExport($export);
+            $this->prepareExportFilePath($export, $storage, $preserveCompletedPath);
+            $export->save(false, ['uid', 'filePath']);
 
             $dataSource = ReportManager::getInstance()->dataSources->getDataSource($export->dataSource);
 
@@ -2042,18 +2110,107 @@ class ExportService extends Component
     }
 
     /**
-     * Get the storage path for an export filename.
-     *
-     * @param string $filename Export filename
-     * @return string
+     * Assign an export's immutable identity and unique storage path.
      */
-    private function getExportFilePath(string $filename, ExportStorage $storage): string
-    {
-        if ($storage->isVolume()) {
-            return ExportStorage::EXPORT_SUBPATH . '/' . $filename;
+    private function prepareExportFilePath(
+        ExportRecord $export,
+        ExportStorage $storage,
+        bool $preserveExistingPath = false,
+    ): void {
+        if ($preserveExistingPath || $export->isCompleted()) {
+            return;
         }
 
-        return ($storage->localPath ?? '') . $filename;
+        $uid = trim((string)$export->uid);
+        if ($uid === '' || $uid === '0') {
+            $uid = StringHelper::UUID();
+            $export->uid = $uid;
+        }
+
+        $export->filePath = $this->getExportFilePath($export->filename, $uid, $storage);
+    }
+
+    /**
+     * Get the unique storage path for an export display filename and UID.
+     */
+    private function getExportFilePath(string $filename, string $uid, ExportStorage $storage): string
+    {
+        $extension = pathinfo($filename, PATHINFO_EXTENSION);
+        $stem = $extension === ''
+            ? $filename
+            : substr($filename, 0, -(strlen($extension) + 1));
+        $suffix = '-' . $uid . ($extension === '' ? '' : '.' . $extension);
+        $stemByteBudget = max(0, self::MAX_OBJECT_BASENAME_BYTES - strlen($suffix));
+        $physicalStem = mb_strcut($stem, 0, $stemByteBudget, 'UTF-8');
+        $objectFilename = $physicalStem . $suffix;
+
+        if ($storage->isVolume()) {
+            return ExportStorage::EXPORT_SUBPATH . '/' . $objectFilename;
+        }
+
+        return ($storage->localPath ?? '') . $objectFilename;
+    }
+
+    /**
+     * Convert ordered human labels into stable, unique output names.
+     *
+     * Existing unique labels and the first occurrence of a repeated label stay
+     * byte-for-byte unchanged. Later occurrences prefer their stable field
+     * handle; header-only provider tables use a stable ordinal fallback.
+     *
+     * @param string[] $headers
+     * @param string[] $identifiers Stable identifiers aligned by column index
+     * @param string[] $reservedHeaders Names already owned by outer columns
+     * @return string[]
+     */
+    private function normalizeOutputHeaders(
+        array $headers,
+        array $identifiers = [],
+        array $reservedHeaders = [],
+    ): array {
+        $headers = array_values(array_map('strval', $headers));
+        $protectedNames = array_fill_keys(array_merge($headers, $reservedHeaders), true);
+        $usedNames = array_fill_keys($reservedHeaders, true);
+        $occurrences = [];
+        $normalized = [];
+
+        foreach ($headers as $index => $header) {
+            $occurrences[$header] = ($occurrences[$header] ?? (isset($usedNames[$header]) ? 1 : 0)) + 1;
+
+            if (!isset($usedNames[$header])) {
+                $normalized[] = $header;
+                $usedNames[$header] = true;
+                continue;
+            }
+
+            $identifier = trim((string)($identifiers[$index] ?? ''));
+            if ($identifier !== '') {
+                $baseCandidate = $header . ' (' . $identifier . ')';
+                $candidate = $baseCandidate;
+                $suffix = 2;
+
+                while (isset($usedNames[$candidate]) || isset($protectedNames[$candidate])) {
+                    $candidate = $baseCandidate . ' (' . $suffix . ')';
+                    $suffix++;
+                }
+            } else {
+                $suffix = max(2, $occurrences[$header]);
+                do {
+                    $candidate = $header . ' (' . $suffix . ')';
+                    $suffix++;
+                } while (isset($usedNames[$candidate]) || isset($protectedNames[$candidate]));
+            }
+
+            $normalized[] = $candidate;
+            $usedNames[$candidate] = true;
+        }
+
+        return $normalized;
+    }
+
+    private function outputColumnDescriptorKey(string $label, string $handle): string
+    {
+        return strlen($label) . ':' . $label . strlen($handle) . ':' . $handle;
     }
 
     /**

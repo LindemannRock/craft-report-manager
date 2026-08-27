@@ -132,6 +132,7 @@ return [
     'Export format "{format}" is not enabled.' => 'エクスポートフォーマット "{format}" は有効ではありません。',
     'Export format "{format}" is not enabled. Please update the report settings.' => 'エクスポートフォーマット "{format}" は有効ではありません。レポートの設定を更新してください。',
     'Export generation failed: {error}' => 'エクスポートの生成に失敗しました: {error}',
+    'Export columns did not match the data source field contract.' => 'エクスポート列がデータソースで定義されたフィールドと一致しませんでした。',
     'Export is not ready for download' => 'エクスポートはまだダウンロードできません',
     'Export not found' => 'エクスポートが見つかりません',
     'Export queued for generation.' => 'エクスポートを生成キューに追加しました。',

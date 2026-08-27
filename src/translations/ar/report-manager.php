@@ -132,6 +132,7 @@ return [
     'Export format "{format}" is not enabled.' => 'تنسيق التصدير "{format}" غير مفعّل.',
     'Export format "{format}" is not enabled. Please update the report settings.' => 'تنسيق التصدير "{format}" غير مفعّل. يرجى تحديث إعدادات التقرير.',
     'Export generation failed: {error}' => 'فشل إنشاء التصدير: {error}',
+    'Export columns did not match the data source field contract.' => 'لم تتطابق أعمدة التصدير مع الحقول المحددة في مصدر البيانات.',
     'Export is not ready for download' => 'التصدير غير جاهز للتنزيل',
     'Export not found' => 'التصدير غير موجود',
     'Export queued for generation.' => 'تمت إضافة التصدير إلى قائمة الانتظار للإنشاء.',

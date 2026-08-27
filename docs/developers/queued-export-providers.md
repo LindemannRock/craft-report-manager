@@ -117,6 +117,8 @@ Build the result with one of three static constructors:
 
 `$warnings` are non-fatal messages surfaced on the export detail page.
 
+Table headers may repeat. Report Manager preserves the first occurrence and gives later occurrences stable ordinal suffixes (`Total`, `Total (2)`, `Total (3)`) before writing CSV, JSON, or XLSX, so every positional row value remains represented. Unique headers are not changed.
+
 > [!NOTE]
 > ZIP (from `files()`) is only available through this provider path — it is **not** a format users can pick in the report/export UI, which offers CSV, Excel, and JSON only.
 
@@ -152,3 +154,5 @@ ReportManager::getInstance()->exports->createQueuedExport(
 ```
 
 Report Manager queues and generates it; the resulting file appears in the exports list and is downloadable like any other export.
+
+The provider-owned filename remains the name users receive when they download the export. Report Manager independently assigns each newly created export record a unique storage object key, so two new exports may safely use the same display filename without sharing or overwriting a local file or volume object.

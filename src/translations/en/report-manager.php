@@ -130,6 +130,7 @@ return [
     'Export format "{format}" is not enabled.' => 'Export format "{format}" is not enabled.',
     'Export format "{format}" is not enabled. Please update the report settings.' => 'Export format "{format}" is not enabled. Please update the report settings.',
     'Export generation failed: {error}' => 'Export generation failed: {error}',
+    'Export columns did not match the data source field contract.' => 'Export columns did not match the data source field contract.',
     'Export is not ready for download' => 'Export is not ready for download',
     'Export not found' => 'Export not found',
     'Export queued for generation.' => 'Export queued for generation.',

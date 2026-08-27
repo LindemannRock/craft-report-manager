@@ -37,7 +37,9 @@ Exports run through Craft's **queue**, not inline — so large exports don't tie
 
 Exports are written either to the **local filesystem** (default: `@storage/report-manager/exports`) or to a **Craft asset volume**. Choose in **Settings → Export**. See [Configuration](../get-started/configuration.md#export-storage) for the storage rules.
 
-Report Manager captures each export's effective storage when it creates the pending record, before its queue job runs. Local records keep their exact absolute path. Volume records keep the exact Craft volume UID and a wrapper-relative path such as `report-manager/exports/example.csv`. Changing Export settings or `config/report-manager.php` later does not move or redirect an existing export, including one that is still pending in the queue.
+Report Manager captures each export's effective storage when it creates the pending record, before its queue job runs. Local records keep their exact absolute path. Volume records keep the exact Craft volume UID and a wrapper-relative path such as `report-manager/exports/example-{record-uid}.csv`. Changing Export settings or `config/report-manager.php` later does not move or redirect an existing export, including one that is still pending in the queue.
+
+Every newly created export gets a record-specific stored object key, even when two exports have the same filename. The filename shown in Report Manager—and supplied to the browser on download—does not change. Deleting or retaining either new export therefore targets only its own object. Completed exports created before this behavior keep their historical recorded paths exactly; Report Manager does not move or rename them.
 
 For a volume record, Report Manager resolves the recorded UID for every later write, availability check, download, deletion, and retention run, then lets Craft apply that volume's current configured subpath. It never substitutes the currently selected volume or falls back to `exportPath`. If the recorded volume or its filesystem is unavailable, the operation fails with an actionable storage error and retries the same UID later, so restoring that exact volume restores access.
 
@@ -63,6 +65,8 @@ fpl-en-combined-last-12-months-2026-08-18-143918.xlsx
 Custom ranges include their exact available boundaries: `2024-07-25-to-2026-08-18`, `from-2024-07-25`, or `through-2026-08-18`. Named ranges use readable stable names such as `last-30-days`, `this-month`, `last-quarter`, or `all`.
 
 Ad-hoc exports have no report handle, so they use the data-source handle as their prefix. Queued export providers continue to own their filenames and may supply a custom name.
+
+If exported fields share a human-facing label, Report Manager keeps the first label and adds stable field-handle suffixes to later columns. Combined exports also reserve their source-identifying column before field headers are resolved. Provider-supplied tables use ordinal suffixes when headers repeat. Unique labels remain exactly as supplied in every format.
 
 ## Viewing & Downloading
 

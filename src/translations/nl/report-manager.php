@@ -132,6 +132,7 @@ return [
     'Export format "{format}" is not enabled.' => 'Exportformaat "{format}" is niet ingeschakeld.',
     'Export format "{format}" is not enabled. Please update the report settings.' => 'Exportformaat "{format}" is niet ingeschakeld. Werk de rapportinstellingen bij.',
     'Export generation failed: {error}' => 'Generatie van export mislukt: {error}',
+    'Export columns did not match the data source field contract.' => 'De exportkolommen kwamen niet overeen met de velden die door de gegevensbron zijn gedefinieerd.',
     'Export is not ready for download' => 'Export is nog niet gereed voor download',
     'Export not found' => 'Export niet gevonden',
     'Export queued for generation.' => 'Export in de wachtrij geplaatst voor generatie.',

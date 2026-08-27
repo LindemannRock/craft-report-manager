@@ -132,6 +132,7 @@ return [
     'Export format "{format}" is not enabled.' => 'El formato de exportación "{format}" no está activado.',
     'Export format "{format}" is not enabled. Please update the report settings.' => 'El formato de exportación "{format}" no está activado. Actualice la configuración del informe.',
     'Export generation failed: {error}' => 'Error al generar la exportación: {error}',
+    'Export columns did not match the data source field contract.' => 'Las columnas de exportación no coincidían con los campos definidos por el origen de datos.',
     'Export is not ready for download' => 'La exportación no está lista para descargar',
     'Export not found' => 'Exportación no encontrada',
     'Export queued for generation.' => 'Exportación puesta en cola para su generación.',

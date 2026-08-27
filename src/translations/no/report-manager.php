@@ -132,6 +132,7 @@ return [
     'Export format "{format}" is not enabled.' => 'Eksportformatet "{format}" er ikke aktivert.',
     'Export format "{format}" is not enabled. Please update the report settings.' => 'Eksportformatet "{format}" er ikke aktivert. Oppdater rapportinnstillingene.',
     'Export generation failed: {error}' => 'Generering av eksport mislyktes: {error}',
+    'Export columns did not match the data source field contract.' => 'Eksportkolonnene samsvarte ikke med feltene som er definert av datakilden.',
     'Export is not ready for download' => 'Eksporten er ikke klar for nedlasting',
     'Export not found' => 'Eksport ikke funnet',
     'Export queued for generation.' => 'Eksport lagt i kø for generering.',

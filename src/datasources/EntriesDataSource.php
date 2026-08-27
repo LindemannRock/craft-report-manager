@@ -214,6 +214,7 @@ class EntriesDataSource extends BaseDataSource
             ->orderBy([
                 'dateCreated' => SORT_DESC,
                 'elements.id' => SORT_DESC,
+                'elements_sites.siteId' => SORT_DESC,
             ]);
 
         $this->applyQueryOptions($query, $options);

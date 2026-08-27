@@ -261,6 +261,7 @@ class FormieDataSource extends BaseDataSource
             ->orderBy([
                 'dateCreated' => SORT_DESC,
                 'elements.id' => SORT_DESC,
+                'elements_sites.siteId' => SORT_DESC,
             ]);
 
         // Apply site filter

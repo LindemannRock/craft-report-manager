@@ -114,6 +114,12 @@ Report Manager generates standard CSV, JSON, and XLSX files incrementally. It ca
 
 This contract applies to separate and combined reports. A source that returns more rows than requested fails with a controlled error so Report Manager cannot silently duplicate data or retain an unbounded result.
 
+### Column labels and identity
+
+Field labels are allowed to repeat. Report Manager keeps the first label unchanged and gives later columns a stable field-handle suffix, such as `Total` and `Total (netTotal)`. In a combined export, the source-identifying column is reserved first, so a field with the same label is also given its handle suffix instead of replacing that column.
+
+Keep each field's `handle` stable and unique within an entity. Report Manager uses the pair of label and handle to build one column plan for the whole combined export, then applies that same plan to every bounded window. Unique labels remain unchanged.
+
 ## Registering the Source
 
 ```php

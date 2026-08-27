@@ -190,6 +190,7 @@ class CategoriesDataSource extends BaseDataSource
             ->orderBy([
                 'lft' => SORT_ASC,
                 'elements.id' => SORT_ASC,
+                'elements_sites.siteId' => SORT_ASC,
             ]);
 
         $this->applyQueryOptions($query, $options);
