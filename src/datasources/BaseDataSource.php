@@ -218,16 +218,11 @@ abstract class BaseDataSource implements DataSourceInterface
                 : (DateTimeHelper::toDateTime($options['dateEnd']) ?: null);
         }
 
-        if (!empty($options['dateRange'])) {
-            $rangeStart = $this->getDateRangeStart($options['dateRange']);
-            $rangeEnd = $this->getDateRangeEnd($options['dateRange']);
+        $dateRange = trim((string)($options['dateRange'] ?? ''));
+        if ($dateRange !== '' && $dateRange !== 'custom') {
+            $bounds = DateRangeHelper::getBounds($dateRange);
 
-            if ($rangeStart) {
-                $start = $rangeStart;
-            }
-            if ($rangeEnd) {
-                $end = $rangeEnd;
-            }
+            return [$bounds['start'], $bounds['end']];
         }
 
         return [$start, $end];

@@ -462,8 +462,8 @@ class ReportsService extends Component
                 [
                     'reportId' => $report->id,
                     'dateRange' => $report->dateRange,
-                    'dateStart' => $report->customDateStart,
-                    'dateEnd' => $report->customDateEnd,
+                    'dateStart' => $report->dateRange === 'custom' ? $report->customDateStart : null,
+                    'dateEnd' => $report->dateRange === 'custom' ? $report->customDateEnd : null,
                     'dateField' => $report->dateField,
                     'fieldHandles' => $report->getFieldHandlesArray(),
                     'siteIds' => $siteIds,
@@ -488,8 +488,8 @@ class ReportsService extends Component
                 [
                     'reportId' => $report->id,
                     'dateRange' => $report->dateRange,
-                    'dateStart' => $report->customDateStart,
-                    'dateEnd' => $report->customDateEnd,
+                    'dateStart' => $report->dateRange === 'custom' ? $report->customDateStart : null,
+                    'dateEnd' => $report->dateRange === 'custom' ? $report->customDateEnd : null,
                     'dateField' => $report->dateField,
                     'fieldHandles' => $report->getFieldHandlesArray(),
                     'siteIds' => $siteIds,

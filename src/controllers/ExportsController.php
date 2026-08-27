@@ -196,7 +196,7 @@ class ExportsController extends Controller
      *
      * @return Response
      */
-    public function actionNew(): Response
+    public function actionNew(array $submittedValues = [], ?string $customDateRangeError = null): Response
     {
         $plugin = ReportManager::getInstance();
         $settings = $plugin->getSettings();
@@ -212,6 +212,8 @@ class ExportsController extends Controller
             'allEntities' => $allEntities,
             'dateRangeOptions' => $settings->getDateRangeOptions(true),
             'exportFormatOptions' => $settings->getExportFormatOptions(),
+            'submittedValues' => $submittedValues,
+            'customDateRangeError' => $customDateRangeError,
         ]);
     }
 
@@ -251,28 +253,50 @@ class ExportsController extends Controller
 
         // Validate at least one entity selected.
         if (empty($entityIds) || !is_array($entityIds)) {
-            Craft::$app->getSession()->setError(Craft::t('report-manager', 'Please select at least one item.'));
+            $this->setSessionError(Craft::t('report-manager', 'Please select at least one item.'));
 
             return $this->redirect('report-manager/exports/new');
         }
 
-        // Handle custom date range
-        $customDateStart = $request->getBodyParam('customDateStart');
-        $customDateEnd = $request->getBodyParam('customDateEnd');
+        $customDateStart = $request->getBodyParam('customDateStart', []);
+        $customDateEnd = $request->getBodyParam('customDateEnd', []);
 
         $dateStart = null;
         $dateEnd = null;
 
-        // The date picker is date-only, so a custom range covers whole days:
-        // start of day for the start date, end of day for the end date.
-        if (!empty($customDateStart['date'])) {
-            $dateStart = DateTimeHelper::toDateTime($customDateStart['date']) ?: null;
-            $dateStart?->setTime(0, 0, 0);
+        if ($dateRange === 'custom') {
+            // The date picker is date-only, so a custom range covers whole days:
+            // start of day for the start date, end of day for the end date.
+            if (!empty($customDateStart['date'])) {
+                $dateStart = DateTimeHelper::toDateTime($customDateStart['date']) ?: null;
+                $dateStart?->setTime(0, 0, 0);
+            }
+
+            if (!empty($customDateEnd['date'])) {
+                $dateEnd = DateTimeHelper::toDateTime($customDateEnd['date']) ?: null;
+                $dateEnd?->setTime(23, 59, 59);
+            }
         }
 
-        if (!empty($customDateEnd['date'])) {
-            $dateEnd = DateTimeHelper::toDateTime($customDateEnd['date']) ?: null;
-            $dateEnd?->setTime(23, 59, 59);
+        if ($dateStart !== null && $dateEnd !== null && $dateStart > $dateEnd) {
+            $error = Craft::t('report-manager', 'End date must be on or after the start date.');
+            $this->setSessionError($error);
+            Craft::$app->getUrlManager()->setRouteParams([
+                'submittedValues' => [
+                    'dataSource' => $dataSource,
+                    'entityIds' => array_map('intval', $entityIds),
+                    'format' => $format,
+                    'dateRange' => $dateRange,
+                    'exportMode' => $exportMode,
+                    'siteIds' => $siteIds,
+                    'customDateStart' => $dateStart,
+                    'customDateEnd' => $dateEnd,
+                    'processImmediately' => (bool)$request->getBodyParam('processImmediately', false),
+                ],
+                'customDateRangeError' => $error,
+            ]);
+
+            return null;
         }
 
         // Check if we should process immediately or queue
@@ -296,9 +320,9 @@ class ExportsController extends Controller
                 $plugin->exports->generateCombinedExport($export);
 
                 if ($export->isCompleted()) {
-                    Craft::$app->getSession()->setNotice(Craft::t('report-manager', 'Combined export generated successfully.'));
+                    $this->setSessionNotice(Craft::t('report-manager', 'Combined export generated successfully.'));
                 } else {
-                    Craft::$app->getSession()->setError(Craft::t('report-manager', 'Export generation failed: {error}', [
+                    $this->setSessionError(Craft::t('report-manager', 'Export generation failed: {error}', [
                         'error' => $export->errorMessage,
                     ]));
                 }
@@ -308,7 +332,7 @@ class ExportsController extends Controller
                     'combined' => true,
                 ]));
 
-                Craft::$app->getSession()->setNotice(Craft::t('report-manager', 'Combined export queued for generation.'));
+                $this->setSessionNotice(Craft::t('report-manager', 'Combined export queued for generation.'));
             }
 
             return $this->redirect('report-manager/exports/' . $export->id);
@@ -354,22 +378,38 @@ class ExportsController extends Controller
 
         if ($processImmediately) {
             if ($failCount === 0) {
-                Craft::$app->getSession()->setNotice(Craft::t('report-manager', '{count} export(s) generated successfully.', [
+                $this->setSessionNotice(Craft::t('report-manager', '{count} export(s) generated successfully.', [
                     'count' => $successCount,
                 ]));
             } else {
-                Craft::$app->getSession()->setError(Craft::t('report-manager', '{success} export(s) succeeded, {fail} failed.', [
+                $this->setSessionError(Craft::t('report-manager', '{success} export(s) succeeded, {fail} failed.', [
                     'success' => $successCount,
                     'fail' => $failCount,
                 ]));
             }
         } else {
-            Craft::$app->getSession()->setNotice(Craft::t('report-manager', '{count} export(s) queued for generation.', [
+            $this->setSessionNotice(Craft::t('report-manager', '{count} export(s) queued for generation.', [
                 'count' => $exportCount,
             ]));
         }
 
         return $this->redirect('report-manager/exports');
+    }
+
+    /**
+     * Set a control-panel error message.
+     */
+    protected function setSessionError(string $message): void
+    {
+        Craft::$app->getSession()->setError($message);
+    }
+
+    /**
+     * Set a control-panel notice message.
+     */
+    protected function setSessionNotice(string $message): void
+    {
+        Craft::$app->getSession()->setNotice($message);
     }
 
     /**
@@ -408,16 +448,27 @@ class ExportsController extends Controller
             };
 
             if ($plugin->exports->isStoredOnVolume($export)) {
-                $content = $plugin->exports->getFileContent($export);
-                if ($content === null) {
+                $streamDetails = $plugin->exports->getFileStream($export);
+                if ($streamDetails === null) {
                     throw new NotFoundHttpException(Craft::t('report-manager', 'Export file not found'));
                 }
 
-                return Craft::$app->getResponse()->sendContentAsFile(
-                    $content,
-                    $export->filename,
-                    ['mimeType' => $contentType]
-                );
+                try {
+                    return Craft::$app->getResponse()->sendStreamAsFile(
+                        $streamDetails['stream'],
+                        $export->filename,
+                        [
+                            'mimeType' => $contentType,
+                            'fileSize' => $streamDetails['size'],
+                        ]
+                    );
+                } catch (\Throwable $exception) {
+                    if (is_resource($streamDetails['stream'])) {
+                        fclose($streamDetails['stream']);
+                    }
+
+                    throw $exception;
+                }
             }
 
             return Craft::$app->getResponse()->sendFile(

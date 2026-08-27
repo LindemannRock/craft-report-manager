@@ -337,18 +337,7 @@ class ExportService extends Component
         $export->triggeredByUserId = $options['triggeredByUserId'] ?? Craft::$app->getUser()->getId();
         $export->reportId = $options['reportId'] ?? null;
 
-        // Date range
-        $export->dateRangeUsed = $options['dateRange'] ?? null;
-        $export->dateStartUsed = isset($options['dateStart'])
-            ? ($options['dateStart'] instanceof DateTime
-                ? $options['dateStart']
-                : (DateTimeHelper::toDateTime($options['dateStart']) ?: null))
-            : null;
-        $export->dateEndUsed = isset($options['dateEnd'])
-            ? ($options['dateEnd'] instanceof DateTime
-                ? $options['dateEnd']
-                : (DateTimeHelper::toDateTime($options['dateEnd']) ?: null))
-            : null;
+        $this->applyDateSelection($export, $options);
         $export->dateFieldUsed = $options['dateField'] ?? null;
 
         // Field handles
@@ -457,6 +446,8 @@ class ExportService extends Component
      */
     public function generateExport(ExportRecord $export, ?callable $progressCallback = null): bool
     {
+        $this->normalizeStoredDateSelection($export);
+
         // Update status to processing
         $export->status = ExportRecord::STATUS_PROCESSING;
         $export->startedAt = new DateTime();
@@ -1422,18 +1413,7 @@ class ExportService extends Component
         $export->triggeredByUserId = $options['triggeredByUserId'] ?? Craft::$app->getUser()->getId();
         $export->reportId = $options['reportId'] ?? null;
 
-        // Date range
-        $export->dateRangeUsed = $options['dateRange'] ?? null;
-        $export->dateStartUsed = isset($options['dateStart'])
-            ? ($options['dateStart'] instanceof DateTime
-                ? $options['dateStart']
-                : (DateTimeHelper::toDateTime($options['dateStart']) ?: null))
-            : null;
-        $export->dateEndUsed = isset($options['dateEnd'])
-            ? ($options['dateEnd'] instanceof DateTime
-                ? $options['dateEnd']
-                : (DateTimeHelper::toDateTime($options['dateEnd']) ?: null))
-            : null;
+        $this->applyDateSelection($export, $options);
         $export->dateFieldUsed = $options['dateField'] ?? null;
 
         // Field handles
@@ -1467,6 +1447,8 @@ class ExportService extends Component
      */
     public function generateCombinedExport(ExportRecord $export, ?callable $progressCallback = null): bool
     {
+        $this->normalizeStoredDateSelection($export);
+
         $export->status = ExportRecord::STATUS_PROCESSING;
         $export->startedAt = new DateTime();
         $export->progress = max(1, (int)$export->progress);
@@ -1670,6 +1652,56 @@ class ExportService extends Component
         }
 
         return null;
+    }
+
+    /**
+     * Open a recorded volume export as a stream with its authoritative size.
+     *
+     * The caller owns the returned stream until it hands the stream to the
+     * response sender. This method closes the stream if setup fails after it
+     * has been acquired.
+     *
+     * @param ExportRecord $export Export record
+     * @return array{stream: resource, size: int}|null Stream details or null if not found
+     * @since 5.6.0
+     */
+    public function getFileStream(ExportRecord $export): ?array
+    {
+        if (empty($export->filePath)) {
+            return null;
+        }
+
+        $storage = $this->_requireStorageForExport($export);
+        if (!$storage->isVolume()) {
+            return null;
+        }
+
+        $stream = null;
+
+        try {
+            $filesystem = $storage->filesystem();
+            if (!$filesystem->fileExists($export->filePath)) {
+                return null;
+            }
+
+            $stream = $filesystem->getFileStream($export->filePath);
+            $size = $filesystem->getFileSize($export->filePath);
+
+            return [
+                'stream' => $stream,
+                'size' => $size,
+            ];
+        } catch (\Throwable $e) {
+            if (is_resource($stream)) {
+                fclose($stream);
+            }
+
+            $this->logError('Failed to open export file stream', [
+                'path' => $export->filePath,
+                'error' => $e->getMessage(),
+            ]);
+            throw $this->_storageOperationFailed('open stream', $e);
+        }
     }
 
     /**
@@ -1905,6 +1937,47 @@ class ExportService extends Component
         }
 
         return $filename;
+    }
+
+    /**
+     * Apply a normalized date selection to a new export record.
+     */
+    private function applyDateSelection(ExportRecord $export, array $options): void
+    {
+        $dateRange = isset($options['dateRange']) ? trim((string)$options['dateRange']) : null;
+        $export->dateRangeUsed = $dateRange === '' ? null : $dateRange;
+
+        if ($export->dateRangeUsed !== null && $export->dateRangeUsed !== 'custom') {
+            $export->dateStartUsed = null;
+            $export->dateEndUsed = null;
+
+            return;
+        }
+
+        $export->dateStartUsed = isset($options['dateStart'])
+            ? ($options['dateStart'] instanceof DateTime
+                ? $options['dateStart']
+                : (DateTimeHelper::toDateTime($options['dateStart']) ?: null))
+            : null;
+        $export->dateEndUsed = isset($options['dateEnd'])
+            ? ($options['dateEnd'] instanceof DateTime
+                ? $options['dateEnd']
+                : (DateTimeHelper::toDateTime($options['dateEnd']) ?: null))
+            : null;
+    }
+
+    /**
+     * Remove stale explicit bounds from a previously-created named-range export.
+     */
+    private function normalizeStoredDateSelection(ExportRecord $export): void
+    {
+        $dateRange = trim((string)$export->dateRangeUsed);
+        if ($dateRange === '' || $dateRange === 'custom') {
+            return;
+        }
+
+        $export->dateStartUsed = null;
+        $export->dateEndUsed = null;
     }
 
     /**

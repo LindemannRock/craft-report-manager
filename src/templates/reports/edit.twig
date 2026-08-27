@@ -49,7 +49,7 @@
             </ul>
         </div>
     </div>
-    {% if not isNew and currentUser.can('reportManager:manageReports') %}
+    {% if canDelete %}
         <button type="button" id="action-btn" class="btn menubtn action-btn hairline-dark m" title="{{ 'Actions'|t('report-manager') }}" aria-controls="action-menu" aria-label="{{ 'Actions'|t('report-manager') }}" data-disclosure-trigger="true" aria-expanded="false"></button>
         <div id="action-menu" class="menu menu--disclosure">
             <ul>
@@ -274,7 +274,7 @@
             }) }}
         {% endif %}
 
-        {% if not isNew %}
+        {% if not isNew and (canGenerate or canAccessGeneratedFiles) %}
             <div class="field" style="margin-top: 15px;">
                 <div class="heading">
                     <label>{{ 'Actions'|t('report-manager') }}</label>
@@ -284,8 +284,12 @@
                         <button type="button" class="btn menubtn" data-icon="settings">{{ 'Report Actions'|t('report-manager') }}</button>
                         <div class="menu">
                             <ul>
-                                <li><a id="generate-now-btn" href="#">{{ 'Generate Now'|t('report-manager') }}</a></li>
-                                <li><a href="{{ url('report-manager/reports/' ~ report.id ~ '/generated') }}">{{ 'View Generated'|t('report-manager') }}</a></li>
+                                {% if canGenerate %}
+                                    <li><a id="generate-now-btn" href="#">{{ 'Generate Now'|t('report-manager') }}</a></li>
+                                {% endif %}
+                                {% if canAccessGeneratedFiles %}
+                                    <li><a href="{{ url('report-manager/reports/' ~ report.id ~ '/generated') }}">{{ 'View Generated'|t('report-manager') }}</a></li>
+                                {% endif %}
                             </ul>
                         </div>
                     </div>
@@ -487,6 +491,7 @@ $('#dataSource').on('change', function() {
 
 {% if not isNew %}
 // Generate Now action - separate POST request
+{% if canGenerate %}
 $('#generate-now-btn').on('click', function(e) {
     e.preventDefault();
     Craft.sendActionRequest('POST', 'report-manager/reports/generate', {
@@ -497,5 +502,6 @@ $('#generate-now-btn').on('click', function(e) {
         Craft.cp.displayError({{ 'Could not generate export.'|t('report-manager')|json_encode|raw }});
     });
 });
+{% endif %}
 {% endif %}
 {% endjs %}

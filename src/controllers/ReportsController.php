@@ -39,8 +39,9 @@ class ReportsController extends Controller
 
         $this->requirePermission('reportManager:manageReports');
 
-        // Require specific write permissions for edit/delete actions
-        if (in_array($action->id, ['edit', 'save', 'reorder', 'bulk-enable', 'bulk-disable'], true)) {
+        // Edit/create actions select their child permission from ID presence
+        // inside the action, before any lookup or mutation.
+        if (in_array($action->id, ['reorder', 'bulk-enable', 'bulk-disable'], true)) {
             $this->requirePermission('reportManager:editReports');
         }
 
@@ -166,10 +167,13 @@ class ReportsController extends Controller
      */
     public function actionEdit(?int $reportId = null, ?ReportRecord $report = null): Response
     {
+        $isNew = $reportId === null;
+        $this->requirePermission($isNew
+            ? 'reportManager:createReports'
+            : 'reportManager:editReports');
+
         $plugin = ReportManager::getInstance();
         $settings = $plugin->getSettings();
-
-        $isNew = $reportId === null;
 
         if ($report === null) {
             if ($isNew) {
@@ -245,6 +249,8 @@ class ReportsController extends Controller
             'dataSourceCapabilities' => $dataSourceCapabilities,
             'dateFieldOptions' => $dateFieldOptions,
             'canAccessGeneratedFiles' => $canAccessGeneratedFiles,
+            'canDelete' => !$isNew && Craft::$app->getUser()->checkPermission('reportManager:deleteReports'),
+            'canGenerate' => !$isNew && Craft::$app->getUser()->checkPermission('reportManager:createExports'),
             'generatedExports' => $generatedExports,
             'generatedExportStorage' => $generatedExportStorage,
             'generatedExportsTotalCount' => $generatedExportsTotalCount,
@@ -268,8 +274,12 @@ class ReportsController extends Controller
         $settings = $plugin->getSettings();
         $request = Craft::$app->getRequest();
 
-        $reportId = $request->getBodyParam('reportId');
-        $isNew = !$reportId;
+        $bodyParams = $request->getBodyParams();
+        $isNew = !array_key_exists('reportId', $bodyParams);
+        $reportId = $isNew ? null : (int)$bodyParams['reportId'];
+        $this->requirePermission($isNew
+            ? 'reportManager:createReports'
+            : 'reportManager:editReports');
 
         // Track if scheduling was previously disabled (to trigger initial run)
         $wasScheduleDisabled = true;
@@ -316,21 +326,24 @@ class ReportsController extends Controller
         $siteIds = $request->getBodyParam('siteIds', []);
         $report->setSiteIdsArray(is_array($siteIds) ? $siteIds : []);
 
-        // Handle custom date range
-        $customDateStart = $request->getBodyParam('customDateStart');
-        $customDateEnd = $request->getBodyParam('customDateEnd');
+        $report->customDateStart = null;
+        $report->customDateEnd = null;
+        if ($report->dateRange === 'custom') {
+            $customDateStart = $request->getBodyParam('customDateStart');
+            $customDateEnd = $request->getBodyParam('customDateEnd');
 
-        // The date picker is date-only, so a custom range covers whole days:
-        // start of day for the start date, end of day for the end date.
-        $dateStart = !empty($customDateStart['date'])
-            ? (DateTimeHelper::toDateTime($customDateStart['date']) ?: null)
-            : null;
-        $dateEnd = !empty($customDateEnd['date'])
-            ? (DateTimeHelper::toDateTime($customDateEnd['date']) ?: null)
-            : null;
+            // The date picker is date-only, so a custom range covers whole days:
+            // start of day for the start date, end of day for the end date.
+            $dateStart = !empty($customDateStart['date'])
+                ? (DateTimeHelper::toDateTime($customDateStart['date']) ?: null)
+                : null;
+            $dateEnd = !empty($customDateEnd['date'])
+                ? (DateTimeHelper::toDateTime($customDateEnd['date']) ?: null)
+                : null;
 
-        $report->customDateStart = $dateStart?->setTime(0, 0, 0);
-        $report->customDateEnd = $dateEnd?->setTime(23, 59, 59);
+            $report->customDateStart = $dateStart?->setTime(0, 0, 0);
+            $report->customDateEnd = $dateEnd?->setTime(23, 59, 59);
+        }
 
         // Which date column the range filters on (empty = data-source default)
         $report->dateField = $request->getBodyParam('dateField') ?: null;
@@ -340,7 +353,7 @@ class ReportsController extends Controller
         $report->setFieldHandlesArray(is_array($fieldHandles) ? $fieldHandles : []);
 
         if (!$plugin->reports->saveReport($report)) {
-            Craft::$app->getSession()->setError(Craft::t('report-manager', 'Could not save report.'));
+            $this->setReportSessionError(Craft::t('report-manager', 'Could not save report.'));
 
             Craft::$app->getUrlManager()->setRouteParams([
                 'report' => $report,
@@ -355,9 +368,25 @@ class ReportsController extends Controller
             $this->queueInitialScheduledExport($report);
         }
 
-        Craft::$app->getSession()->setNotice(Craft::t('report-manager', 'Report saved.'));
+        $this->setReportSessionNotice(Craft::t('report-manager', 'Report saved.'));
 
         return $this->redirectToPostedUrl($report);
+    }
+
+    /**
+     * Set a report-form error message.
+     */
+    protected function setReportSessionError(string $message): void
+    {
+        Craft::$app->getSession()->setError($message);
+    }
+
+    /**
+     * Set a report-form notice message.
+     */
+    protected function setReportSessionNotice(string $message): void
+    {
+        Craft::$app->getSession()->setNotice($message);
     }
 
     /**
@@ -474,6 +503,8 @@ class ReportsController extends Controller
 
         $entityIds = $report->getEntityIdsArray();
         $siteIds = $report->getSiteIdsArray();
+        $dateStart = $report->dateRange === 'custom' ? $report->customDateStart : null;
+        $dateEnd = $report->dateRange === 'custom' ? $report->customDateEnd : null;
 
         // Combined mode: single export with all entities.
         if ($report->isCombined()) {
@@ -484,8 +515,8 @@ class ReportsController extends Controller
                 [
                     'reportId' => $report->id,
                     'dateRange' => $report->dateRange,
-                    'dateStart' => $report->customDateStart,
-                    'dateEnd' => $report->customDateEnd,
+                    'dateStart' => $dateStart,
+                    'dateEnd' => $dateEnd,
                     'dateField' => $report->dateField,
                     'fieldHandles' => $report->getFieldHandlesArray(),
                     'siteIds' => $siteIds,
@@ -518,8 +549,8 @@ class ReportsController extends Controller
                 [
                     'reportId' => $report->id,
                     'dateRange' => $report->dateRange,
-                    'dateStart' => $report->customDateStart,
-                    'dateEnd' => $report->customDateEnd,
+                    'dateStart' => $dateStart,
+                    'dateEnd' => $dateEnd,
                     'dateField' => $report->dateField,
                     'fieldHandles' => $report->getFieldHandlesArray(),
                     'siteIds' => $siteIds,

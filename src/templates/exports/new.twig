@@ -5,6 +5,7 @@
 {% set title = 'Quick Export'|t('report-manager') %}
 {% set fullPageForm = true %}
 {% set selectedSubnavItem = 'exports' %}
+{% set submittedValues = submittedValues ?? {} %}
 
 {% set crumbs = [
     { label: reportHelper.fullName, url: url('report-manager') },
@@ -14,8 +15,11 @@
 
 {# Determine default data source and entities #}
 {% set defaultDataSource = dataSourceOptions|first.value ?? '' %}
-{% set currentEntities = allEntities[defaultDataSource].entities ?? [] %}
-{% set dataSourceLabels = allEntities[defaultDataSource].labels ?? {} %}
+{% set selectedDataSource = submittedValues.dataSource ?? defaultDataSource %}
+{% set selectedEntityIds = submittedValues.entityIds ?? [] %}
+{% set selectedDateRange = submittedValues.dateRange ?? settings.defaultDateRange %}
+{% set currentEntities = allEntities[selectedDataSource].entities ?? [] %}
+{% set dataSourceLabels = allEntities[selectedDataSource].labels ?? {} %}
 
 {% block actionButton %}
     <div class="btngroup submit">
@@ -35,7 +39,7 @@
             instructions: 'Select the data source to export from.'|t('report-manager'),
             id: 'dataSource',
             name: 'dataSource',
-            value: defaultDataSource,
+            value: selectedDataSource,
             options: dataSourceOptions,
             required: true
         }) }}
@@ -58,7 +62,7 @@
                         {% set recordLabel = entity.recordLabel ?? dataSourceLabels.recordPlural ?? 'records'|t('report-manager') %}
                         <div class="checkbox-wrapper" style="margin-bottom: 8px;">
                             <label>
-                                <input type="checkbox" name="entityIds[]" value="{{ entity.id }}">
+                                <input type="checkbox" name="entityIds[]" value="{{ entity.id }}"{{ entity.id in selectedEntityIds ? ' checked' }}>
                                 <strong>{{ entity.name }}</strong>
                                 <span class="light">({{ recordCount|number }} {{ recordLabel }})</span>
                             </label>
@@ -77,21 +81,25 @@
             instructions: dataSourceLabels.dateRangeInstructions ?? 'Filter records by date range.'|t('report-manager'),
             id: 'dateRange',
             name: 'dateRange',
-            value: settings.defaultDateRange,
+            value: selectedDateRange,
             options: dateRangeOptions
         }) }}
 
-        <div id="custom-date-range" style="display: none;">
+        <div id="custom-date-range"{% if selectedDateRange != 'custom' %} style="display: none;"{% endif %}>
             {{ forms.dateField({
                 label: 'Start Date'|t('report-manager'),
                 id: 'customDateStart',
-                name: 'customDateStart'
+                name: 'customDateStart',
+                value: submittedValues.customDateStart ?? null,
             }) }}
 
             {{ forms.dateField({
                 label: 'End Date'|t('report-manager'),
                 id: 'customDateEnd',
-                name: 'customDateEnd'
+                name: 'customDateEnd',
+                value: submittedValues.customDateEnd ?? null,
+                errors: customDateRangeError ? [customDateRangeError] : [],
+                fieldId: 'customDateEnd-field',
             }) }}
         </div>
 
@@ -106,7 +114,7 @@
             instructions: dataSourceLabels.exportModeInstructions ?? 'How to handle multiple items.'|t('report-manager'),
             id: 'exportMode',
             name: 'exportMode',
-            value: 'separate',
+            value: submittedValues.exportMode ?? 'separate',
             options: [
                 { value: 'separate', label: 'Separate Files'|t('report-manager') },
                 { value: 'combined', label: 'Combined File'|t('report-manager') },
@@ -117,7 +125,7 @@
             label: 'Export Format'|t('report-manager'),
             id: 'format',
             name: 'format',
-            value: settings.defaultExportFormat,
+            value: submittedValues.format ?? settings.defaultExportFormat,
             options: exportFormatOptions
         }) }}
 
@@ -126,7 +134,7 @@
             instructions: 'Generate now instead of queuing.'|t('report-manager'),
             id: 'processImmediately',
             name: 'processImmediately',
-            on: false
+            on: submittedValues.processImmediately ?? false
         }) }}
 
         {% if craft.app.getIsMultiSite() %}
@@ -140,7 +148,7 @@
                 id: 'siteIds',
                 name: 'siteIds',
                 options: siteOptions,
-                values: []
+                values: submittedValues.siteIds ?? []
             }) }}
         {% endif %}
     </div>
@@ -203,6 +211,34 @@ $('#dateRange').on('change', function() {
         $('#custom-date-range').slideUp();
     }
 });
+
+var customRangeErrorMsg = {{ 'End date must be on or after the start date.'|t('report-manager')|json_encode|raw }};
+
+function getPickerDate($input) {
+    return $input.hasClass('hasDatepicker') ? $input.datepicker('getDate') : null;
+}
+
+function validateCustomDateRange() {
+    var $start = $('#customDateStart');
+    var $end = $('#customDateEnd');
+    var start = getPickerDate($start);
+    var end = getPickerDate($end);
+    var $field = $('#customDateEnd-field');
+    var $error = $('#customDateEnd-range-error');
+
+    if (start && end && start > end) {
+        if (!$error.length) {
+            $error = $('<ul class="errors" id="customDateEnd-range-error"><li></li></ul>');
+            $field.addClass('has-errors').append($error);
+        }
+        $error.find('li').text(customRangeErrorMsg);
+    } else {
+        $error.remove();
+        $field.removeClass('has-errors');
+    }
+}
+
+$('#customDateStart, #customDateEnd').on('change', validateCustomDateRange);
 
 // Load entities when data source changes
 $('#dataSource').on('change', function() {

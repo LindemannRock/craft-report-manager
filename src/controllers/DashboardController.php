@@ -134,7 +134,7 @@ class DashboardController extends Controller
             'totalCount' => $totalCount,
             'canDownload' => $userComponent->checkPermission('reportManager:downloadExports'),
             'canDelete' => $userComponent->checkPermission('reportManager:deleteExports'),
-            'canManageReports' => $userComponent->checkPermission('reportManager:manageReports'),
+            'canCreateReports' => $userComponent->checkPermission('reportManager:createReports'),
         ]);
     }
 }
