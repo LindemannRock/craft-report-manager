@@ -117,7 +117,9 @@ return [
     // Controller messages
     'Combined export generated successfully.' => 'Combined export generated successfully.',
     'Combined export queued for generation.' => 'Combined export queued for generation.',
+    'Queued exports: {queued}; failed exports: {failed}.' => 'Queued exports: {queued}; failed exports: {failed}.',
     'Could not delete export.' => 'Could not delete export.',
+    'The export could not be queued. Check the Craft queue configuration and try again.' => 'The export could not be queued. Check the Craft queue configuration and try again.',
     'The export file could not be deleted from its recorded storage. Check the storage permissions and availability, then try again.' => 'The export file could not be deleted from its recorded storage. Check the storage permissions and availability, then try again.',
     'Could not delete report.' => 'Could not delete report.',
     'Could not generate export.' => 'Could not generate export.',

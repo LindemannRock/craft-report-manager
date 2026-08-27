@@ -119,7 +119,9 @@ return [
     // Controller messages
     'Combined export generated successfully.' => 'Export combiné généré avec succès.',
     'Combined export queued for generation.' => 'Export combiné mis en file d\'attente pour génération.',
+    'Queued exports: {queued}; failed exports: {failed}.' => 'Exports mis en file d\'attente : {queued} ; exports échoués : {failed}.',
     'Could not delete export.' => 'Impossible de supprimer l\'export.',
+    'The export could not be queued. Check the Craft queue configuration and try again.' => 'L\'export n\'a pas pu être mis en file d\'attente. Vérifiez la configuration de la file d\'attente Craft, puis réessayez.',
     'The export file could not be deleted from its recorded storage. Check the storage permissions and availability, then try again.' => 'Le fichier d\'export n\'a pas pu être supprimé de son stockage enregistré. Vérifiez les autorisations et la disponibilité du stockage, puis réessayez.',
     'Could not delete report.' => 'Impossible de supprimer le rapport.',
     'Could not generate export.' => 'Impossible de générer l\'export.',

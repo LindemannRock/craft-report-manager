@@ -11,9 +11,13 @@ declare(strict_types=1);
 namespace lindemannrock\reportmanager\tests\Integration;
 
 use Craft;
+use lindemannrock\base\helpers\DateFormatHelper;
+use lindemannrock\base\helpers\ScheduleHelper;
 use lindemannrock\reportmanager\jobs\ProcessScheduledReportJob;
 use lindemannrock\reportmanager\records\ReportRecord;
+use lindemannrock\reportmanager\services\ReportsService;
 use lindemannrock\reportmanager\tests\TestCase;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 /**
  * Pins Report Manager's independent per-report scheduling behavior.
@@ -22,6 +26,127 @@ use lindemannrock\reportmanager\tests\TestCase;
  */
 final class SchedulerPatternTest extends TestCase
 {
+    protected function tearDown(): void
+    {
+        Craft::$app->getDb()->createCommand()->delete(ReportRecord::tableName(), [
+            'handle' => 'rm_test_save-reanchor',
+        ])->execute();
+
+        parent::tearDown();
+    }
+
+    /** @return iterable<string, array{string}> */
+    public static function calendarScheduleProvider(): iterable
+    {
+        yield 'monthly' => ['monthly'];
+        yield 'every two months' => ['every2months'];
+        yield 'quarterly' => ['quarterly'];
+        yield 'every six months' => ['every6months'];
+        yield 'yearly' => ['yearly'];
+    }
+
+    #[DataProvider('calendarScheduleProvider')]
+    public function testLateCalendarRunAdvancesFromStoredDueBoundary(string $schedule): void
+    {
+        $previousDue = (new \DateTime('-1 month'))->setTime(10, 15, 0);
+        $report = $this->makeDueReport('late-' . $schedule, $schedule, $previousDue);
+        $report = ReportRecord::findOne($report->id);
+        self::assertNotNull($report);
+        $storedDue = $this->reportDate($report, 'nextScheduledAt');
+        $storedTime = $storedDue->format('H:i:s');
+
+        $expected = ScheduleHelper::calculateNext($schedule, $storedDue);
+        self::assertNotNull($expected);
+        while ($expected <= new \DateTime()) {
+            $expected = ScheduleHelper::calculateNext($schedule, $expected);
+            self::assertNotNull($expected);
+        }
+
+        self::assertTrue($this->reports->markReportGenerated($report, $storedDue));
+
+        $fresh = ReportRecord::findOne($report->id);
+        self::assertNotNull($fresh);
+        self::assertSame($expected->format('Y-m-d H:i:s'), $this->reportDate($fresh, 'nextScheduledAt')->format('Y-m-d H:i:s'));
+        self::assertSame($storedTime, $this->reportDate($fresh, 'nextScheduledAt')->format('H:i:s'));
+    }
+
+    public function testLateMonthlyRunKeepsBaseEndOfMonthClampAcrossMissedOccurrences(): void
+    {
+        $previousDue = new \DateTime('2020-01-31 10:15:00', new \DateTimeZone(Craft::$app->getTimeZone()));
+        $report = $this->makeDueReport('end-of-month-clamp', 'monthly', $previousDue);
+        $report = ReportRecord::findOne($report->id);
+        self::assertNotNull($report);
+        $storedDue = $this->reportDate($report, 'nextScheduledAt');
+        $storedTime = $storedDue->format('H:i:s');
+
+        self::assertTrue($this->reports->markReportGenerated($report, $storedDue));
+
+        $fresh = ReportRecord::findOne($report->id);
+        self::assertNotNull($fresh);
+        $next = $this->reportDate($fresh, 'nextScheduledAt');
+        self::assertGreaterThan(new \DateTime(), $next);
+        self::assertSame('28', $next->format('d'));
+        self::assertSame($storedTime, $next->format('H:i:s'));
+    }
+
+    public function testLateCalendarRunSkipsMissedTargetsWithoutCreatingExtraExports(): void
+    {
+        $previousDue = (new \DateTime('-14 months'))->setTime(9, 35, 0);
+        $report = $this->makeDueReport('missed-calendar-targets', 'monthly', $previousDue);
+        $report = ReportRecord::findOne($report->id);
+        self::assertNotNull($report);
+        $storedDue = $this->reportDate($report, 'nextScheduledAt');
+        $beforeExports = (int)\lindemannrock\reportmanager\records\ExportRecord::find()
+            ->where(['reportId' => $report->id])
+            ->count();
+
+        self::assertTrue($this->reports->markReportGenerated($report, $storedDue));
+
+        $fresh = ReportRecord::findOne($report->id);
+        self::assertNotNull($fresh);
+        self::assertGreaterThan(new \DateTime(), $this->reportDate($fresh, 'nextScheduledAt'));
+        self::assertSame($beforeExports, (int)\lindemannrock\reportmanager\records\ExportRecord::find()
+            ->where(['reportId' => $report->id])
+            ->count());
+    }
+
+    public function testSavingScheduledReportStillReanchorsCalendarScheduleFromNow(): void
+    {
+        $oldDue = new \DateTime('2020-01-15 07:30:00', new \DateTimeZone(Craft::$app->getTimeZone()));
+        $report = $this->makeDueReport('save-reanchor', 'monthly', $oldDue);
+        $report->dataSource = 'entries';
+        $reports = new NonQueueingReportsService();
+        $this->swapPluginComponent('report-manager', 'reports', $reports);
+        $this->reports = $reports;
+        $before = new \DateTime();
+
+        self::assertTrue($this->reports->saveReport($report), json_encode($report->getErrors()));
+
+        $after = new \DateTime();
+        $next = $this->reportDate($report, 'nextScheduledAt');
+        $lower = ScheduleHelper::calculateNext('monthly', $before);
+        $upper = ScheduleHelper::calculateNext('monthly', $after);
+        self::assertNotNull($lower);
+        self::assertNotNull($upper);
+        self::assertGreaterThanOrEqual($lower, $next);
+        self::assertLessThanOrEqual($upper, $next);
+        self::assertNotSame('07:30:00', $next->format('H:i:s'));
+    }
+
+    public function testFixedScheduleStillUsesItsCurrentTimeSlotAfterLateRun(): void
+    {
+        $previousDue = new \DateTime('2020-01-15 07:30:00', new \DateTimeZone(Craft::$app->getTimeZone()));
+        $report = $this->makeDueReport('fixed-schedule', 'daily2am', $previousDue);
+
+        self::assertTrue($this->reports->markReportGenerated($report, $previousDue));
+
+        $fresh = ReportRecord::findOne($report->id);
+        self::assertNotNull($fresh);
+        $next = $this->reportDate($fresh, 'nextScheduledAt');
+        self::assertGreaterThan(new \DateTime(), $next);
+        self::assertSame('02:00:00', DateFormatHelper::toCraftTimezone($next)?->format('H:i:s'));
+    }
+
     public function testScheduledReportGuardIgnoresFailedExistingReportRow(): void
     {
         $settings = $this->settings();
@@ -230,5 +355,45 @@ final class SchedulerPatternTest extends TestCase
         $this->assertTrue($report->save(false));
 
         return $report;
+    }
+
+    private function makeDueReport(string $handle, string $schedule, \DateTime $due): ReportRecord
+    {
+        $report = new ReportRecord([
+            'name' => self::MARKER . ' ' . $handle,
+            'handle' => self::MARKER . $handle,
+            'dataSource' => self::MARKER . 'source',
+            'dateRange' => 'last30days',
+            'exportFormat' => 'csv',
+            'exportMode' => 'separate',
+            'enableSchedule' => true,
+            'schedule' => $schedule,
+            'nextScheduledAt' => $due->format('Y-m-d H:i:s'),
+            'enabled' => true,
+            'sortOrder' => 0,
+            'dateCreated' => new \DateTime(),
+            'dateUpdated' => new \DateTime(),
+        ]);
+        $report->setEntityIdsArray([1]);
+        self::assertTrue($report->save(false));
+
+        return $report;
+    }
+
+    private function reportDate(ReportRecord $report, string $attribute): \DateTime
+    {
+        $value = $report->getAttribute($attribute);
+
+        return $value instanceof \DateTime
+            ? $value
+            : new \DateTime((string)$value, new \DateTimeZone('UTC'));
+    }
+}
+
+final class NonQueueingReportsService extends ReportsService
+{
+    public function queueScheduledReportJob(ReportRecord $report, bool $replaceExisting = true): bool
+    {
+        return true;
     }
 }

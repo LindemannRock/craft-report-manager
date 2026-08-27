@@ -14,7 +14,6 @@ use craft\web\Controller;
 use craft\web\ServiceUnavailableHttpException;
 use lindemannrock\base\helpers\ExportHelper;
 use lindemannrock\reportmanager\exceptions\ExportStorageUnavailableException;
-use lindemannrock\reportmanager\jobs\GenerateExportJob;
 use lindemannrock\reportmanager\records\ExportRecord;
 use lindemannrock\reportmanager\records\ReportRecord;
 use lindemannrock\reportmanager\ReportManager;
@@ -327,12 +326,17 @@ class ExportsController extends Controller
                     ]));
                 }
             } else {
-                Craft::$app->getQueue()->push(new GenerateExportJob([
-                    'exportId' => $export->id,
-                    'combined' => true,
-                ]));
+                $queued = $plugin->exports->queueExportGeneration($export, true);
+                $message = Craft::t('report-manager', 'Queued exports: {queued}; failed exports: {failed}.', [
+                    'queued' => $queued ? 1 : 0,
+                    'failed' => $queued ? 0 : 1,
+                ]);
 
-                $this->setSessionNotice(Craft::t('report-manager', 'Combined export queued for generation.'));
+                if ($queued) {
+                    $this->setSessionNotice($message);
+                } else {
+                    $this->setSessionError($message);
+                }
             }
 
             return $this->redirect('report-manager/exports/' . $export->id);
@@ -368,13 +372,13 @@ class ExportsController extends Controller
                     $failCount++;
                 }
             } else {
-                Craft::$app->getQueue()->push(new GenerateExportJob([
-                    'exportId' => $export->id,
-                ]));
+                if ($plugin->exports->queueExportGeneration($export)) {
+                    $successCount++;
+                } else {
+                    $failCount++;
+                }
             }
         }
-
-        $exportCount = count($exports);
 
         if ($processImmediately) {
             if ($failCount === 0) {
@@ -388,9 +392,16 @@ class ExportsController extends Controller
                 ]));
             }
         } else {
-            $this->setSessionNotice(Craft::t('report-manager', '{count} export(s) queued for generation.', [
-                'count' => $exportCount,
-            ]));
+            $message = Craft::t('report-manager', 'Queued exports: {queued}; failed exports: {failed}.', [
+                'queued' => $successCount,
+                'failed' => $failCount,
+            ]);
+
+            if ($failCount === 0) {
+                $this->setSessionNotice($message);
+            } else {
+                $this->setSessionError($message);
+            }
         }
 
         return $this->redirect('report-manager/exports');

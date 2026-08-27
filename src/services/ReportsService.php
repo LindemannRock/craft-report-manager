@@ -19,7 +19,6 @@ use lindemannrock\base\helpers\RecurringQueueResult;
 use lindemannrock\base\helpers\ScheduleHelper;
 use lindemannrock\base\helpers\SlugHandleHelper;
 use lindemannrock\logginglibrary\traits\LoggingTrait;
-use lindemannrock\reportmanager\jobs\GenerateExportJob;
 use lindemannrock\reportmanager\jobs\ProcessScheduledReportJob;
 use lindemannrock\reportmanager\records\ExportRecord;
 use lindemannrock\reportmanager\records\ReportRecord;
@@ -445,14 +444,16 @@ class ReportsService extends Component
      * Create scheduled export records for a report and queue generation jobs.
      *
      * @param ReportRecord $report
+     * @param int|null $failedCount Receives the number of rejected generation jobs
      * @return int Number of generation jobs queued
      */
-    public function queueScheduledReportExports(ReportRecord $report): int
+    public function queueScheduledReportExports(ReportRecord $report, ?int &$failedCount = null): int
     {
         $plugin = ReportManager::getInstance();
         $entityIds = $report->getEntityIdsArray();
         $siteIds = $report->getSiteIdsArray();
         $queued = 0;
+        $failedCount = 0;
 
         if ($report->isCombined()) {
             $export = $plugin->exports->createCombinedExport(
@@ -472,12 +473,13 @@ class ReportsService extends Component
                 ]
             );
 
-            Craft::$app->getQueue()->push(new GenerateExportJob([
-                'exportId' => $export->id,
-                'combined' => true,
-            ]));
+            if ($plugin->exports->queueExportGeneration($export, true)) {
+                return 1;
+            }
 
-            return 1;
+            $failedCount = 1;
+
+            return 0;
         }
 
         foreach ($entityIds as $entityId) {
@@ -498,11 +500,11 @@ class ReportsService extends Component
                 ]
             );
 
-            Craft::$app->getQueue()->push(new GenerateExportJob([
-                'exportId' => $export->id,
-            ]));
-
-            $queued++;
+            if ($plugin->exports->queueExportGeneration($export)) {
+                $queued++;
+            } else {
+                $failedCount++;
+            }
         }
 
         return $queued;
@@ -515,14 +517,20 @@ class ReportsService extends Component
      * Only call this from scheduled jobs, not manual runs.
      *
      * @param ReportRecord $report Report record
+     * @param DateTime|null $previousDue Previously stored due boundary
      * @return bool
      */
-    public function markReportGenerated(ReportRecord $report): bool
+    public function markReportGenerated(ReportRecord $report, ?DateTime $previousDue = null): bool
     {
-        $report->lastGeneratedAt = new DateTime();
+        $now = DateFormatHelper::now();
+        $report->lastGeneratedAt = $now;
 
         if ($report->enableSchedule && !empty($report->schedule)) {
-            $report->nextScheduledAt = $this->calculateNextScheduledTime($report->schedule);
+            $report->nextScheduledAt = $this->calculateNextScheduledTimeAfterRun(
+                $report->schedule,
+                $previousDue,
+                $now,
+            );
         }
 
         return $report->save();
@@ -618,6 +626,43 @@ class ReportsService extends Component
     private function calculateNextScheduledTime(string $schedule): DateTime
     {
         $next = ScheduleHelper::calculateNext($schedule) ?? ScheduleHelper::calculateNext('daily');
+        if ($next === null) {
+            throw new \RuntimeException('Unable to calculate the next scheduled report run.');
+        }
+
+        return $next;
+    }
+
+    /**
+     * Calculate the next schedule after a completed scheduled occurrence.
+     *
+     * Calendar schedules advance from the stored due boundary so a delayed
+     * worker does not shift the report's cadence. Fixed schedules retain their
+     * existing slot-based calculation from the current time.
+     */
+    private function calculateNextScheduledTimeAfterRun(
+        string $schedule,
+        ?DateTime $previousDue,
+        DateTime $now,
+    ): DateTime {
+        $calendarSchedules = [
+            'monthly',
+            'every2months',
+            'quarterly',
+            'every6months',
+            'yearly',
+        ];
+
+        if ($previousDue === null || !in_array($schedule, $calendarSchedules, true)) {
+            return $this->calculateNextScheduledTime($schedule);
+        }
+
+        $next = ScheduleHelper::calculateNext($schedule, $previousDue);
+
+        while ($next !== null && $next <= $now) {
+            $next = ScheduleHelper::calculateNext($schedule, $next);
+        }
+
         if ($next === null) {
             throw new \RuntimeException('Unable to calculate the next scheduled report run.');
         }

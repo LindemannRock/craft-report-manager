@@ -119,7 +119,9 @@ return [
     // Controller messages
     'Combined export generated successfully.' => 'Kombinierter Export erfolgreich generiert.',
     'Combined export queued for generation.' => 'Kombinierter Export zur Generierung in die Warteschlange gestellt.',
+    'Queued exports: {queued}; failed exports: {failed}.' => 'Exporte in Warteschlange: {queued}; fehlgeschlagene Exporte: {failed}.',
     'Could not delete export.' => 'Export konnte nicht gelöscht werden.',
+    'The export could not be queued. Check the Craft queue configuration and try again.' => 'Der Export konnte nicht in die Warteschlange gestellt werden. Prüfen Sie die Craft-Warteschlangenkonfiguration und versuchen Sie es erneut.',
     'The export file could not be deleted from its recorded storage. Check the storage permissions and availability, then try again.' => 'Die Exportdatei konnte nicht von ihrem erfassten Speicherort gelöscht werden. Prüfen Sie die Speicherberechtigungen und -verfügbarkeit und versuchen Sie es erneut.',
     'Could not delete report.' => 'Bericht konnte nicht gelöscht werden.',
     'Could not generate export.' => 'Export konnte nicht generiert werden.',

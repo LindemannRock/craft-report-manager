@@ -12,10 +12,11 @@ Use this when your plugin already knows what it wants to export (say, an analyti
 ## How It Works
 
 1. Your plugin registers a provider and calls `ExportService::createQueuedExport()` with a payload.
-2. Report Manager creates a pending export record and queues a `GenerateExportJob`.
-3. When the job runs, it calls your provider's `generate()`, passing a `QueuedExportContext`.
-4. Your provider returns a `QueuedExportResult` — a table, a multi-sheet workbook, or a set of files.
-5. Report Manager writes the file(s) to storage and the export becomes downloadable, with its own status and progress.
+2. Report Manager creates and returns a pending export record. This first step does not queue a job.
+3. Your plugin passes that record to `ExportService::queueExportGeneration()`.
+4. When the single generation job runs, it calls your provider's `generate()`, passing a `QueuedExportContext`.
+5. Your provider returns a `QueuedExportResult` — a table, a multi-sheet workbook, or a set of files.
+6. Report Manager writes the file(s) to storage and the export becomes downloadable, with its own status and progress.
 
 ## Implementing a Provider
 
@@ -140,19 +141,26 @@ Event::on(
 
 ## Triggering an Export
 
-From your plugin, create the queued export through `ExportService`:
+From your plugin, create the export record and submit that exact record for generation:
 
 ```php
 use lindemannrock\reportmanager\ReportManager;
 
-ReportManager::getInstance()->exports->createQueuedExport(
+$exports = ReportManager::getInstance()->exports;
+$export = $exports->createQueuedExport(
     'my-analytics',   // provider handle
     'xlsx',           // format (must be in supportedFormats())
     $payload,         // arbitrary data your provider understands
     [],               // options
 );
+
+if (!$exports->queueExportGeneration($export)) {
+    // The export record is already Failed with an actionable error message.
+}
 ```
 
-Report Manager queues and generates it; the resulting file appears in the exports list and is downloadable like any other export.
+@since(5.6.0) `queueExportGeneration()` creates exactly one correctly routed generation job. A queue push only succeeds when Craft returns a job ID. If the queue rejects the job or throws, the method returns `false` and marks the export **Failed** with a completion time and an actionable error. Do not also push `GenerateExportJob` yourself, or the export will have duplicate jobs.
+
+`createQueuedExport()` remains record-only for backward compatibility. Calling it without the explicit admission step leaves the export pending and creates no job.
 
 The provider-owned filename remains the name users receive when they download the export. Report Manager independently assigns each newly created export record a unique storage object key, so two new exports may safely use the same display filename without sharing or overwriting a local file or volume object.

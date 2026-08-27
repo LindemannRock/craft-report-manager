@@ -12,6 +12,8 @@ Common issues and how to resolve them. If something isn't covered here, check th
 
 **Fix:** Run a persistent queue worker — a `queue/listen` daemon or a cron-driven `queue/run`. See [Craft's queue documentation](https://craftcms.com/docs/5.x/system/queue.html). Until the queue runs, every export (manual or scheduled) sits at **Pending**.
 
+If the export is already **Failed** with a message asking you to check the Craft queue configuration, the generation job was rejected before Report Manager could admit it. Repair the queue component or external queue connection, then generate the report or export again. The failed record is terminal and will not be generated later by a delayed proxy job.
+
 ## A large export fails with an "Allowed memory size exhausted" error
 
 **Quick checks:**

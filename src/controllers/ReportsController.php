@@ -12,7 +12,6 @@ use Craft;
 use craft\helpers\DateTimeHelper;
 use craft\web\Controller;
 use lindemannrock\base\helpers\ExportHelper;
-use lindemannrock\reportmanager\jobs\GenerateExportJob;
 use lindemannrock\reportmanager\records\ReportRecord;
 use lindemannrock\reportmanager\ReportManager;
 use yii\web\BadRequestHttpException;
@@ -365,10 +364,21 @@ class ReportsController extends Controller
         // If scheduling was just enabled, run initial export immediately
         $schedulingJustEnabled = $report->enableSchedule && $wasScheduleDisabled;
         if ($schedulingJustEnabled && $report->enabled) {
-            $this->queueInitialScheduledExport($report);
-        }
+            [$queuedCount, $failedCount] = $this->queueInitialScheduledExport($report);
 
-        $this->setReportSessionNotice(Craft::t('report-manager', 'Report saved.'));
+            $message = Craft::t('report-manager', 'Queued exports: {queued}; failed exports: {failed}.', [
+                'queued' => $queuedCount,
+                'failed' => $failedCount,
+            ]);
+
+            if ($failedCount > 0) {
+                $this->setReportSessionError($message);
+            } else {
+                $this->setReportSessionNotice($message);
+            }
+        } else {
+            $this->setReportSessionNotice(Craft::t('report-manager', 'Report saved.'));
+        }
 
         return $this->redirectToPostedUrl($report);
     }
@@ -393,12 +403,16 @@ class ReportsController extends Controller
      * Queue initial export when scheduling is first enabled
      *
      * @param ReportRecord $report
+     * @return array{0: int, 1: int} Queued and failed counts
      */
-    private function queueInitialScheduledExport(ReportRecord $report): void
+    private function queueInitialScheduledExport(ReportRecord $report): array
     {
         $plugin = ReportManager::getInstance();
-        $plugin->reports->queueScheduledReportExports($report);
+        $failedCount = 0;
+        $queuedCount = $plugin->reports->queueScheduledReportExports($report, $failedCount);
         $plugin->reports->updateLastGenerated($report);
+
+        return [$queuedCount, $failedCount];
     }
 
     /**
@@ -523,24 +537,37 @@ class ReportsController extends Controller
                 ]
             );
 
-            Craft::$app->getQueue()->push(new GenerateExportJob([
-                'exportId' => $export->id,
-                'combined' => true,
-            ]));
+            $queued = $plugin->exports->queueExportGeneration($export, true);
 
             // Update last generated (manual run - don't affect schedule)
             $plugin->reports->updateLastGenerated($report);
 
             if ($request->getAcceptsJson()) {
-                return $this->asJson(['success' => true]);
+                return $this->asJson([
+                    'success' => $queued,
+                    'count' => $queued ? 1 : 0,
+                    'queued' => $queued ? 1 : 0,
+                    'failed' => $queued ? 0 : 1,
+                ]);
             }
 
-            Craft::$app->getSession()->setNotice(Craft::t('report-manager', 'Export queued for generation.'));
+            $message = Craft::t('report-manager', 'Queued exports: {queued}; failed exports: {failed}.', [
+                'queued' => $queued ? 1 : 0,
+                'failed' => $queued ? 0 : 1,
+            ]);
+            if ($queued) {
+                Craft::$app->getSession()->setNotice($message);
+            } else {
+                Craft::$app->getSession()->setError($message);
+            }
 
             return $this->redirect('report-manager/reports/' . $report->id . '/generated');
         }
 
         // Separate mode: one export per entity.
+        $queuedCount = 0;
+        $failedCount = 0;
+
         foreach ($entityIds as $entityId) {
             $export = $plugin->exports->createExport(
                 $report->dataSource,
@@ -557,23 +584,34 @@ class ReportsController extends Controller
                 ]
             );
 
-            Craft::$app->getQueue()->push(new GenerateExportJob([
-                'exportId' => $export->id,
-            ]));
+            if ($plugin->exports->queueExportGeneration($export)) {
+                $queuedCount++;
+            } else {
+                $failedCount++;
+            }
         }
 
         // Update last generated (manual run - don't affect schedule)
         $plugin->reports->updateLastGenerated($report);
 
-        $count = count($entityIds);
-
         if ($request->getAcceptsJson()) {
-            return $this->asJson(['success' => true, 'count' => $count]);
+            return $this->asJson([
+                'success' => $failedCount === 0,
+                'count' => $queuedCount,
+                'queued' => $queuedCount,
+                'failed' => $failedCount,
+            ]);
         }
 
-        Craft::$app->getSession()->setNotice(Craft::t('report-manager', '{count} export(s) queued for generation.', [
-            'count' => $count,
-        ]));
+        $message = Craft::t('report-manager', 'Queued exports: {queued}; failed exports: {failed}.', [
+            'queued' => $queuedCount,
+            'failed' => $failedCount,
+        ]);
+        if ($failedCount === 0) {
+            Craft::$app->getSession()->setNotice($message);
+        } else {
+            Craft::$app->getSession()->setError($message);
+        }
 
         return $this->redirect('report-manager/reports/' . $report->id . '/generated');
     }

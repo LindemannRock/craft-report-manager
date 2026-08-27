@@ -85,12 +85,14 @@ class ProcessScheduledReportJob extends BaseJob implements RetryableJobInterface
 
         $this->setProgress($queue, 0.1, Craft::t('report-manager', 'Queueing report exports'));
 
-        $queuedCount = $plugin->reports->queueScheduledReportExports($report);
-        $plugin->reports->markReportGenerated($report);
+        $failedCount = 0;
+        $queuedCount = $plugin->reports->queueScheduledReportExports($report, $failedCount);
+        $plugin->reports->markReportGenerated($report, $nextScheduledAt);
         $plugin->reports->queueScheduledReportJob($report);
 
-        $this->setProgress($queue, 1, Craft::t('report-manager', 'Queued {count} export(s)', [
-            'count' => $queuedCount,
+        $this->setProgress($queue, 1, Craft::t('report-manager', 'Queued exports: {queued}; failed exports: {failed}.', [
+            'queued' => $queuedCount,
+            'failed' => $failedCount,
         ]));
     }
 

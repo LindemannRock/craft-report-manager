@@ -119,7 +119,9 @@ return [
     // Controller messages
     'Combined export generated successfully.' => 'Exportação combinada gerada com sucesso.',
     'Combined export queued for generation.' => 'Exportação combinada enfileirada para geração.',
+    'Queued exports: {queued}; failed exports: {failed}.' => 'Exportações em fila: {queued}; exportações falhadas: {failed}.',
     'Could not delete export.' => 'Não foi possível eliminar a exportação.',
+    'The export could not be queued. Check the Craft queue configuration and try again.' => 'Não foi possível colocar a exportação em fila. Verifique a configuração da fila do Craft e tente novamente.',
     'The export file could not be deleted from its recorded storage. Check the storage permissions and availability, then try again.' => 'Não foi possível eliminar o ficheiro de exportação do armazenamento registado. Verifique as permissões e a disponibilidade do armazenamento e tente novamente.',
     'Could not delete report.' => 'Não foi possível eliminar o relatório.',
     'Could not generate export.' => 'Não foi possível gerar a exportação.',

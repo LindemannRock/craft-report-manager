@@ -119,7 +119,9 @@ return [
     // Controller messages
     'Combined export generated successfully.' => 'تم إنشاء التصدير المدمج بنجاح.',
     'Combined export queued for generation.' => 'تمت إضافة التصدير المدمج إلى قائمة الانتظار للإنشاء.',
+    'Queued exports: {queued}; failed exports: {failed}.' => 'التصديرات في قائمة الانتظار: {queued}؛ التصديرات الفاشلة: {failed}.',
     'Could not delete export.' => 'تعذّر حذف التصدير.',
+    'The export could not be queued. Check the Craft queue configuration and try again.' => 'تعذّر إضافة التصدير إلى قائمة الانتظار. تحقّق من إعدادات قائمة انتظار Craft، ثم أعد المحاولة.',
     'The export file could not be deleted from its recorded storage. Check the storage permissions and availability, then try again.' => 'تعذّر حذف ملف التصدير من موقع التخزين المسجّل له. تحقّق من أذونات التخزين ومدى توفّره، ثم أعد المحاولة.',
     'Could not delete report.' => 'تعذّر حذف التقرير.',
     'Could not generate export.' => 'تعذّر إنشاء التصدير.',

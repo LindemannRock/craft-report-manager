@@ -119,7 +119,9 @@ return [
     // Controller messages
     'Combined export generated successfully.' => 'Kombinert eksport generert.',
     'Combined export queued for generation.' => 'Kombinert eksport lagt i kø for generering.',
+    'Queued exports: {queued}; failed exports: {failed}.' => 'Eksporter lagt i kø: {queued}; mislykkede eksporter: {failed}.',
     'Could not delete export.' => 'Kunne ikke slette eksporten.',
+    'The export could not be queued. Check the Craft queue configuration and try again.' => 'Eksporten kunne ikke legges i kø. Kontroller Craft-køkonfigurasjonen, og prøv på nytt.',
     'The export file could not be deleted from its recorded storage. Check the storage permissions and availability, then try again.' => 'Eksportfilen kunne ikke slettes fra den registrerte lagringsplassen. Kontroller lagringstillatelsene og tilgjengeligheten, og prøv på nytt.',
     'Could not delete report.' => 'Kunne ikke slette rapporten.',
     'Could not generate export.' => 'Kunne ikke generere eksporten.',

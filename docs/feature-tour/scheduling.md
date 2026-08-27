@@ -33,6 +33,8 @@ The **Default Schedule** setting determines the frequency pre-selected for new r
 
 Report Manager queues one job per enabled, scheduled report. When a report's job fires it generates the export(s), records the run, recalculates the report's **next scheduled** time, and re-queues itself for that next run. You can see a report's **Last Run** and **Next Run** in the Reports list and in the report sidebar.
 
+Calendar frequencies keep their cadence from the previous **Next Run**, even when the queue worker starts late. If the worker is late by more than one calendar occurrence, Report Manager generates the current export batch once and advances **Next Run** to the first future occurrence; it does not create a backlog of catch-up exports. Saving, editing, or re-enabling a schedule still establishes a fresh anchor from that change.
+
 > [!TIP]
 > Scheduled jobs run on Craft's queue. A queue worker must be running for scheduled reports to fire on time. The exports they produce follow the same queue, status, and retention flow as manual exports — see [Exports](exports.md).
 

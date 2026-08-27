@@ -24,6 +24,7 @@ use lindemannrock\reportmanager\exceptions\ExportStorageUnavailableException;
 use lindemannrock\reportmanager\export\QueuedExportContext;
 use lindemannrock\reportmanager\export\QueuedExportResult;
 use lindemannrock\reportmanager\export\StreamedExportWriter;
+use lindemannrock\reportmanager\jobs\GenerateExportJob;
 use lindemannrock\reportmanager\records\ExportRecord;
 use lindemannrock\reportmanager\records\ReportRecord;
 use lindemannrock\reportmanager\ReportManager;
@@ -438,6 +439,51 @@ class ExportService extends Component
         $export->save();
 
         return $export;
+    }
+
+    /**
+     * Submit an export record for generation.
+     *
+     * A rejected queue push leaves the export in a terminal failed state. This
+     * also prevents a proxy queue row that was inserted before a downstream
+     * push failure from generating the export later.
+     *
+     * @param ExportRecord $export Pending export record
+     * @param bool $combined Whether to generate a combined standard export
+     * @return bool Whether the generation job was admitted
+     * @since 5.6.0
+     */
+    public function queueExportGeneration(ExportRecord $export, bool $combined = false): bool
+    {
+        try {
+            $jobId = Craft::$app->getQueue()->push(new GenerateExportJob([
+                'exportId' => $export->id,
+                'combined' => $combined,
+            ]));
+
+            $validJobId = is_string($jobId) && trim($jobId) !== '' && $jobId !== '0';
+
+            if (!$validJobId) {
+                throw new \RuntimeException('The queue rejected the export generation job.');
+            }
+
+            return true;
+        } catch (\Throwable $e) {
+            $export->status = ExportRecord::STATUS_FAILED;
+            $export->completedAt = new DateTime();
+            $export->errorMessage = Craft::t(
+                'report-manager',
+                'The export could not be queued. Check the Craft queue configuration and try again.',
+            );
+            $export->save(false, ['status', 'completedAt', 'errorMessage']);
+
+            $this->logError('Export generation job admission failed', [
+                'id' => $export->id,
+                'error' => $e->getMessage(),
+            ]);
+
+            return false;
+        }
     }
 
     /**
