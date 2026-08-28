@@ -138,7 +138,6 @@ return [
     'Export is not ready for download' => 'Eksporten er ikke klar til download',
     'Export not found' => 'Eksport ikke fundet',
     'Export queued for generation.' => 'Eksport sat i kø til generering.',
-    'Invalid date provided.' => 'Den angivne dato er ugyldig.',
     'No exports selected.' => 'Ingen eksporter er valgt.',
     'No reports selected.' => 'Ingen rapporter er valgt.',
     'Report deleted.' => 'Rapport slettet.',

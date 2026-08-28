@@ -138,7 +138,6 @@ return [
     'Export is not ready for download' => 'A exportação não está pronta para download',
     'Export not found' => 'Exportação não encontrada',
     'Export queued for generation.' => 'Exportação enfileirada para geração.',
-    'Invalid date provided.' => 'A data fornecida é inválida.',
     'No exports selected.' => 'Nenhuma exportação selecionada.',
     'No reports selected.' => 'Nenhum relatório selecionado.',
     'Report deleted.' => 'Relatório eliminado.',

@@ -34,7 +34,6 @@ use lindemannrock\reportmanager\ReportManager;
  * @property string|null $fieldHandles JSON array
  * @property string $exportFormat
  * @property string $exportMode separate or combined
- * @property int|null $siteId Legacy single-site filter; null = all sites
  * @property string|null $siteIds JSON array of site IDs; null/empty = all sites
  * @property bool $enableSchedule
  * @property string|null $schedule
@@ -208,7 +207,7 @@ class ReportRecord extends ActiveRecord
             return is_array($decoded) ? array_values(array_unique(array_map('intval', $decoded))) : [];
         }
 
-        return !empty($this->siteId) ? [(int) $this->siteId] : [];
+        return [];
     }
 
     /**
@@ -222,7 +221,6 @@ class ReportRecord extends ActiveRecord
     {
         $ids = array_values(array_unique(array_filter(array_map('intval', $ids))));
         $this->siteIds = !empty($ids) ? json_encode($ids) : null;
-        $this->siteId = count($ids) === 1 ? $ids[0] : null;
     }
 
     /**

@@ -64,6 +64,13 @@ final class LargeExportGenerationTest extends TestCase
         yield 'XLSX' => ['xlsx'];
     }
 
+    /** @return iterable<string, array{int, int, list<int>}> */
+    public static function supportedWindowSizeProvider(): iterable
+    {
+        yield 'minimum' => [100, 13, range(0, 1200, 100)];
+        yield 'maximum' => [1000, 2, [0, 1000]];
+    }
+
     #[DataProvider('formatProvider')]
     public function testStandardExportUsesBoundedReadsAndProducesEveryRow(string $format): void
     {
@@ -140,9 +147,10 @@ final class LargeExportGenerationTest extends TestCase
         self::assertSame("'=SUM(1,1)", $rows[0][2]);
     }
 
-    public function testConfiguredWindowBelowSafetyCeilingIsHonored(): void
+    #[DataProvider('supportedWindowSizeProvider')]
+    public function testConfiguredWindowIsHonored(int $batchSize, int $requestCount, array $offsets): void
     {
-        $this->settings()->maxExportBatchSize = 100;
+        $this->settings()->maxExportBatchSize = $batchSize;
         $export = $this->exports->createExport(
             StubLargeExportDataSource::handle(),
             StubLargeExportDataSource::PRIMARY_ENTITY_ID,
@@ -155,13 +163,13 @@ final class LargeExportGenerationTest extends TestCase
         $fresh = ExportRecord::findOne($export->id);
         self::assertNotNull($fresh);
         self::assertSame(1205, $fresh->recordCount);
-        self::assertCount(13, StubLargeExportDataSource::$exportRequests);
+        self::assertCount($requestCount, StubLargeExportDataSource::$exportRequests);
         self::assertSame(
-            range(0, 1200, 100),
+            $offsets,
             array_column(StubLargeExportDataSource::$exportRequests, 'offset'),
         );
         self::assertSame(
-            array_fill(0, 13, 100),
+            array_fill(0, $requestCount, $batchSize),
             array_column(StubLargeExportDataSource::$exportRequests, 'limit'),
         );
     }

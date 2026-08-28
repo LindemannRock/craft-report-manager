@@ -143,15 +143,14 @@ class FormieDataSource extends BaseDataSource
                 continue;
             }
 
-            $submissionCount = (int) ($counts[$form->id] ?? 0);
+            $recordCount = (int) ($counts[$form->id] ?? 0);
 
             $entities[] = [
                 'id' => $form->id,
                 'name' => $form->title,
                 'handle' => $form->handle,
-                'recordCount' => $submissionCount,
+                'recordCount' => $recordCount,
                 'recordLabel' => Craft::t('report-manager', 'submissions'),
-                'submissionCount' => $submissionCount,
             ];
         }
 

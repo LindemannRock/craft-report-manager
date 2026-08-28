@@ -62,7 +62,7 @@ class Install extends Migration
             // Report generation settings
             'enableScheduledReports' => $this->boolean()->notNull()->defaultValue(true),
             'defaultSchedule' => $this->string(32)->notNull()->defaultValue('daily2am'),
-            'maxExportBatchSize' => $this->integer()->notNull()->defaultValue(10000),
+            'maxExportBatchSize' => $this->integer()->notNull()->defaultValue(1000),
             'exportRetention' => $this->integer()->notNull()->defaultValue(30),
             'autoCleanupExports' => $this->boolean()->notNull()->defaultValue(true),
             // Export settings
@@ -72,9 +72,6 @@ class Install extends Migration
             'csvDelimiter' => $this->string(1)->notNull()->defaultValue(','),
             'csvEnclosure' => $this->string(1)->notNull()->defaultValue('"'),
             'csvIncludeBom' => $this->boolean()->notNull()->defaultValue(true),
-            // Analytics settings
-            'enableAnalytics' => $this->boolean()->notNull()->defaultValue(true),
-            'dashboardRefreshInterval' => $this->integer()->notNull()->defaultValue(0),
             // Interface settings
             'itemsPerPage' => $this->integer()->notNull()->defaultValue(100),
             // Logging library
@@ -129,7 +126,6 @@ class Install extends Migration
             // Data source configuration
             'dataSource' => $this->string(64)->notNull(), // e.g., 'formie'
             'entityIds' => $this->text()->null()->comment('JSON array of form IDs'),
-            'siteId' => $this->integer()->null(), // Legacy single-site filter; null = all sites
             'siteIds' => $this->text()->null()->comment('JSON array of site IDs'),
             // Report configuration
             'dateRange' => $this->string(32)->notNull()->defaultValue('last30days'),
@@ -157,7 +153,6 @@ class Install extends Migration
         // Indexes
         $this->createIndex(null, '{{%reportmanager_reports}}', ['handle'], true);
         $this->createIndex(null, '{{%reportmanager_reports}}', ['dataSource'], false);
-        $this->createIndex(null, '{{%reportmanager_reports}}', ['siteId'], false);
         $this->createIndex(null, '{{%reportmanager_reports}}', ['enabled'], false);
         $this->createIndex(null, '{{%reportmanager_reports}}', ['enableSchedule'], false);
         $this->createIndex(null, '{{%reportmanager_reports}}', ['nextScheduledAt'], false);

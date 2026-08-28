@@ -49,10 +49,10 @@ return [
 
         /**
          * Maximum records to export in a single batch
-         * Range: 100-100000
-         * Default: 10000
+         * Range: 100-1000
+         * Default: 1000
          */
-        // 'maxExportBatchSize' => 10000,
+        // 'maxExportBatchSize' => 1000,
 
         /**
          * Asset volume UID for export storage

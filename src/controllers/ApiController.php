@@ -9,7 +9,6 @@
 namespace lindemannrock\reportmanager\controllers;
 
 use Craft;
-use craft\helpers\DateTimeHelper;
 use craft\web\Controller;
 use lindemannrock\reportmanager\ReportManager;
 use yii\web\Response;
@@ -125,60 +124,6 @@ class ApiController extends Controller
             'success' => true,
             'analytics' => $analytics,
             'trendData' => $trendData,
-        ]);
-    }
-
-    /**
-     * Get record count for an entity.
-     *
-     * Kept on the old route name for current CP JavaScript compatibility.
-     *
-     * @return Response
-     */
-    public function actionSubmissionCount(): Response
-    {
-        $request = Craft::$app->getRequest();
-        $dataSource = $request->getRequiredParam('dataSource');
-        $entityId = $request->getRequiredParam('entityId');
-        $dateRange = $request->getParam('dateRange');
-        $dateStart = $request->getParam('dateStart');
-        $dateEnd = $request->getParam('dateEnd');
-
-        $plugin = ReportManager::getInstance();
-        $dataSourceInstance = $plugin->dataSources->getDataSource($dataSource);
-
-        if (!$dataSourceInstance) {
-            return $this->asJson([
-                'success' => false,
-                'error' => Craft::t('report-manager', 'Data source not found'),
-            ]);
-        }
-
-        $options = [];
-
-        if ($dateRange) {
-            $options['dateRange'] = $dateRange;
-        }
-
-        foreach (['dateStart' => $dateStart, 'dateEnd' => $dateEnd] as $key => $value) {
-            if ($value === null || $value === '') {
-                continue;
-            }
-            $parsed = DateTimeHelper::toDateTime($value);
-            if ($parsed === false) {
-                return $this->asJson([
-                    'success' => false,
-                    'error' => Craft::t('report-manager', 'Invalid date provided.'),
-                ]);
-            }
-            $options[$key] = $parsed;
-        }
-
-        $count = $dataSourceInstance->getRecordCount($entityId, $options);
-
-        return $this->asJson([
-            'success' => true,
-            'count' => $count,
         ]);
     }
 }

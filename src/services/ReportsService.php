@@ -412,11 +412,7 @@ class ReportsService extends Component
         $condition = [
             'and',
             ['like', 'job', 'reportmanager'],
-            [
-                'or',
-                ['like', 'job', 'ProcessScheduledReportJob'],
-                ['like', 'job', 'ProcessScheduledReportsJob'],
-            ],
+            ['like', 'job', 'ProcessScheduledReportJob'],
         ];
 
         if ($reportId !== null) {
@@ -424,20 +420,6 @@ class ReportsService extends Component
         }
 
         return (int) Craft::$app->getDb()->createCommand()->delete('{{%queue}}', $condition)->execute();
-    }
-
-    /**
-     * Delete queued legacy global scheduled-report processor jobs.
-     *
-     * @return int Number of deleted queue rows
-     */
-    public function deleteLegacyScheduledReportJobs(): int
-    {
-        return (int) Craft::$app->getDb()->createCommand()->delete('{{%queue}}', [
-            'and',
-            ['like', 'job', 'reportmanager'],
-            ['like', 'job', 'ProcessScheduledReportsJob'],
-        ])->execute();
     }
 
     /**

@@ -147,7 +147,7 @@
 
         {% set entityOptions = [] %}
         {% for entity in entities %}
-            {% set recordCount = entity.recordCount ?? entity.submissionCount ?? 0 %}
+            {% set recordCount = entity.recordCount ?? 0 %}
             {% set recordLabel = entity.recordLabel ?? dataSourceLabels.recordPlural ?? 'records'|t('report-manager') %}
             {% set entityOptions = entityOptions|merge([{
                 label: entity.name ~ ' - (' ~ recordCount|number ~ ' ' ~ recordLabel ~ ')',
@@ -417,7 +417,7 @@ function getDataSourceLabel(labels, key, fallback) {
 }
 
 function appendEntityLabel($label, entity, labels) {
-    var recordCount = entity.recordCount ?? entity.submissionCount ?? 0;
+    var recordCount = entity.recordCount ?? 0;
     var recordLabel = entity.recordLabel || getDataSourceLabel(labels, 'recordPlural', '{{ 'records'|t('report-manager')|e('js') }}');
 
     $label.text(entity.name + ' - (' + Craft.formatNumber(recordCount) + ' ' + recordLabel + ')');

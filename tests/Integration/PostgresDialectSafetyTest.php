@@ -30,7 +30,7 @@ final class PostgresDialectSafetyTest extends TestCase
      * since types aren't visible in source.
      */
     private const BOOLEAN_COLUMNS = [
-        'enableScheduledReports', 'autoCleanupExports', 'csvIncludeBom', 'enableAnalytics',
+        'enableScheduledReports', 'autoCleanupExports', 'csvIncludeBom',
         'showSeconds', 'exportsCsv', 'exportsJson', 'exportsExcel',
         'enableSchedule', 'enabled',
     ];

@@ -138,7 +138,6 @@ return [
     'Export is not ready for download' => 'エクスポートはまだダウンロードできません',
     'Export not found' => 'エクスポートが見つかりません',
     'Export queued for generation.' => 'エクスポートを生成キューに追加しました。',
-    'Invalid date provided.' => '無効な日付が指定されました。',
     'No exports selected.' => 'エクスポートが選択されていません。',
     'No reports selected.' => 'レポートが選択されていません。',
     'Report deleted.' => 'レポートを削除しました。',

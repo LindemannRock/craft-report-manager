@@ -244,6 +244,24 @@ final class SchedulerPatternTest extends TestCase
         }
     }
 
+    public function testReportSpecificDeletionRemovesItsSingularScheduledJob(): void
+    {
+        $settings = $this->settings();
+        $originalEnableScheduledReports = $settings->enableScheduledReports;
+        $settings->enableScheduledReports = true;
+
+        try {
+            $report = $this->makeScheduledReport('delete-owned-report-job');
+            self::assertTrue($this->reports->queueScheduledReportJob($report));
+            self::assertSame(1, $this->countScheduledReportQueueRows((int)$report->id));
+
+            self::assertSame(1, $this->reports->deleteScheduledReportJobs((int)$report->id));
+            self::assertSame(0, $this->countScheduledReportQueueRows((int)$report->id));
+        } finally {
+            $settings->enableScheduledReports = $originalEnableScheduledReports;
+        }
+    }
+
     public function testScheduleOptionsComeFromBaseCuratedList(): void
     {
         $options = $this->settings()->getScheduleOptions();

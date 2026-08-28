@@ -138,7 +138,6 @@ return [
     'Export is not ready for download' => 'التصدير غير جاهز للتنزيل',
     'Export not found' => 'التصدير غير موجود',
     'Export queued for generation.' => 'تمت إضافة التصدير إلى قائمة الانتظار للإنشاء.',
-    'Invalid date provided.' => 'التاريخ المُدخَل غير صالح.',
     'No exports selected.' => 'لم يتم تحديد أي تصديرات.',
     'No reports selected.' => 'لم يتم تحديد أي تقارير.',
     'Report deleted.' => 'تم حذف التقرير.',

@@ -6,7 +6,7 @@ A custom data source means: implement `DataSourceInterface`, then register it vi
 
 ## Implementing the Interface
 
-Extend `BaseDataSource` rather than implementing `DataSourceInterface` from scratch — it provides sensible defaults (capabilities, UI labels, the legacy `getSubmissions()`/`getSubmissionCount()` aliases) so you only override what your source needs.
+Extend `BaseDataSource` rather than implementing `DataSourceInterface` from scratch — it provides sensible defaults for capabilities and UI labels, so you only override what your source needs.
 
 ```php
 <?php

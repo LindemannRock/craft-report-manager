@@ -113,30 +113,6 @@ abstract class BaseDataSource implements DataSourceInterface
     }
 
     /**
-     * Backward-compatible alias for older integrations.
-     *
-     * @param int $entityId The entity ID
-     * @param array $options Query options
-     * @return array
-     */
-    public function getSubmissions(int $entityId, array $options = []): array
-    {
-        return $this->getRecords($entityId, $options);
-    }
-
-    /**
-     * Backward-compatible alias for older integrations.
-     *
-     * @param int $entityId The entity ID
-     * @param array $options Query options
-     * @return int
-     */
-    public function getSubmissionCount(int $entityId, array $options = []): int
-    {
-        return $this->getRecordCount($entityId, $options);
-    }
-
-    /**
      * Get date range start date
      *
      * @param string $dateRange Date range identifier

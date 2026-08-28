@@ -138,7 +138,6 @@ return [
     'Export is not ready for download' => 'Export is nog niet gereed voor download',
     'Export not found' => 'Export niet gevonden',
     'Export queued for generation.' => 'Export in de wachtrij geplaatst voor generatie.',
-    'Invalid date provided.' => 'Ongeldige datum opgegeven.',
     'No exports selected.' => 'Geen exports geselecteerd.',
     'No reports selected.' => 'Geen rapporten geselecteerd.',
     'Report deleted.' => 'Rapport verwijderd.',

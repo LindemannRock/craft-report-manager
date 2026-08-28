@@ -86,7 +86,7 @@ Legacy relative-path rows without proven volume ownership remain **Unresolved st
 | Option                | Type     | Default | Description                                                                                                                                   |
 | --------------------- | -------- | ------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
 | `defaultExportFormat` | `string` | `'csv'` | Pre-selected format for new reports. One of `csv`, `xlsx`, `json`.                                                                            |
-| `maxExportBatchSize`  | `int`    | `10000` | Configured ceiling for records loaded per standard export batch. Range: 100–100000; Report Manager applies a runtime safety ceiling of 1,000. |
+| `maxExportBatchSize`  | `int`    | `1000`  | Maximum records loaded per standard export batch. Range: 100–1,000.                                                                      |
 | `csvDelimiter`        | `string` | `','`   | Single character used as the CSV field delimiter.                                                                                             |
 | `csvEnclosure`        | `string` | `'"'`   | Single character used to enclose CSV field values.                                                                                            |
 | `csvIncludeBom`       | `bool`   | `true`  | Prepend a UTF-8 BOM to CSV files for Excel compatibility.                                                                                     |
@@ -94,7 +94,7 @@ Legacy relative-path rows without proven volume ownership remain **Unresolved st
 > [!NOTE]
 > Which formats appear in the format dropdowns is controlled by the **Interface** settings (CSV / JSON / Excel toggles). `defaultExportFormat` must be one of the formats you've enabled.
 
-Standard CSV, JSON, and XLSX exports are generated incrementally for both separate and combined exports. Report Manager never hydrates more than 1,000 source records at once, even when an older installation retains the original `10000` setting. Set `maxExportBatchSize` lower when records contain unusually heavy fields. Registered custom data sources must honor the `limit` and `offset` options supplied to `exportToArray()`.
+Standard CSV, JSON, and XLSX exports are generated incrementally for both separate and combined exports. Report Manager never hydrates more than 1,000 source records at once. The runtime safety ceiling also protects environments where an older database value or a directly injected setting exceeds the supported maximum. Set `maxExportBatchSize` lower when records contain unusually heavy fields. Registered custom data sources must honor the `limit` and `offset` options supplied to `exportToArray()`.
 
 ## Cleanup & Retention
 

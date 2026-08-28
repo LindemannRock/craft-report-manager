@@ -49,7 +49,7 @@
             value: settings.maxExportBatchSize,
             type: 'number',
             min: 100,
-            max: 100000,
+            max: 1000,
             errors: settings.getErrors('maxExportBatchSize'),
             disabled: settings.isOverriddenByConfig('maxExportBatchSize'),
             warning: settings.isOverriddenByConfig('maxExportBatchSize') ?

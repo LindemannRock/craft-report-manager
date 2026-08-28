@@ -144,9 +144,6 @@ class ReportManager extends Plugin
         // Register permissions
         $this->registerPermissions();
 
-        // Register CP nav items
-        $this->registerCpNavItems();
-
         // Schedule recurring jobs (only on non-console requests to avoid running during migrations)
         if (!Craft::$app->getRequest()->getIsConsoleRequest()) {
             $this->scheduleReportJobs();
@@ -389,15 +386,6 @@ class ReportManager extends Plugin
     }
 
     /**
-     * Register CP nav items (sidebar modifications)
-     */
-    private function registerCpNavItems(): void
-    {
-        // This event is useful for modifying the nav after it's built
-        // Currently we use getCpNavItem() for subnav, but this is here for future use
-    }
-
-    /**
      * Get plugin instance
      *
      * @return ReportManager|null
@@ -418,12 +406,10 @@ class ReportManager extends Plugin
             return;
         }
 
-        $legacyDeleted = $this->reports->deleteLegacyScheduledReportJobs();
         $queued = $this->reports->queueAllScheduledReportJobs();
 
-        if ($legacyDeleted > 0 || $queued > 0) {
+        if ($queued > 0) {
             $this->logInfo('Queued scheduled report jobs', [
-                'legacy_deleted' => $legacyDeleted,
                 'queued' => $queued,
             ]);
         }

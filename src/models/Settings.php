@@ -90,7 +90,7 @@ class Settings extends Model
     /**
      * @var int Maximum records per export batch (for large datasets)
      */
-    public int $maxExportBatchSize = 10000;
+    public int $maxExportBatchSize = 1000;
 
     /**
      * @var int Number of days to retain generated exports
@@ -135,20 +135,6 @@ class Settings extends Model
      * @var bool Include BOM in CSV exports (for Excel compatibility)
      */
     public bool $csvIncludeBom = true;
-
-    // =========================================================================
-    // LEGACY DASHBOARD SETTINGS
-    // =========================================================================
-
-    /**
-     * @var bool Legacy analytics dashboard flag, retained for existing settings rows
-     */
-    public bool $enableAnalytics = true;
-
-    /**
-     * @var int Legacy dashboard refresh interval, retained for existing settings rows
-     */
-    public int $dashboardRefreshInterval = 0;
 
     /**
      * @inheritdoc
@@ -196,7 +182,6 @@ class Settings extends Model
             'enableScheduledReports',
             'autoCleanupExports',
             'csvIncludeBom',
-            'enableAnalytics',
             'showSeconds',
             'exportsCsv',
             'exportsJson',
@@ -212,7 +197,6 @@ class Settings extends Model
         return [
             'maxExportBatchSize',
             'exportRetention',
-            'dashboardRefreshInterval',
             'itemsPerPage',
         ];
     }
@@ -240,7 +224,6 @@ class Settings extends Model
                     'enableScheduledReports',
                     'autoCleanupExports',
                     'csvIncludeBom',
-                    'enableAnalytics',
                 ],
                 'boolean',
             ],
@@ -250,8 +233,8 @@ class Settings extends Model
                 'range' => ScheduleHelper::getValidValues(self::SCHEDULE_OPTIONS),
             ],
             ['defaultSchedule', 'default', 'value' => 'daily2am'],
-            ['maxExportBatchSize', 'integer', 'min' => 100, 'max' => 100000],
-            ['maxExportBatchSize', 'default', 'value' => 10000],
+            ['maxExportBatchSize', 'integer', 'min' => 100, 'max' => 1000],
+            ['maxExportBatchSize', 'default', 'value' => 1000],
             ['exportRetention', 'integer', 'min' => 0],
             ['exportRetention', 'default', 'value' => 30],
             ['defaultExportFormat', 'in', 'range' => ['csv', 'xlsx', 'json']],
@@ -260,8 +243,6 @@ class Settings extends Model
             ['csvDelimiter', 'default', 'value' => ','],
             ['csvEnclosure', 'string', 'length' => 1],
             ['csvEnclosure', 'default', 'value' => '"'],
-            ['dashboardRefreshInterval', 'integer', 'min' => 0, 'max' => 3600],
-            ['dashboardRefreshInterval', 'default', 'value' => 0],
             [['exportVolumeUid'], StorageVolumeValidator::class],
             [
                 ['exportPath'],
