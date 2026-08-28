@@ -38,6 +38,7 @@
     "require-dev": {
         "craftcms/ecs": "dev-main",
         "craftcms/phpstan": "dev-main",
+        "phpstan/phpstan": "^1.12.33",
         "phpunit/phpunit": "^11.0",
         "verbb/formie": "^3.0"
     },
@@ -54,7 +55,9 @@
         "phpstan": "phpstan --ansi --memory-limit=1G",
         "check-cs": "ecs check --ansi",
         "fix-cs": "ecs check --fix --ansi",
-        "test": "phpunit --colors=always",
+        "test": "php tests/Fixtures/Project/run.php --no-progress",
+        "test:direct": "phpunit --colors=always",
+        "test-conventions": "php scripts/check-test-conventions.php",
         "ci": [
             "@phpstan",
             "@check-cs"
@@ -62,6 +65,10 @@
         "ci:full": [
             "@ci",
             "@test"
+        ],
+        "quality-gate": [
+            "Composer\\Config::disableProcessTimeout",
+            "node scripts/quality-gate.mjs"
         ],
         "install-hooks": "git config core.hooksPath .githooks 2>/dev/null || true",
         "post-install-cmd": "@install-hooks",

@@ -33,6 +33,14 @@ use lindemannrock\reportmanager\tests\TestCase;
  */
 final class QueuedExportGenerateHappyPathTest extends TestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->settings()->exportVolumeUid = '';
+        $this->settings()->exportPath = $this->createTrackedTempDirectory('report-provider-export-');
+    }
+
     public function testGenerateTableExportWritesFileAndCompletesRecord(): void
     {
         $this->installStubProviderService();

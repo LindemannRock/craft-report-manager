@@ -1,9 +1,43 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+PACKAGE_ROOT="$(CDPATH= cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd -P)"
+cd "$PACKAGE_ROOT"
+WORKFLOW=.github/workflows/ci.yml
+
+if ! grep -Eq '^[[:space:]]*run:[[:space:]]+composer quality-gate[[:space:]]*$' "$WORKFLOW"; then
+    echo "The CI quality-gates job must invoke the canonical 'composer quality-gate' command." >&2
+    exit 1
+fi
+if grep -Eq 'safe[.]directory.*[*]' "$WORKFLOW"; then
+    echo "The CI quality-gates job must never use wildcard safe.directory trust." >&2
+    exit 1
+fi
+
+SAFE_DIRECTORY_COUNT=$(awk '/safe[.]directory/ { count++ } END { print count + 0 }' "$WORKFLOW")
+EXACT_TRUST_COUNT=$(awk '/^[[:space:]]*run:[[:space:]]+git config --global --add safe[.]directory "[$]GITHUB_WORKSPACE"[[:space:]]*$/ { count++ } END { print count + 0 }' "$WORKFLOW")
+if [ "$SAFE_DIRECTORY_COUNT" -ne 1 ] || [ "$EXACT_TRUST_COUNT" -ne 1 ]; then
+    echo 'The CI job must trust exactly "$GITHUB_WORKSPACE" with one safe.directory command.' >&2
+    exit 1
+fi
+
+CHECKOUT_LINE=$(awk '/^[[:space:]]*-[[:space:]]+uses:[[:space:]]+actions\/checkout@v6[[:space:]]*$/ { print NR; exit }' "$WORKFLOW")
+TRUST_LINE=$(awk '/^[[:space:]]*run:[[:space:]]+git config --global --add safe[.]directory "[$]GITHUB_WORKSPACE"[[:space:]]*$/ { print NR; exit }' "$WORKFLOW")
+QUALITY_GATE_LINE=$(awk '/^[[:space:]]*run:[[:space:]]+composer quality-gate[[:space:]]*$/ { print NR; exit }' "$WORKFLOW")
+if [ -z "$CHECKOUT_LINE" ] || [ -z "$TRUST_LINE" ] || [ -z "$QUALITY_GATE_LINE" ] \
+    || [ "$TRUST_LINE" -le "$CHECKOUT_LINE" ] || [ "$TRUST_LINE" -ge "$QUALITY_GATE_LINE" ]; then
+    echo 'Exact workspace trust must run after checkout and before composer quality-gate.' >&2
+    exit 1
+fi
+
+set +e
 act push \
     -W .github/workflows/ci.yml \
     -j quality-gates \
     -P ubuntu-latest=ghcr.io/catthehacker/ubuntu:act-latest \
     --container-architecture linux/amd64 \
-    "$@"
+    "$@" \
+    --rm
+status=$?
+set -e
+exit "$status"

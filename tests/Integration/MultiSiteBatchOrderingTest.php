@@ -117,12 +117,7 @@ final class MultiSiteBatchOrderingTest extends TestCase
             }
         }
 
-        if ($entity === null) {
-            $sourceCode = file_get_contents(dirname(__DIR__, 2) . '/src/datasources/FormieDataSource.php');
-            self::assertIsString($sourceCode);
-            self::assertStringContainsString("'elements_sites.siteId' => SORT_DESC", $sourceCode);
-            return;
-        }
+        self::assertIsArray($entity, 'The integration project must seed more than one full Formie window.');
 
         $siteIds = array_map('intval', Craft::$app->getSites()->getAllSiteIds());
         $firstRead = $this->readWindows($source, (int)$entity['id'], $siteIds);

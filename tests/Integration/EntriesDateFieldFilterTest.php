@@ -21,8 +21,7 @@ use lindemannrock\reportmanager\tests\TestCase;
  * executable filter — the postDate path in particular, which goes through
  * Craft's native param because the entries table is not on the main query.
  *
- * Uses whatever entries the test install already has rather than seeding
- * elements (the suite avoids saveElement under console requests).
+ * The disposable project seeds the supported Entry topology used here.
  *
  * @since 5.4.0
  */
@@ -33,9 +32,7 @@ final class EntriesDateFieldFilterTest extends TestCase
     public function testEachDateFieldFilterExecutesAndConstrainsResults(): void
     {
         $entry = Entry::find()->status(null)->one();
-        if (!$entry instanceof Entry) {
-            self::markTestSkipped('No entries in the test install to filter.');
-        }
+        self::assertInstanceOf(Entry::class, $entry, 'The integration project must seed an entry.');
 
         $source = new EntriesDataSource();
         $sectionId = (int) $entry->sectionId;
@@ -59,9 +56,7 @@ final class EntriesDateFieldFilterTest extends TestCase
     public function testPostDateIsTheDefaultFieldForEntries(): void
     {
         $entry = Entry::find()->status(null)->one();
-        if (!$entry instanceof Entry) {
-            self::markTestSkipped('No entries in the test install to filter.');
-        }
+        self::assertInstanceOf(Entry::class, $entry, 'The integration project must seed an entry.');
 
         $source = new EntriesDataSource();
         $sectionId = (int) $entry->sectionId;

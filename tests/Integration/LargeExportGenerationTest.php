@@ -33,6 +33,9 @@ final class LargeExportGenerationTest extends TestCase
         parent::setUp();
         StubLargeExportDataSource::reset();
 
+        $this->settings()->exportVolumeUid = '';
+        $this->settings()->exportPath = $this->createTrackedTempDirectory('report-large-export-');
+
         $service = new DataSourcesService();
         $service->on(
             DataSourcesService::EVENT_REGISTER_DATA_SOURCES,
