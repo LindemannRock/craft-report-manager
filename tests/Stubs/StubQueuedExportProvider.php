@@ -10,6 +10,7 @@ declare(strict_types=1);
 
 namespace lindemannrock\reportmanager\tests\Stubs;
 
+use Closure;
 use lindemannrock\reportmanager\export\BaseQueuedExportProvider;
 use lindemannrock\reportmanager\export\QueuedExportContext;
 use lindemannrock\reportmanager\export\QueuedExportResult;
@@ -44,6 +45,14 @@ final class StubQueuedExportProvider extends BaseQueuedExportProvider
      * @var QueuedExportResult|\Throwable|null
      */
     public static QueuedExportResult|\Throwable|null $nextResult = null;
+
+    /**
+     * Test-owned provider generation callback for results that must be built
+     * during the provider call, such as filesystem staging manifests.
+     *
+     * @var (Closure(array<string, mixed>, QueuedExportContext): QueuedExportResult)|null
+     */
+    public static ?Closure $resultFactory = null;
 
     /**
      * Payload values passed to {@see generate()}, in order. Tests can assert
@@ -105,6 +114,10 @@ final class StubQueuedExportProvider extends BaseQueuedExportProvider
             $context->updateProgress($progress);
         }
 
+        if (self::$resultFactory instanceof Closure) {
+            return (self::$resultFactory)($payload, $context);
+        }
+
         if (self::$nextResult instanceof \Throwable) {
             throw self::$nextResult;
         }
@@ -127,6 +140,7 @@ final class StubQueuedExportProvider extends BaseQueuedExportProvider
     public static function reset(): void
     {
         self::$nextResult = null;
+        self::$resultFactory = null;
         self::$generateCalls = [];
         self::$permissions = [];
         self::$progressUpdates = [];
