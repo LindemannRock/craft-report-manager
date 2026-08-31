@@ -5,7 +5,7 @@
 [![Latest Version](https://img.shields.io/packagist/v/lindemannrock/craft-report-manager.svg)](https://packagist.org/packages/lindemannrock/craft-report-manager)
 [![Craft CMS](https://img.shields.io/badge/Craft%20CMS-5.0+-orange.svg)](https://craftcms.com/)
 [![PHP](https://img.shields.io/badge/PHP-8.2+-blue.svg)](https://php.net/)
-[![Logging Library](https://img.shields.io/badge/Logging%20Library-5.0+-green.svg)](https://github.com/LindemannRock/craft-logging-library)
+[![Logging Library](https://img.shields.io/badge/Logging%20Library-5.18.2%2B-green.svg)](https://github.com/LindemannRock/craft-logging-library)
 [![License](https://img.shields.io/packagist/l/lindemannrock/craft-report-manager.svg)](LICENSE.md)
 
 Saved reporting, content inventory, and export management for Craft CMS with extensible data source support.
@@ -36,7 +36,8 @@ This plugin is in active development and not yet available on the Craft Plugin S
 
 - Craft CMS 5.0+
 - PHP 8.2+
-- [Logging Library](https://github.com/LindemannRock/craft-logging-library) 5.0+ — optional, install in CP for log viewing
+- [LindemannRock Plugin Base](https://github.com/LindemannRock/craft-plugin-base) 5.38.2+ (required by Composer)
+- [Logging Library](https://github.com/LindemannRock/craft-logging-library) 5.18.2+ (required by Composer; install in CP for log viewing)
 - [Formie](https://verbb.io/craft-plugins/formie) 3.0+ — optional, enables the Formie data source
 
 ## Installation
