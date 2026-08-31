@@ -6,7 +6,7 @@ A **report** is a saved export definition. Instead of re-specifying what to expo
 
 Go to **Report Manager → Reports → New Report**.
 
-![The New Report edit screen with data source, entities, and the export sidebar](images/reports-edit.webp)
+![The New Report edit screen with data source, entities, and the export sidebar](../images/reports-edit.webp)
 
 ### Main fields
 

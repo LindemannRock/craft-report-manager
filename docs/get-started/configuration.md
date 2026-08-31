@@ -112,6 +112,6 @@ The daily target is calculated in Craft's configured timezone. Delay-limited que
 | Option       | Type     | Default            | Description                                                                |
 | ------------ | -------- | ------------------ | -------------------------------------------------------------------------- |
 | `pluginName` | `string` | `'Report Manager'` | The name shown in the Control Panel menu.                                  |
-| `logLevel`   | `string` | —                  | Log verbosity for the plugin's log channel (requires the Logging Library). |
+| `logLevel`   | `string` | —                  | Log verbosity for the plugin's log channel. See [Logging](../resources/logging.md). |
 
 Shared interface settings — items per page, date/time formatting, default date range, and the CSV/JSON/Excel format toggles — are provided by the base plugin and can also be set here. See the base plugin's date-format configuration for the formatting keys.

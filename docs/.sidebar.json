@@ -39,6 +39,7 @@
         "collapsable": true,
         "open": false,
         "children": [
+            "resources/logging",
             "resources/troubleshooting",
             "resources/translations"
         ]

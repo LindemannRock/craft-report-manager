@@ -12,7 +12,7 @@ Report Manager ships with three data sources:
 
 When you pick a source in a report, its entity list, date-field options, and labels load automatically.
 
-![Selecting a data source and its entities on the report edit screen](images/data-sources-selection.webp)
+![Selecting a data source and its entities on the report edit screen](../images/data-sources-selection.webp)
 
 ## Craft Entries
 

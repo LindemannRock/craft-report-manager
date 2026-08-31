@@ -21,7 +21,7 @@ A report is a saved definition: *which* data source, *which* entities within it,
 
 ## Control Panel
 
-![Report Manager navigation and Dashboard in the Craft Control Panel](images/overview-nav.webp)
+![Report Manager navigation and Dashboard in the Craft Control Panel](../images/overview-nav.webp)
 
 Report Manager adds a navigation item with these sections:
 
@@ -30,7 +30,7 @@ Report Manager adds a navigation item with these sections:
 | **Dashboard** | A combined view of every generated export across all reports, filterable by status, trigger type, and format |
 | **Reports** | The list of report definitions, with **Generate Now** and **View Generated** actions |
 | **Settings** | General, Interface, Scheduling, and Export configuration |
-| **Logs** | Plugin logs (only when the [Logging Library](https://github.com/LindemannRock/craft-logging-library) is installed) |
+| **[Logs](../resources/logging.md)** | Plugin logs (only when the Logging Library is installed) |
 
 A report's generated files are reached from the Reports list via **View Generated**, or the **Generated Files** tab on the report's edit screen.
 

@@ -1,6 +1,6 @@
 # Troubleshooting
 
-Common issues and how to resolve them. If something isn't covered here, check the plugin logs (**Report Manager → Logs**, when the Logging Library is installed).
+Common issues and how to resolve them. If something isn't covered here, check the [plugin logs](logging.md) (**Report Manager → Logs**, when the Logging Library is installed).
 
 ## Exports stay "Pending" and never complete
 

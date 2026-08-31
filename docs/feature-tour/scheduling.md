@@ -4,7 +4,7 @@ Reports can generate automatically on a recurring schedule, so a fresh export is
 
 ## Two Levels of Control
 
-![The Schedule switch and Frequency in a report's sidebar](images/scheduling-sidebar.webp)
+![The Schedule switch and Frequency in a report's sidebar](../images/scheduling-sidebar.webp)
 
 Scheduling is gated by a global switch *and* a per-report switch — both must be on for a report to run automatically:
 

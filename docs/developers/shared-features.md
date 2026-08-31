@@ -53,5 +53,6 @@ Provides standardized logging to dedicated plugin log files
 
 View plugin logs directly in the Control Panel
 
----
+See [Logging](../resources/logging.md) for log levels, configuration, file locations, and permissions.
 
+---
