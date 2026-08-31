@@ -1,6 +1,6 @@
 # Changelog
 
-## [5.6.0](https://github.com/LindemannRock/craft-report-manager/compare/v5.5.1...v5.6.0) (2026-08-31)
+## [5.6.0](https://github.com/LindemannRock/craft-report-manager/compare/v5.5.1...v5.6.0) - 2026-08-31
 
 
 ### Added
