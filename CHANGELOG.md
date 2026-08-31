@@ -1,5 +1,38 @@
 # Changelog
 
+## [5.6.0](https://github.com/LindemannRock/craft-report-manager/compare/v5.5.1...v5.6.0) - 2026-08-31
+
+
+### Added
+
+* **i18n:** add translated labels for status filter options ([1860547](https://github.com/LindemannRock/craft-report-manager/commit/1860547291882f699873bf50b572a1c63ac788d0))
+* **settings:** warn about ephemeral local storage ([da4ff5e](https://github.com/LindemannRock/craft-report-manager/commit/da4ff5e091f3f57b66e00f3aa1c5f629eea7efb1))
+
+
+### Fixed
+
+* clarify default export formats in config ([32d0bb9](https://github.com/LindemannRock/craft-report-manager/commit/32d0bb923c144b5e4c7b3bbd4d0897e0aadf3996))
+* correct export path display in settings template ([2e49a0a](https://github.com/LindemannRock/craft-report-manager/commit/2e49a0a9ccfedf079d2a8ad00645a1c3aa58d5b3))
+* **deps:** enforce complete package quality gates ([b533c6f](https://github.com/LindemannRock/craft-report-manager/commit/b533c6f81d61ca231b9a61d47d82737e9f855186))
+* **deps:** require current shared package floors ([78f1336](https://github.com/LindemannRock/craft-report-manager/commit/78f13360af50a2a6741cca7dc7f07afc45b24a46))
+* **import-export:** make report filenames self-identifying ([1496dae](https://github.com/LindemannRock/craft-report-manager/commit/1496dae1836a9bf2d20c272023795d4f97c605bb))
+* **import-export:** preserve export integrity ([a4904d3](https://github.com/LindemannRock/craft-report-manager/commit/a4904d31824e443f6aa9a147a53e88e14ad43da1))
+* **import-export:** stream standard exports in bounded windows ([e8edb37](https://github.com/LindemannRock/craft-report-manager/commit/e8edb37b353a59e2cdde8adf6d3254a891c48d5a))
+* **queue:** defer busy bootstrap reconciliation ([8a6bb61](https://github.com/LindemannRock/craft-report-manager/commit/8a6bb61bc466e5ed024d3d5136674af290cb919c))
+* **queue:** preserve export admission and schedule cadence ([d4181fb](https://github.com/LindemannRock/craft-report-manager/commit/d4181fb13e6d79576623ae02bcbebc129be66f79))
+* **queue:** publish export generation progress ([d4b155f](https://github.com/LindemannRock/craft-report-manager/commit/d4b155f8d82973dfee45ca469b75dfdc382431b5))
+* **queue:** support portable export cleanup ([38979c0](https://github.com/LindemannRock/craft-report-manager/commit/38979c07a7b5d101cf2248bd13f37d0c290153ac))
+* remove translationCategory from error summary includes ([632769f](https://github.com/LindemannRock/craft-report-manager/commit/632769f8469a1cdd7cdc37471c5062071ba70bf4))
+* remove unused linkMode parameter from error summary ([eb6cad3](https://github.com/LindemannRock/craft-report-manager/commit/eb6cad3614b55514f32337a1b1630566d24f84e6))
+* **reports:** clean provider workbook staging ([2426ab5](https://github.com/LindemannRock/craft-report-manager/commit/2426ab50f4905db7c21cb41b3c309a4aacfa45fc))
+* **reports:** enforce report and export controls ([0a3fe37](https://github.com/LindemannRock/craft-report-manager/commit/0a3fe37b8161a76707e470879a1b19a8aae04b8c))
+* **reports:** honor configured volume storage ([e223541](https://github.com/LindemannRock/craft-report-manager/commit/e223541ac0bc99382669e82527c905842d8e9dd8))
+* **reports:** persist export storage affinity ([d7f79d1](https://github.com/LindemannRock/craft-report-manager/commit/d7f79d1ae87e156f9b878d42d0dc00abe649690a))
+* **reports:** preserve dates and localized counts ([e614cab](https://github.com/LindemannRock/craft-report-manager/commit/e614cab9e7c1955c2a00149afdfd2dc7bfd0d842))
+* **reports:** preserve exports after deletion failures ([3e4b992](https://github.com/LindemannRock/craft-report-manager/commit/3e4b992e8786a83d95afccd2f4177f9fa56b064f))
+* **settings:** align pre-release contracts ([cd6d9dc](https://github.com/LindemannRock/craft-report-manager/commit/cd6d9dcb87d664888cce5b096c35a46d19b9be5a))
+* **settings:** remove unsupported config examples ([56a79d3](https://github.com/LindemannRock/craft-report-manager/commit/56a79d38cdea2b43f34ef97202ef24c5a6c9249d))
+
 ## [5.5.1](https://github.com/LindemannRock/craft-report-manager/compare/v5.5.0...v5.5.1) - 2026-06-20
 
 
