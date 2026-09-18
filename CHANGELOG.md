@@ -1,5 +1,12 @@
 # Changelog
 
+## [5.6.3](https://github.com/LindemannRock/craft-report-manager/compare/v5.6.2...v5.6.3) (2026-09-18)
+
+
+### Fixed
+
+* **cp:** render live export progress with shared colors ([9d6c296](https://github.com/LindemannRock/craft-report-manager/commit/9d6c296449484e30ceb66847302984758497d12c))
+
 ## [5.6.2](https://github.com/LindemannRock/craft-report-manager/compare/v5.6.1...v5.6.2) - 2026-09-18
 
 
