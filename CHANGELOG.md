@@ -1,5 +1,12 @@
 # Changelog
 
+## [5.6.1](https://github.com/LindemannRock/craft-report-manager/compare/v5.6.0...v5.6.1) (2026-09-18)
+
+
+### Fixed
+
+* **queue:** resume large exports across bounded jobs ([6073bde](https://github.com/LindemannRock/craft-report-manager/commit/6073bdeaa81996e78965f1bcbf9ffaabd23f7a1c))
+
 ## [5.6.0](https://github.com/LindemannRock/craft-report-manager/compare/v5.5.1...v5.6.0) - 2026-08-31
 
 
