@@ -46,7 +46,7 @@ final class StreamedExportWriter
 
     /**
      * @param string[] $headers Export column labels
-     * @param array{delimiter?: string, enclosure?: string, includeBom?: bool, sheetTitle?: string} $options
+     * @param array{delimiter?: string, enclosure?: string, includeBom?: bool, sheetTitle?: string, tempDirectory?: string} $options
      */
     public function __construct(
         private readonly string $format,
@@ -54,7 +54,7 @@ final class StreamedExportWriter
         private readonly array $options = [],
     ) {
         $this->headers = array_values(array_map('strval', $headers));
-        $tempPath = tempnam(sys_get_temp_dir(), 'report-manager-export-');
+        $tempPath = tempnam($options['tempDirectory'] ?? sys_get_temp_dir(), 'report-manager-export-');
 
         if ($tempPath === false) {
             throw new \RuntimeException('Unable to create a temporary export file.');
@@ -162,7 +162,11 @@ final class StreamedExportWriter
 
     private function openXlsx(): void
     {
-        $this->xlsxWriter = new XlsxWriter();
+        $xlsxOptions = new \OpenSpout\Writer\XLSX\Options();
+        if (isset($this->options['tempDirectory'])) {
+            $xlsxOptions->setTempFolder($this->options['tempDirectory']);
+        }
+        $this->xlsxWriter = new XlsxWriter($xlsxOptions);
         $this->xlsxWriter->openToFile($this->tempPath);
 
         $sheet = $this->xlsxWriter->getCurrentSheet();

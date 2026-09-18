@@ -23,6 +23,9 @@ function packageFixture() {
     for (const relativePath of ['.gitignore', '.gitattributes']) {
         cpSync(path.join(packageRoot, relativePath), path.join(repository, relativePath));
     }
+    // Clone history, then capture the current runtime candidate, including new files.
+    rmSync(path.join(repository, 'src'), {recursive: true, force: true});
+    cpSync(path.join(packageRoot, 'src'), path.join(repository, 'src'), {recursive: true});
     return {root, repository};
 }
 

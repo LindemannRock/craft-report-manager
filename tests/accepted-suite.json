@@ -1,15 +1,15 @@
 {
     "schemaVersion": 1,
     "declared": {
-        "integrationClasses": 35,
-        "testMethods": 213,
+        "integrationClasses": 36,
+        "testMethods": 228,
         "allowedIdentifierDebt": [
             "tests/Integration/MultiSiteBatchOrderingTest.php: MultiSiteBatchOrderingTest"
         ]
     },
     "executedMinimum": {
-        "tests": 259,
-        "assertions": 3535,
+        "tests": 293,
+        "assertions": 6083,
         "errors": 0,
         "failures": 0,
         "skipped": 0,

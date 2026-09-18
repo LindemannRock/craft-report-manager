@@ -24,7 +24,7 @@ use lindemannrock\base\helpers\PluginHelper;
  * @package   ReportManager
  * @since     5.0.0
  */
-class FormieDataSource extends BaseDataSource
+class FormieDataSource extends BaseDataSource implements ResumableDataSourceInterface
 {
     /**
      * @inheritdoc
@@ -243,16 +243,36 @@ class FormieDataSource extends BaseDataSource
      */
     public function getRecords(int $entityId, array $options = []): array
     {
-        if (!self::isAvailable()) {
+        if (!self::isAvailable() || $this->getEntity($entityId) === null) {
             return [];
         }
+        return $this->exportQuery($entityId, $options)->all();
+    }
 
-        $form = \verbb\formie\elements\Form::find()->id($entityId)->one();
+    /** @inheritdoc */
+    public static function supportsExportContinuation(): bool
+    {
+        return static::class === self::class;
+    }
 
-        if (!$form instanceof \verbb\formie\elements\Form) {
-            return [];
-        }
+    /** @inheritdoc */
+    public function getExportSelection(int $entityId, array $options = []): iterable
+    {
+        return ElementExportSelection::identities($this->exportQuery($entityId, $options));
+    }
 
+    /** @inheritdoc */
+    public function exportSelectedRecord(int $entityId, array $identity, array $fieldHandles, array $options = []): array
+    {
+        return $this->exportToArray($entityId, $fieldHandles, array_merge($options, [
+            '_exportIdentity' => $identity,
+            'limit' => 1,
+            'offset' => 0,
+        ]));
+    }
+
+    private function exportQuery(int $entityId, array $options): \verbb\formie\elements\db\SubmissionQuery
+    {
         $query = \verbb\formie\elements\Submission::find()
             ->formId($entityId)
             ->isIncomplete(false)
@@ -288,7 +308,9 @@ class FormieDataSource extends BaseDataSource
             $query->offset($options['offset']);
         }
 
-        return $query->all();
+        ElementExportSelection::restrict($query, $options);
+
+        return $query;
     }
 
     /**

@@ -21,11 +21,28 @@ If the export is already **Failed** with a message asking you to check the Craft
 1. Confirm Report Manager is version 5.5.2 or later. Earlier versions assembled the complete result and output file in PHP memory.
 2. Check **Settings → Export → Maximum Export Batch Size**. Report Manager applies a 1,000-record safety ceiling; lower the setting to `500`, `250`, or `100` when each record contains especially heavy fields.
 3. If you use a registered custom data source, confirm its `exportToArray()` implementation honors the supplied `limit` and `offset` options.
-4. Retry the failed queue job after updating the plugin or batch setting.
+4. Generate a new export after updating the plugin or batch setting; a terminally failed export record is not restarted by retrying an old queue job.
 
 **Fix:** Upgrade Report Manager and rerun the export. Standard Craft Entries, Craft Categories, Formie, and compatible custom-source exports are read in bounded groups and written incrementally for CSV, JSON, and XLSX files. This applies to both separate and combined exports, so raising PHP's memory limit should not be necessary.
 
 Queued export providers have a separate contract: a provider that builds and returns a complete in-memory table or workbook remains responsible for bounding its own data preparation.
+
+## A large export stops while "Processing"
+
+For built-in Formie, Craft Entries, and Craft Categories, one export normally uses several queue jobs. The detail page stays **Processing** while selection, row generation, final assembly, and cleanup run. Keep the queue worker running until the export itself is **Completed**.
+
+**Quick checks:**
+
+1. Inspect **Utilities → Queue Manager** and the [plugin logs](logging.md). A failed continuation may still have automatic retry attempts available; each step allows up to three attempts.
+2. Confirm every worker can read and write the export's recorded local path or Craft volume. Changing Export settings does not redirect an existing export.
+3. If workers run on different hosts, use shared persistent storage and the same Craft security key on all hosts. An ephemeral local directory cannot hold durable continuation data.
+4. After retries are exhausted, repair the reported storage, source, or queue problem and generate a new export. Keep the failed record until you have collected its error and logs, then delete it through Report Manager.
+
+**What to collect:** With the log level set to `info`, Report Manager logs each committed continuation's export ID, sequence, phase, elapsed seconds, peak process memory, and processed/written counts. Admission logs include successor queue job IDs. Restore the previous log level after diagnosis. Peak memory is the worker process's high-water mark, so a long-lived worker can include earlier jobs.
+
+Selection and final assembly are budgeted separately from row generation. A repeatedly failing selection, exceptionally expensive individual record, slow storage, or final assembly can still exhaust its budget. Capture the failing phase and diagnostic error rather than increasing the global queue timeout without evidence. Custom sources and queued providers retain their existing single-job execution and need their own implementation review if they time out.
+
+Completed exports remove durable working objects automatically. Failed exports keep their owned working data until deletion or retention cleanup. If a worker is killed during assembly and another host completes the export, disposable files can remain in the first host's Craft temporary directory; clean those through that host's normal temporary-file maintenance after confirming no worker is using them. They are not needed to resume the export.
 
 ## Scheduled reports aren't generating
 

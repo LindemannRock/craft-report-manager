@@ -26,6 +26,7 @@ This plugin is in active development and not yet available on the Craft Plugin S
 - **Export Formats** — CSV (configurable delimiter/enclosure, optional Excel BOM), Excel (XLSX), and JSON
 - **Separate or Combined** — One file per entity, or all entities merged into a single file
 - **Scheduling** — Run reports automatically from every 6 hours through yearly, via Craft's queue
+- **Resumable Built-In Exports** — Formie, Entries, and Categories continue across queue jobs with saved progress and safe retries
 - **Export Management** — Queue-based generation with live progress, status tracking, and re-downloadable files
 - **Flexible Storage** — Store exports on the local filesystem or in a Craft asset volume
 - **Retention & Cleanup** — Automatic, configurable cleanup of old exports

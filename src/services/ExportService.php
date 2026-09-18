@@ -20,7 +20,9 @@ use lindemannrock\base\helpers\ExportHelper;
 use lindemannrock\base\helpers\SafeSegmentHelper;
 use lindemannrock\logginglibrary\traits\LoggingTrait;
 use lindemannrock\reportmanager\datasources\DataSourceInterface;
+use lindemannrock\reportmanager\datasources\ResumableDataSourceInterface;
 use lindemannrock\reportmanager\exceptions\ExportStorageUnavailableException;
+use lindemannrock\reportmanager\export\ExportContinuation;
 use lindemannrock\reportmanager\export\QueuedExportContext;
 use lindemannrock\reportmanager\export\QueuedExportResult;
 use lindemannrock\reportmanager\export\StreamedExportWriter;
@@ -29,6 +31,7 @@ use lindemannrock\reportmanager\records\ExportRecord;
 use lindemannrock\reportmanager\records\ReportRecord;
 use lindemannrock\reportmanager\ReportManager;
 use lindemannrock\reportmanager\storage\ExportStorage;
+use lindemannrock\reportmanager\storage\ExportWorkStorage;
 use yii\db\Expression;
 
 /**
@@ -487,6 +490,96 @@ class ExportService extends Component
     }
 
     /**
+     * Run one finite standard export step; provider/custom fallback stays in the job.
+     *
+     * @internal
+     * @since 5.7.0
+     */
+    public function continueQueuedExport(int $exportId, int $sequence, $queue): void
+    {
+        $this->createContinuation()->execute(
+            $exportId,
+            $sequence,
+            $queue,
+            fn(ExportRecord $export, ResumableDataSourceInterface $source): array => $this->continuationPlan($export, $source),
+            fn(ExportRecord $export, string $path): array => $this->_writeExportTempFile($export, $path),
+        );
+    }
+
+    protected function createContinuation(): ExportContinuation
+    {
+        return new ExportContinuation();
+    }
+
+    private function continuationPlan(ExportRecord $export, ResumableDataSourceInterface $source): array
+    {
+        $this->normalizeStoredDateSelection($export);
+        $options = [
+            'dateRange' => $export->dateRangeUsed,
+            'dateStart' => $export->dateStartUsed,
+            'dateEnd' => $export->dateEndUsed,
+            'dateField' => $export->dateFieldUsed,
+            'siteIds' => $export->getSiteIdsUsedArray(),
+        ];
+        // Resolve named ranges once, so a later worker cannot move the window.
+        if ($export->dateRangeUsed && $export->dateRangeUsed !== 'custom') {
+            $bounds = DateRangeHelper::getBounds($export->dateRangeUsed);
+            $options['dateStart'] = $bounds['start'];
+            $options['dateEnd'] = $bounds['end'];
+        }
+        $options['dateRange'] = 'custom';
+        foreach (['dateStart', 'dateEnd'] as $key) {
+            if ($options[$key] instanceof \DateTimeInterface) {
+                $options[$key] = $options[$key]->format(DATE_ATOM);
+            }
+        }
+        $fieldHandles = $export->getFieldHandlesUsedArray();
+        $entityIds = $export->getEntityIdsArray();
+        if ($entityIds === []) {
+            throw new \RuntimeException('Export selection has no entities.');
+        }
+        $entities = [];
+        $headers = [];
+        if ($export->isCombinedExport()) {
+            [$headers, $names, $plans, $positions] = $this->combinedColumnPlan(
+                $source, $entityIds, $fieldHandles, $source::uiLabels(),
+            );
+        }
+        foreach ($entityIds as $entityId) {
+            $fields = array_values(array_filter($source->getEntityFields($entityId),
+                static fn(array $field): bool => $fieldHandles === [] || in_array($field['handle'], $fieldHandles, true)));
+            $handles = array_column($fields, 'handle');
+            $rawHeaders = array_column($fields, 'label');
+            if (!$export->isCombinedExport()) {
+                $headers = $this->normalizeOutputHeaders($rawHeaders, $handles);
+            }
+            $entities[] = [
+                'id' => $entityId,
+                'name' => $names[$entityId] ?? null,
+                'handles' => $handles,
+                'headers' => $rawHeaders,
+                'positions' => $positions[$entityId] ?? array_keys($handles),
+            ];
+        }
+        $settings = ReportManager::getInstance()->getSettings();
+
+        return [
+            'sourceClass' => $source::class,
+            'entities' => $entities,
+            'headers' => $headers,
+            'options' => $options,
+            'combined' => $export->isCombinedExport(),
+            'format' => $export->format,
+            'writer' => [
+                'delimiter' => $settings->csvDelimiter,
+                'enclosure' => $settings->csvEnclosure,
+                'includeBom' => $settings->csvIncludeBom,
+                'sheetTitle' => $export->entityName ?? 'Export',
+            ],
+        ];
+    }
+
+    /**
      * Generate an export
      *
      * @param ExportRecord $export Export record
@@ -788,61 +881,9 @@ class ExportService extends Component
         array $labels,
         ?callable $progressCallback = null,
     ): array {
-        $primaryHeader = $labels['combinedPrimaryColumnLabel'] ?? Craft::t('report-manager', 'Item Name');
-        $entityNames = [];
-        $columnDescriptors = [];
-        $descriptorIndexes = [];
-        $entityHeaderPlans = [];
-        $entityTargetPositions = [];
-
-        foreach ($entityIds as $entityId) {
-            $entity = $dataSource->getEntity($entityId);
-            $entityNames[$entityId] = $entity['name'] ?? ($labels['entitySingular'] ?? Craft::t('report-manager', 'Item')) . " {$entityId}";
-            $fields = $dataSource->getEntityFields($entityId);
-
-            if ($fieldHandles !== []) {
-                $fields = array_filter(
-                    $fields,
-                    static fn(array $field): bool => in_array($field['handle'], $fieldHandles, true),
-                );
-            }
-
-            $fields = array_values($fields);
-            $entityHeaderPlans[$entityId] = [
-                'headers' => [],
-                'descriptorKeys' => [],
-            ];
-
-            foreach ($fields as $field) {
-                $label = (string)$field['label'];
-                $handle = (string)$field['handle'];
-                $descriptorKey = $this->outputColumnDescriptorKey($label, $handle);
-                $entityHeaderPlans[$entityId]['headers'][] = $label;
-                $entityHeaderPlans[$entityId]['descriptorKeys'][] = $descriptorKey;
-
-                if (!isset($descriptorIndexes[$descriptorKey])) {
-                    $descriptorIndexes[$descriptorKey] = count($columnDescriptors);
-                    $columnDescriptors[] = [
-                        'label' => $label,
-                        'handle' => $handle,
-                    ];
-                }
-            }
-        }
-
-        $normalizedHeaders = $this->normalizeOutputHeaders(
-            array_column($columnDescriptors, 'label'),
-            array_column($columnDescriptors, 'handle'),
-            [$primaryHeader],
+        [$allHeaders, $entityNames, $entityHeaderPlans, $entityTargetPositions] = $this->combinedColumnPlan(
+            $dataSource, $entityIds, $fieldHandles, $labels,
         );
-        $allHeaders = array_merge([$primaryHeader], $normalizedHeaders);
-
-        foreach ($entityHeaderPlans as $entityId => $headerPlan) {
-            $entityTargetPositions[$entityId] = array_map(
-                static fn(string $descriptorKey): int => $descriptorIndexes[$descriptorKey] + 1,
-                $headerPlan['descriptorKeys'],
-            );
-        }
 
         $writer = $this->createStreamedWriter($export, $allHeaders);
         $recordCount = 0;
@@ -915,6 +956,68 @@ class ExportService extends Component
         } finally {
             $writer->abort();
         }
+    }
+
+    /** Build one lossless column plan for immediate and resumable combined exports. */
+    private function combinedColumnPlan(DataSourceInterface $dataSource, array $entityIds, array $fieldHandles, array $labels): array
+    {
+        $primaryHeader = $labels['combinedPrimaryColumnLabel'] ?? Craft::t('report-manager', 'Item Name');
+        $entityNames = [];
+        $columnDescriptors = [];
+        $descriptorIndexes = [];
+        $entityHeaderPlans = [];
+        $entityTargetPositions = [];
+
+        foreach ($entityIds as $entityId) {
+            $entity = $dataSource->getEntity($entityId);
+            $entityNames[$entityId] = $entity['name'] ?? ($labels['entitySingular'] ?? Craft::t('report-manager', 'Item')) . " {$entityId}";
+            $fields = $dataSource->getEntityFields($entityId);
+
+            if ($fieldHandles !== []) {
+                $fields = array_filter(
+                    $fields,
+                    static fn(array $field): bool => in_array($field['handle'], $fieldHandles, true),
+                );
+            }
+
+            $fields = array_values($fields);
+            $entityHeaderPlans[$entityId] = [
+                'headers' => [],
+                'descriptorKeys' => [],
+            ];
+
+            foreach ($fields as $field) {
+                $label = (string)$field['label'];
+                $handle = (string)$field['handle'];
+                $descriptorKey = $this->outputColumnDescriptorKey($label, $handle);
+                $entityHeaderPlans[$entityId]['headers'][] = $label;
+                $entityHeaderPlans[$entityId]['descriptorKeys'][] = $descriptorKey;
+
+                if (!isset($descriptorIndexes[$descriptorKey])) {
+                    $descriptorIndexes[$descriptorKey] = count($columnDescriptors);
+                    $columnDescriptors[] = [
+                        'label' => $label,
+                        'handle' => $handle,
+                    ];
+                }
+            }
+        }
+
+        $normalizedHeaders = $this->normalizeOutputHeaders(
+            array_column($columnDescriptors, 'label'),
+            array_column($columnDescriptors, 'handle'),
+            [$primaryHeader],
+        );
+        $allHeaders = array_merge([$primaryHeader], $normalizedHeaders);
+
+        foreach ($entityHeaderPlans as $entityId => $headerPlan) {
+            $entityTargetPositions[$entityId] = array_map(
+                static fn(string $descriptorKey): int => $descriptorIndexes[$descriptorKey] + 1,
+                $headerPlan['descriptorKeys'],
+            );
+        }
+
+        return [$allHeaders, $entityNames, $entityHeaderPlans, $entityTargetPositions];
     }
 
     /**
@@ -1659,11 +1762,45 @@ class ExportService extends Component
      */
     public function deleteExport(int $id): bool
     {
+        try {
+            return ExportContinuation::locked($id, function() use ($id): bool {
+                return $this->deleteLockedExport($id);
+            });
+        } catch (\Throwable $error) {
+            $this->_lastStorageError = ExportStorage::deletionFailedMessage();
+            $this->logWarning('Export deletion could not acquire or complete its lifecycle lock', ['id' => $id, 'error' => $error->getMessage()]);
+            return false;
+        }
+    }
+
+    private function deleteLockedExport(int $id): bool
+    {
         $this->_lastStorageError = null;
         $export = $this->getExportById($id);
 
         if (!$export) {
             return false;
+        }
+
+        if (isset($export->getMetadataArray()[ExportContinuation::STATE_KEY]) || ExportContinuation::supports($export)) {
+            // Persist the stop before deleting any artifacts; a storage failure
+            // keeps the row available for an exact deletion retry.
+            if ($export->isPending() || $export->isProcessing()) {
+                $export->status = ExportRecord::STATUS_FAILED;
+                $export->completedAt = new DateTime();
+                if (!$export->save(false, ['status', 'completedAt'])) {
+                    return false;
+                }
+            }
+            try {
+                (new ExportWorkStorage($export))->cleanup();
+            } catch (\Throwable $exception) {
+                $this->_lastStorageError = $exception instanceof ExportStorageUnavailableException
+                    ? $exception->getMessage()
+                    : ExportStorage::deletionFailedMessage();
+                $this->logWarning('Export work cleanup failed', ['id' => $id, 'error' => $exception->getMessage()]);
+                return false;
+            }
         }
 
         if (!$this->_deleteExportFile($export)) {

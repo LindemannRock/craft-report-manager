@@ -19,10 +19,20 @@ Exports run through Craft's **queue**, not inline — so large exports don't tie
 1. You trigger a report (**Generate Now**) or a scheduled run fires.
 2. Report Manager creates a **pending** export record and queues a job.
 3. A queue worker picks it up; the record moves to **processing** with a live progress percentage.
-4. On success the record becomes **completed** with the file written to storage; on error it becomes **failed** with an error message.
+4. Report Manager finishes the file and removes its working data, then marks the record **completed**. If automatic recovery is exhausted, the record becomes **failed** with an error message.
 
 > [!TIP]
 > Make sure a queue worker is running (`queue/listen`, or a cron-driven `queue/run`). Without it, exports stay **pending**.
+
+### Large built-in exports
+
+Formie, Craft Entries, and Craft Categories share a resumable pipeline for both separate and combined CSV, JSON, and XLSX exports. A large export passes through several queue jobs: selecting records, generating bounded groups of rows, assembling the file, and cleaning up. Its export record stays **Processing** across those jobs; a completed queue job does not necessarily mean the download is ready.
+
+Each row-generation job handles at most 100 records and yields earlier after about 90 seconds. **Maximum Export Batch Size** remains an upper limit, not a promise that every job will process that many records. Selection and final assembly have their own execution budgets. No increase to the global queue timeout is required.
+
+The export captures its column plan and date boundaries when generation begins, then captures the ordered record identities for each selected entity. Records added after that entity's selection are excluded. Records removed or no longer matching the filters are skipped; field values are read when each row is generated. This gives stable membership and ordering across workers, rather than a point-in-time snapshot of every field value.
+
+Completed work is saved in the export's captured storage. An interrupted step can be retried up to three attempts, and replaying a committed step does not append duplicate rows. After a terminal failure, fix the cause and generate a new export. Existing custom data sources and queued export providers keep their current single-job behavior.
 
 ### Statuses
 
@@ -42,6 +52,8 @@ Report Manager captures each export's effective storage when it creates the pend
 Every newly created export gets a record-specific stored object key, even when two exports have the same filename. The filename shown in Report Manager—and supplied to the browser on download—does not change. Deleting or retaining either new export therefore targets only its own object. Completed exports created before this behavior keep their historical recorded paths exactly; Report Manager does not move or rename them.
 
 For a volume record, Report Manager resolves the recorded UID for every later write, availability check, download, deletion, and retention run, then lets Craft apply that volume's current configured subpath. It never substitutes the currently selected volume or falls back to `exportPath`. If the recorded volume or its filesystem is unavailable, the operation fails with an actionable storage error and retries the same UID later, so restoring that exact volume restores access.
+
+Resumable exports also keep encrypted working objects beside the final file, in a directory owned by that export. Every worker must have access to the same captured storage and use the same Craft security key. For local storage across multiple hosts, mount the same persistent path on every host; otherwise use a shared Craft volume. Do not rotate the security key while resumable exports are pending or processing. Worker-local assembly files are disposable and are rebuilt on retry.
 
 Craft Cloud's application filesystem is ephemeral, so its local paths—and volumes backed by local filesystems—are not durable export storage. Use a volume with Craft Cloud's **Cloud** filesystem type; see Craft's [local filesystem guidance](https://craftcms.com/docs/cloud/assets.html#local). The Export settings page evaluates config-file overrides before showing its colored warning. A valid non-local filesystem suppresses only that warning; it does not certify a third-party filesystem as compatible with Craft Cloud. An unavailable-volume error is shown separately and is never classified as a local fallback or durable storage.
 
@@ -78,6 +90,8 @@ There are two ways into the generated files:
 ![An export detail page showing status, file details, and the date range used](../images/exports-detail.webp)
 
 Open any export to see its **detail page**: status, data source, entity, format, the date range used, captured storage location, file details (filename, records, size), timing (triggered by, created, started, completed), plus any warnings or error message. While an export is still pending or processing, the detail page shows a live progress bar that refreshes automatically. **Download** is available once the file is completed and present in its recorded storage.
+
+Deleting a pending or processing built-in export first stops further continuation. If cleanup cannot finish, its failed record remains available for another deletion attempt. A busy worker can also make deletion retryable. Successful deletion removes the export’s working data as well as its final file.
 
 Deleting an export removes its exact recorded local file or its exact wrapper-relative object on the recorded Craft volume, then removes the database record. If that location confirms the file is already absent, Report Manager can still remove the record. If the existence check or deletion fails—for example because storage is unavailable, read-only, or denied—the record and its captured storage identity remain in place for a later retry. Bulk deletion reports partial failures instead of treating the whole selection as deleted.
 

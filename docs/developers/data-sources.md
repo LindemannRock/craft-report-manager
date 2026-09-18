@@ -110,9 +110,11 @@ Override `capabilities()` to turn off anything your source doesn't support — t
 
 ## Bounded export contract
 
-Report Manager generates standard CSV, JSON, and XLSX files incrementally. It calls `getRecordCount()` once, then repeatedly calls `exportToArray()` with `limit` and `offset` options. Custom sources must apply both options using a deterministic order and return no more than the requested limit. The `headers` array must remain identical for every window of the same export.
+Existing custom data sources keep the single-job export path for CSV, JSON, and XLSX. Within that job, Report Manager writes incrementally: it calls `getRecordCount()` once, then repeatedly calls `exportToArray()` with `limit` and `offset` options. Custom sources must apply both options using a deterministic order and return no more than the requested limit. The `headers` array must remain identical for every window of the same export.
 
 This contract applies to separate and combined reports. A source that returns more rows than requested fails with a controlled error so Report Manager cannot silently duplicate data or retain an unbounded result.
+
+The built-in Formie, Entries, and Categories sources use a separate, explicit continuation capability with shared Report Manager orchestration. Merely registering a custom source, or subclassing a built-in source, does not opt it into resumable execution. The existing interface and paging contract above remain supported without changes to custom integrations.
 
 ### Column labels and identity
 

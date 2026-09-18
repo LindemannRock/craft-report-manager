@@ -5,7 +5,7 @@ import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 
 export const packageRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-export const approvedCustomerArchiveFileCount = 68;
+export const approvedCustomerArchiveFileCount = 72;
 const activeTemporaryPaths = new Set();
 let signalHandlersInstalled = false;
 
@@ -55,6 +55,10 @@ export function validateArchiveMembers(members) {
         'src/migrations/Install.php',
         'src/services/ExportService.php',
         'src/storage/ExportStorage.php',
+        'src/storage/ExportWorkStorage.php',
+        'src/export/ExportContinuation.php',
+        'src/datasources/ResumableDataSourceInterface.php',
+        'src/datasources/ElementExportSelection.php',
         'src/templates/exports/view.twig',
         'src/translations/en/report-manager.php',
         'src/icon.svg',

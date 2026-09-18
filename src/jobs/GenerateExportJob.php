@@ -11,6 +11,7 @@ namespace lindemannrock\reportmanager\jobs;
 use Craft;
 use craft\queue\BaseJob;
 use lindemannrock\base\traits\QueueTtrTrait;
+use lindemannrock\reportmanager\export\ExportContinuation;
 use lindemannrock\reportmanager\records\ExportRecord;
 use lindemannrock\reportmanager\ReportManager;
 use yii\queue\RetryableJobInterface;
@@ -39,10 +40,28 @@ class GenerateExportJob extends BaseJob implements RetryableJobInterface
     public bool $combined = false;
 
     /**
+     * Durable step identity; default preserves already-queued payloads.
+     *
+     * @internal
+     * @since 5.7.0
+     */
+    public int $sequence = 0;
+
+    /**
      * @inheritdoc
      */
     public function canRetry($attempt, $error): bool
     {
+        $export = ExportRecord::findOne($this->exportId);
+        if ($export === null || (!ExportContinuation::supports($export)
+            && !isset($export->getMetadataArray()[ExportContinuation::STATE_KEY]))) {
+            return false;
+        }
+        if ($attempt < 3) {
+            return true;
+        }
+        ExportContinuation::fail($this->exportId, $error, $this->sequence);
+
         return false;
     }
 
@@ -55,6 +74,24 @@ class GenerateExportJob extends BaseJob implements RetryableJobInterface
 
         if (!$export) {
             Craft::warning("Export #{$this->exportId} not found", 'report-manager');
+            return;
+        }
+
+        if (ExportContinuation::supports($export)
+            || isset($export->getMetadataArray()[ExportContinuation::STATE_KEY])) {
+            try {
+                ReportManager::getInstance()->exports->continueQueuedExport($this->exportId, $this->sequence, $queue);
+            } catch (\Throwable $error) {
+                Craft::error("Export #{$this->exportId}, step {$this->sequence}: {$error->getMessage()}", 'report-manager');
+                if ($error instanceof \lindemannrock\reportmanager\exceptions\ExportStorageUnavailableException) {
+                    throw $error;
+                }
+                throw new \RuntimeException(ExportContinuation::failureMessage(), previous: $error);
+            }
+            $fresh = ExportRecord::findOne($this->exportId);
+            if ($fresh !== null) {
+                $this->setProgress($queue, $fresh->progress / 100, $fresh->getStatusLabel());
+            }
             return;
         }
 
