@@ -28,6 +28,8 @@ Exports run through Craft's **queue**, not inline — so large exports don't tie
 
 Formie, Craft Entries, and Craft Categories share a resumable pipeline for both separate and combined CSV, JSON, and XLSX exports. A large export passes through several queue jobs: selecting records, generating bounded groups of rows, assembling the file, and cleaning up. Its export record stays **Processing** across those jobs; a completed queue job does not necessarily mean the download is ready.
 
+In **Utilities → Queue Manager**, the percentage is for the **whole export**, not just the current job. Each continuation starts at the last saved percentage and updates while generating rows and assembling the file. The export detail page shows saved progress, so it can briefly trail the active queue job. A retried step starts from its last saved checkpoint. Progress reaches 100% only after publication and cleanup finish.
+
 Each row-generation job handles at most 100 records and yields earlier after about 90 seconds. **Maximum Export Batch Size** remains an upper limit, not a promise that every job will process that many records. Selection and final assembly have their own execution budgets. No increase to the global queue timeout is required.
 
 The export captures its column plan and date boundaries when generation begins, then captures the ordered record identities for each selected entity. Records added after that entity's selection are excluded. Records removed or no longer matching the filters are skipped; field values are read when each row is generated. This gives stable membership and ordering across workers, rather than a point-in-time snapshot of every field value.

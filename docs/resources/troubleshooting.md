@@ -31,6 +31,8 @@ Queued export providers have a separate contract: a provider that builds and ret
 
 For built-in Formie, Craft Entries, and Craft Categories, one export normally uses several queue jobs. The detail page stays **Processing** while selection, row generation, final assembly, and cleanup run. Keep the queue worker running until the export itself is **Completed**.
 
+Queue Manager shows overall export progress for the active continuation. It can stay unchanged while selecting records or waiting on a slow source/storage operation. Row processing and file assembly update the percentage as work advances; the report page shows the last saved checkpoint. If every active continuation remains at 0% while the report page advances, update to a version containing the queue progress correction and recycle workers so they load the updated code.
+
 **Quick checks:**
 
 1. Inspect **Utilities → Queue Manager** and the [plugin logs](logging.md). A failed continuation may still have automatic retry attempts available; each step allows up to three attempts.

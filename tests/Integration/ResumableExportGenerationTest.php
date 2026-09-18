@@ -32,6 +32,8 @@ class ResumableExportGenerationTest extends TestCase
     private ExportStepQueue $stepQueue;
     private object $savedQueue;
     private string $directory;
+    /** @var list<array{int, int, string|null}> */
+    private array $queueProgressUpdates = [];
 
     protected function setUp(): void
     {
@@ -74,6 +76,52 @@ class ResumableExportGenerationTest extends TestCase
             yield $format . '-separate' => [$format, false];
             yield $format . '-combined' => [$format, true];
         }
+    }
+
+    #[DataProvider('formats')]
+    public function testQueueShowsOverallProgressDuringEachContinuation(string $format, bool $combined): void
+    {
+        $export = $this->createExport($format, $combined);
+        self::assertTrue($this->exports->queueExportGeneration($export));
+        $queue = $this->createMock(\craft\queue\Queue::class);
+        foreach (['priority', 'delay', 'ttr'] as $method) {
+            $queue->method($method)->willReturnSelf();
+        }
+        $queue->method('push')->willReturnCallback(fn($job) => $this->stepQueue->push($job));
+        $queue->method('setProgress')->willReturnCallback(function(int $progress, ?string $label) use ($export): void {
+            $fresh = ExportRecord::findOne($export->id);
+            $this->queueProgressUpdates[] = [$progress, (int)$fresh->progress, $label];
+        });
+        $observedRows = false;
+        $observedAssembly = false;
+        while ($this->stepQueue->messages !== []) {
+            $before = ExportRecord::findOne($export->id);
+            $phase = $before->getMetadataArray()[ExportContinuation::STATE_KEY]['phase'] ?? 'init';
+            $this->queueProgressUpdates = [];
+            $this->nextJob()->execute($queue);
+            /** @var list<array{int, int, string|null}> $updates Captured by the queue callback during execution. */
+            $updates = $this->queueProgressUpdates;
+            self::assertNotEmpty($updates);
+            self::assertSame(max(1, (int)$before->progress), $updates[0][0]);
+            if ($phase === 'rows') {
+                $observedRows = true;
+                self::assertNotEmpty(array_filter($updates, static fn(array $update): bool => $update[0] > $update[1]));
+                self::assertSame('Processing', $updates[0][2]);
+            }
+            if ($phase === 'assembly') {
+                $observedAssembly = true;
+                self::assertNotEmpty(array_filter($updates, static fn(array $update): bool => $update[0] > 95 && $update[0] < 99));
+            }
+            $fresh = ExportRecord::findOne($export->id);
+            self::assertSame((int)$fresh->progress, $updates[array_key_last($updates)][0]);
+            $percentages = array_column($updates, 0);
+            $sorted = $percentages;
+            sort($sorted);
+            self::assertSame($sorted, $percentages);
+        }
+        self::assertTrue($observedRows);
+        self::assertTrue($observedAssembly);
+        $this->assertCompleted($export);
     }
 
     #[DataProvider('formats')]

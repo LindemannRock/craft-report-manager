@@ -65,9 +65,9 @@ class ExportContinuation
         }
     }
 
-    public function execute(int $id, int $sequence, $queue, callable $planFactory, callable $publish): void
+    public function execute(int $id, int $sequence, $queue, callable $planFactory, callable $publish, ?callable $progressCallback = null): void
     {
-        self::locked($id, function() use ($id, $sequence, $queue, $planFactory, $publish): void {
+        self::locked($id, function() use ($id, $sequence, $queue, $planFactory, $publish, $progressCallback): void {
             $export = ExportRecord::findOne($id);
             if ($export === null || (!$export->isPending() && !$export->isProcessing())) {
                 return;
@@ -91,6 +91,12 @@ class ExportContinuation
                 $export->startedAt = new DateTime();
                 $export->progress = 1;
                 $this->save($export, $state);
+            }
+            $reportProgress = $progressCallback === null ? null : static function(int $progress) use ($progressCallback, $export): void {
+                $progressCallback($progress, $export->getStatusLabel());
+            };
+            if ($reportProgress !== null) {
+                $reportProgress((int)$export->progress);
             }
             if ($state['version'] !== 1) {
                 throw new \RuntimeException('Unsupported export checkpoint version.');
@@ -119,11 +125,11 @@ class ExportContinuation
                     $this->capture($source, $plan, $state, $work, $started);
                     break;
                 case 'rows':
-                    $this->rows($source, $plan, $state, $work, $started);
-                    $export->progress = max((int)$export->progress, min(95, 5 + (int)(90 * $state['processed'] / max(1, $state['total']))));
+                    $this->rows($source, $plan, $state, $work, $started, $reportProgress);
+                    $export->progress = max((int)$export->progress, $this->rowProgress($state));
                     break;
                 case 'assembly':
-                    $this->assemble($export, $plan, $state, $work, $publish, $started);
+                    $this->assemble($export, $plan, $state, $work, $publish, $started, $reportProgress);
                     $export->progress = 99;
                     break;
                 case 'cleanup':
@@ -209,7 +215,7 @@ class ExportContinuation
         }
     }
 
-    private function rows(ResumableDataSourceInterface $source, array $plan, array &$state, ExportWorkStorage $work, float $started): void
+    private function rows(ResumableDataSourceInterface $source, array $plan, array &$state, ExportWorkStorage $work, float $started, ?callable $progressCallback): void
     {
         $rows = [];
         $consumed = 0;
@@ -247,6 +253,9 @@ class ExportContinuation
                 $state['offset']++;
                 $state['processed']++;
                 $consumed++;
+                if ($progressCallback !== null) {
+                    $progressCallback($this->rowProgress($state));
+                }
                 if ($consumed >= $this->rowLimit() || $this->now() - $started >= $this->rowSeconds()) {
                     break 2;
                 }
@@ -258,7 +267,7 @@ class ExportContinuation
         $this->boundary('chunk');
     }
 
-    private function assemble(ExportRecord $export, array $plan, array &$state, ExportWorkStorage $work, callable $publish, float $started): void
+    private function assemble(ExportRecord $export, array $plan, array &$state, ExportWorkStorage $work, callable $publish, float $started, ?callable $progressCallback): void
     {
         $writer = null;
         $path = null;
@@ -269,6 +278,9 @@ class ExportContinuation
             for ($part = $state['firstOutput']; $part <= $state['lastOutput']; $part++) {
                 $this->requireTime($started, 300);
                 $writer->writeRows($work->read('output-' . $part));
+                if ($progressCallback !== null) {
+                    $progressCallback(95 + (int)(3 * ($part - $state['firstOutput'] + 1) / ($state['lastOutput'] - $state['firstOutput'] + 1)));
+                }
             }
             $path = $writer->finish();
             $this->requireTime($started, 300);
@@ -284,6 +296,11 @@ class ExportContinuation
             }
             $work->clearStaging();
         }
+    }
+
+    private function rowProgress(array $state): int
+    {
+        return min(95, 5 + (int)(90 * $state['processed'] / max(1, $state['total'])));
     }
 
     private function admit(ExportRecord $export, array &$state, $queue): void

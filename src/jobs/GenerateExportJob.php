@@ -80,7 +80,14 @@ class GenerateExportJob extends BaseJob implements RetryableJobInterface
         if (ExportContinuation::supports($export)
             || isset($export->getMetadataArray()[ExportContinuation::STATE_KEY])) {
             try {
-                ReportManager::getInstance()->exports->continueQueuedExport($this->exportId, $this->sequence, $queue);
+                ReportManager::getInstance()->exports->continueQueuedExport(
+                    $this->exportId,
+                    $this->sequence,
+                    $queue,
+                    function(int $progress, string $label) use ($queue): void {
+                        $this->setProgress($queue, $progress / 100, $label);
+                    },
+                );
             } catch (\Throwable $error) {
                 Craft::error("Export #{$this->exportId}, step {$this->sequence}: {$error->getMessage()}", 'report-manager');
                 if ($error instanceof \lindemannrock\reportmanager\exceptions\ExportStorageUnavailableException) {

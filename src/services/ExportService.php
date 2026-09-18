@@ -495,7 +495,7 @@ class ExportService extends Component
      * @internal
      * @since 5.6.1
      */
-    public function continueQueuedExport(int $exportId, int $sequence, $queue): void
+    public function continueQueuedExport(int $exportId, int $sequence, $queue, ?callable $progressCallback = null): void
     {
         $this->createContinuation()->execute(
             $exportId,
@@ -503,6 +503,7 @@ class ExportService extends Component
             $queue,
             fn(ExportRecord $export, ResumableDataSourceInterface $source): array => $this->continuationPlan($export, $source),
             fn(ExportRecord $export, string $path): array => $this->_writeExportTempFile($export, $path),
+            $progressCallback,
         );
     }
 
