@@ -33,6 +33,8 @@ For built-in Formie, Craft Entries, and Craft Categories, one export normally us
 
 Queue Manager shows overall export progress for the active continuation. It can stay unchanged while selecting records or waiting on a slow source/storage operation. Row processing and file assembly update the percentage as work advances; the report page shows the last saved checkpoint. If every active continuation remains at 0% while the report page advances, update to a version containing the queue progress correction and recycle workers so they load the updated code.
 
+If the export detail page shows a blank gap under **Progress**, the bar may be invisible because of an older styling issue. The corrected template uses the shared processing color and a light gray track. Updating the template restores the bar without restarting the export. While processing, the percentage beside Status and the bar both update from the same automatic status check; a manual reload is not needed.
+
 **Quick checks:**
 
 1. Inspect **Utilities → Queue Manager** and the [plugin logs](logging.md). A failed continuation may still have automatic retry attempts available; each step allows up to three attempts.

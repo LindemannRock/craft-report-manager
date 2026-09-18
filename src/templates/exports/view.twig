@@ -55,7 +55,7 @@
                             colorSet: 'exportStatus',
                         } only %}
                         {% if export.isProcessing %}
-                            <span class="light">({{ export.progress }}%)</span>
+                            <span id="export-status-progress" class="light">({{ export.progress }}%)</span>
                         {% endif %}
                         {% if progressMessage %}
                             <div class="light" style="margin-top: 4px;">{{ progressMessage }}</div>
@@ -185,8 +185,8 @@
     {% if export.isPending or export.isProcessing %}
         <div class="pane" style="margin-top: 24px;">
             <h2>{{ 'Progress'|t('report-manager') }}</h2>
-            <div class="progress-bar" style="background: var(--medium-bg-color); height: 20px; border-radius: 4px; overflow: hidden;">
-                <div id="progress-fill" style="background: var(--accent-color); height: 100%; width: {{ export.progress }}%; transition: width 0.3s;"></div>
+            <div class="progress-bar" style="background: rgba({{ lrPaletteColor('gray').rgb }}, 0.15); height: 20px; border-radius: 4px; overflow: hidden;">
+                <div id="progress-fill" style="background: {{ lrSetColor('exportStatus', 'processing').color }}; height: 100%; width: {{ export.progress }}%; transition: width 0.3s;"></div>
             </div>
             <p id="progress-message" class="light" style="margin-top: 8px;{{ progressMessage ? '' : ' display: none;' }}">{{ progressMessage }}</p>
             <p class="light" style="margin-top: 8px;">{{ 'Export is being processed. This page will refresh automatically.'|t('report-manager') }}</p>
@@ -203,6 +203,7 @@
                         success: function(response) {
                             if (response.success) {
                                 $('#progress-fill').css('width', response.progress + '%');
+                                $('#export-status-progress').text('(' + response.progress + '%)');
                                 if (response.progressMessage) {
                                     $('#progress-message').text(response.progressMessage).show();
                                 }
