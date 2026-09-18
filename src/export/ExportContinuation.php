@@ -22,7 +22,7 @@ use lindemannrock\reportmanager\storage\ExportWorkStorage;
  * Durable finite-job orchestration shared by resumable standard data sources.
  *
  * @internal
- * @since 5.7.0
+ * @since 5.6.1
  */
 class ExportContinuation
 {

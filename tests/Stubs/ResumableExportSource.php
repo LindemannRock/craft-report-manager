@@ -14,7 +14,7 @@ use lindemannrock\reportmanager\datasources\ResumableDataSourceInterface;
 /**
  * Registered source with explicit durable identities and deterministic values.
  *
- * @since 5.7.0
+ * @since 5.6.1
  */
 class ResumableExportSource extends BaseDataSource implements ResumableDataSourceInterface
 {

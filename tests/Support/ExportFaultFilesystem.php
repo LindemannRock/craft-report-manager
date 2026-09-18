@@ -13,7 +13,7 @@ use craft\fs\Local;
 /**
  * Real filesystem operations with controlled publication and cleanup failures.
  *
- * @since 5.7.0
+ * @since 5.6.1
  */
 class ExportFaultFilesystem extends Local
 {

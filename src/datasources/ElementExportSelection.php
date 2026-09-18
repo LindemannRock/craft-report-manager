@@ -14,7 +14,7 @@ use craft\elements\db\ElementQuery;
  * Shared identity handling for the built-in element-backed sources.
  *
  * @internal
- * @since 5.7.0
+ * @since 5.6.1
  */
 final class ElementExportSelection
 {

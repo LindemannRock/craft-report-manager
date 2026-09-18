@@ -13,7 +13,7 @@ use lindemannrock\reportmanager\export\ExportContinuation;
 /**
  * Fault and clock seams at the real durable commit boundaries.
  *
- * @since 5.7.0
+ * @since 5.6.1
  */
 class ControlledExportContinuation extends ExportContinuation
 {

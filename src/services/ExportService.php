@@ -493,7 +493,7 @@ class ExportService extends Component
      * Run one finite standard export step; provider/custom fallback stays in the job.
      *
      * @internal
-     * @since 5.7.0
+     * @since 5.6.1
      */
     public function continueQueuedExport(int $exportId, int $sequence, $queue): void
     {

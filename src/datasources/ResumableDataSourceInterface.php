@@ -15,7 +15,7 @@ namespace lindemannrock\reportmanager\datasources;
  * selection and serialization. Existing DataSourceInterface implementations
  * without this capability keep their single-job behavior.
  *
- * @since 5.7.0
+ * @since 5.6.1
  */
 interface ResumableDataSourceInterface extends DataSourceInterface
 {

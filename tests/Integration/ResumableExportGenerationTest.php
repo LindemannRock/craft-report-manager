@@ -25,7 +25,7 @@ use PHPUnit\Framework\Attributes\DataProvider;
 /**
  * Durable output, retry, publication and exact deletion across fresh executions.
  *
- * @since 5.7.0
+ * @since 5.6.1
  */
 class ResumableExportGenerationTest extends TestCase
 {

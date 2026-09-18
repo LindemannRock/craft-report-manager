@@ -43,7 +43,7 @@ class GenerateExportJob extends BaseJob implements RetryableJobInterface
      * Durable step identity; default preserves already-queued payloads.
      *
      * @internal
-     * @since 5.7.0
+     * @since 5.6.1
      */
     public int $sequence = 0;
 

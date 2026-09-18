@@ -13,7 +13,7 @@ use yii\queue\Queue;
 /**
  * Serializes each admission so the next execution owns a fresh job instance.
  *
- * @since 5.7.0
+ * @since 5.6.1
  */
 class ExportStepQueue extends Queue
 {

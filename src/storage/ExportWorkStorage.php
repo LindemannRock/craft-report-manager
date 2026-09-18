@@ -16,7 +16,7 @@ use lindemannrock\reportmanager\records\ExportRecord;
  * Authenticated, independently replaceable work objects on captured storage.
  *
  * @internal
- * @since 5.7.0
+ * @since 5.6.1
  */
 final class ExportWorkStorage
 {

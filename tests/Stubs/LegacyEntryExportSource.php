@@ -13,7 +13,7 @@ use lindemannrock\reportmanager\datasources\EntriesDataSource;
 /**
  * Existing integrations may subclass a built-in without opting into continuation.
  *
- * @since 5.7.0
+ * @since 5.6.1
  */
 class LegacyEntryExportSource extends EntriesDataSource
 {

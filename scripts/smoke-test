@@ -1,0 +1,110 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# The compatibility runner copies this script into its owned disposable project.
+cd "$(CDPATH= cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd -P)"
+php <<'PHP'
+<?php
+/**
+ * @copyright Copyright (c) 2026 LindemannRock
+ */
+
+$root = getcwd();
+$config = is_file($root . '/.ddev/config.yaml') ? file_get_contents($root . '/.ddev/config.yaml') : '';
+if (!preg_match('/^name: compat-report-manager-[a-z0-9]+\s*$/m', $config)
+    || !is_file($root . '/.craft-compat/smoke-test')) {
+    throw new RuntimeException('Smoke requires the runner-owned Report Manager compatibility project.');
+}
+
+require $root . '/bootstrap.php';
+require CRAFT_VENDOR_PATH . '/craftcms/cms/bootstrap/console.php';
+
+function verify(bool $condition, string $message): void
+{
+    if (!$condition) {
+        throw new RuntimeException($message);
+    }
+}
+
+$plugin = Craft::$app->getPlugins()->getPlugin('report-manager');
+verify($plugin instanceof \lindemannrock\reportmanager\ReportManager, 'Report Manager must be installed.');
+$settings = $plugin->getSettings();
+$originalSettings = $settings->getAttributes();
+$token = 'compat' . bin2hex(random_bytes(6));
+$group = new \craft\models\CategoryGroup([
+    'name' => $token,
+    'handle' => $token,
+    'maxLevels' => 1,
+]);
+$site = Craft::$app->getSites()->getPrimarySite();
+$group->setSiteSettings([new \craft\models\CategoryGroup_SiteSettings([
+    'siteId' => $site->id,
+    'hasUrls' => false,
+])]);
+$exports = [];
+$category = null;
+
+try {
+    $settings->exportVolumeUid = null;
+    $settings->csvIncludeBom = false;
+    verify(Craft::$app->getCategories()->saveGroup($group), 'Category group must persist.');
+    $category = new \craft\elements\Category([
+        'groupId' => $group->id,
+        'siteId' => $site->id,
+        'enabled' => true,
+        'enabledForSite' => true,
+        'title' => $token . ' العربية',
+        'slug' => $token,
+    ]);
+    verify(Craft::$app->getElements()->saveElement($category, updateSearchIndex: false), 'Category must persist.');
+
+    foreach (['csv', 'json', 'xlsx'] as $format) {
+        $export = $plugin->exports->createExport('categories', (int)$group->id, $format, [
+            'siteIds' => [(int)$site->id],
+        ]);
+        $exports[] = $export;
+        verify($export->id !== null, 'Export must persist.');
+        verify($plugin->exports->generateExport($export), 'Generation failed: ' . $export->errorMessage);
+        $fresh = $plugin->exports->getExportById((int)$export->id);
+        verify($fresh !== null && $fresh->isCompleted() && (int)$fresh->recordCount === 1, 'Export must complete with one record.');
+        $content = $plugin->exports->getFileContent($fresh);
+        verify(is_string($content) && strlen($content) > 0, 'Generated file must be readable.');
+
+        if ($format === 'xlsx') {
+            $workbook = \PhpOffice\PhpSpreadsheet\IOFactory::load($fresh->filePath);
+            try {
+                $rows = $workbook->getActiveSheet()->toArray();
+                verify(count($rows) === 2, 'XLSX must contain a header and one row.');
+                verify(in_array($category->title, $rows[1], true), 'XLSX must preserve Unicode category title.');
+            } finally {
+                $workbook->disconnectWorksheets();
+            }
+        } else {
+            verify(str_contains($content, $token), strtoupper($format) . ' must contain the fixture.');
+            if ($format === 'json') {
+                json_decode($content, true, 512, JSON_THROW_ON_ERROR);
+            }
+        }
+
+        $path = $fresh->filePath;
+        verify($plugin->exports->deleteExport((int)$fresh->id), 'Export deletion must succeed.');
+        verify(!file_exists($path) && $plugin->exports->getExportById((int)$fresh->id) === null, 'Deletion must remove the file and record.');
+        echo strtoupper($format) . " generation/read/delete passed.\n";
+    }
+} finally {
+    foreach ($exports as $export) {
+        if ($export->id !== null && $plugin->exports->getExportById((int)$export->id) !== null) {
+            verify($plugin->exports->deleteExport((int)$export->id), 'Owned export cleanup failed.');
+        }
+    }
+    if ($category !== null && $category->id !== null) {
+        verify(Craft::$app->getElements()->deleteElement($category, true), 'Owned category cleanup failed.');
+    }
+    if ($group->id !== null) {
+        verify(Craft::$app->getCategories()->deleteGroup($group), 'Owned category group cleanup failed.');
+    }
+    $settings->setAttributes($originalSettings, false);
+}
+
+echo 'Report Manager meaningful smoke passed on PHP ' . PHP_VERSION . ', Craft ' . Craft::$app->getVersion() . ".\n";
+PHP

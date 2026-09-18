@@ -14,7 +14,7 @@ use lindemannrock\reportmanager\services\ExportService;
 /**
  * Creates a fresh continuation worker for each tested queue execution.
  *
- * @since 5.7.0
+ * @since 5.6.1
  */
 class ControlledExportService extends ExportService
 {
