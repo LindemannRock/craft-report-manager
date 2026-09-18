@@ -1,5 +1,12 @@
 # Changelog
 
+## [5.6.2](https://github.com/LindemannRock/craft-report-manager/compare/v5.6.1...v5.6.2) (2026-09-18)
+
+
+### Fixed
+
+* **queue:** show overall progress during export jobs ([a6d1488](https://github.com/LindemannRock/craft-report-manager/commit/a6d14882c5d240a10be6aaf6d645866c32427b59))
+
 ## [5.6.1](https://github.com/LindemannRock/craft-report-manager/compare/v5.6.0...v5.6.1) - 2026-09-18
 
 
