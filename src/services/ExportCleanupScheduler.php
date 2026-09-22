@@ -420,7 +420,7 @@ final class ExportCleanupScheduler extends Component
 
     private function logSkippedBootstrapReconciliation(string $lock): void
     {
-        Craft::warning(
+        Craft::debug(
             "Skipped export-cleanup bootstrap reconciliation because the $lock lock is busy; a later request will retry.",
             'report-manager',
         );

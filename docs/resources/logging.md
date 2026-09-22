@@ -113,7 +113,7 @@ The level of detail depends on your configured `logLevel`.
 
 ### Debug (`debug`)
 
-- Report Manager currently emits no plugin-specific debug-only events; this level remains available for shared logging diagnostics and future troubleshooting detail
+- Export-cleanup bootstrap reconciliation deferred because a lifecycle or portable queue lock is busy; a later request retries automatically
 
 ## Permissions
 

@@ -30,6 +30,7 @@ use lindemannrock\reportmanager\tests\Support\IsolatedQueue;
 use lindemannrock\reportmanager\tests\TestCase;
 use PHPUnit\Framework\Attributes\DataProvider;
 use ReflectionClass;
+use yii\log\Logger;
 use yii\mutex\Mutex;
 use yii\queue\Queue as YiiQueue;
 use yii\queue\sqs\Queue as SqsQueue;
@@ -45,6 +46,14 @@ final class ExportCleanupQueueTest extends TestCase
 
     private RecordingCleanupSqsQueue|RecordingUnknownQueue|null $proxyQueue = null;
     private bool $timePaused = false;
+    private ?int $originalLogFlushInterval = null;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->originalLogFlushInterval = Craft::getLogger()->flushInterval;
+        Craft::getLogger()->flushInterval = PHP_INT_MAX;
+    }
 
     protected function tearDown(): void
     {
@@ -54,6 +63,9 @@ final class ExportCleanupQueueTest extends TestCase
                 $this->timePaused = false;
             }
         } finally {
+            if ($this->originalLogFlushInterval !== null) {
+                Craft::getLogger()->flushInterval = $this->originalLogFlushInterval;
+            }
             parent::tearDown();
         }
     }
@@ -394,7 +406,7 @@ final class ExportCleanupQueueTest extends TestCase
         self::assertSame([ExportCleanupScheduler::LIFECYCLE_MUTEX], $mutex->acquisitions);
         self::assertSame([0], $mutex->timeouts);
         self::assertSame([], $mutex->releases);
-        $this->assertBootstrapWarningLogged($logOffset, 'lifecycle');
+        $this->assertBootstrapDebugLogged($logOffset, 'lifecycle');
     }
 
     public function testBootstrapPortableContentionIsNonfatalAndReleasesLifecycleWithoutInspectingRows(): void
@@ -423,7 +435,7 @@ final class ExportCleanupQueueTest extends TestCase
         self::assertSame([0, 0], $mutex->timeouts);
         self::assertSame([ExportCleanupScheduler::LIFECYCLE_MUTEX], $mutex->releases);
         self::assertFalse($mutex->holds(ExportCleanupScheduler::LIFECYCLE_MUTEX));
-        $this->assertBootstrapWarningLogged($logOffset, 'portable');
+        $this->assertBootstrapDebugLogged($logOffset, 'portable');
     }
 
     public function testLaterBootstrapReconcilesAfterContentionClears(): void
@@ -1158,17 +1170,17 @@ final class ExportCleanupQueueTest extends TestCase
         ], $rows);
     }
 
-    private function assertBootstrapWarningLogged(int $offset, string $lock): void
+    private function assertBootstrapDebugLogged(int $offset, string $lock): void
     {
-        $messages = array_slice(Craft::getLogger()->messages, $offset);
+        $expectedMessage = "Skipped export-cleanup bootstrap reconciliation because the $lock lock is busy; a later request will retry.";
         $matching = array_filter(
-            $messages,
-            static fn(array $message): bool => ($message[2] ?? null) === 'report-manager'
-                && str_contains((string)($message[0] ?? ''), "the $lock lock is busy")
-                && str_contains((string)($message[0] ?? ''), 'a later request will retry'),
+            array_slice(Craft::getLogger()->messages, $offset),
+            static fn(array $message): bool => $message[0] === $expectedMessage
+                && $message[2] === 'report-manager',
         );
 
-        self::assertNotEmpty($matching);
+        self::assertSame([Logger::LEVEL_TRACE], array_values(array_column($matching, 1)));
+        self::assertNotContains(Logger::LEVEL_WARNING, array_column($matching, 1));
     }
 
     /** @return list<int> */
