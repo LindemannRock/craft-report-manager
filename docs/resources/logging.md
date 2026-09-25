@@ -1,6 +1,6 @@
 # Logging
 
-Report Manager writes structured, per-day log files through the required [Logging Library](https://github.com/LindemannRock/craft-logging-library) 5.18.2 or later.
+Report Manager writes structured, per-day log files through the required [Logging Library](https://github.com/LindemannRock/craft-logging-library) 5.19.0 or later.
 
 > [!NOTE]
 > Logging Library is required by Composer. Install or activate it in Craft to enable log viewing.
